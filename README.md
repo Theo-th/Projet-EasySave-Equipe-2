@@ -9,6 +9,7 @@ Ce projet a pour but de concevoir et réaliser un logiciel de sauvegarde (Easy S
 * **Membre 2** (@pseudo) - *Rôle / UI-UX*
 * **Membre 3** (@pseudo) - *Rôle / Qualité & Tests*
 * **Membre 4** (@pseudo) - *Rôle / Documentation*
+* **Membre 5** (@antoineP-It - *Rôle / DSI*
 
 ---
 
