@@ -61,6 +61,33 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Retour.
+        /// </summary>
+        public static string BtnReturn {
+            get {
+                return ResourceManager.GetString("BtnReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Anglais.
+        /// </summary>
+        public static string LangEnglish {
+            get {
+                return ResourceManager.GetString("LangEnglish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Français.
+        /// </summary>
+        public static string LangFrench {
+            get {
+                return ResourceManager.GetString("LangFrench", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Menu Principal.
         /// </summary>
         public static string MenuMainMenu {
@@ -93,6 +120,15 @@ namespace Projet_EasySave.Properties {
         public static string MsgWelcome {
             get {
                 return ResourceManager.GetString("MsgWelcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Paramètres.
+        /// </summary>
+        public static string SettingsTitle {
+            get {
+                return ResourceManager.GetString("SettingsTitle", resourceCulture);
             }
         }
     }
