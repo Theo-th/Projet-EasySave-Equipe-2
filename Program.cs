@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Threading;
 
-using Projet-EasySave.Properties;
+using Projet_EasySave.Properties;
 
 namespace Projet_EasySave
 {
