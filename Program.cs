@@ -1,12 +1,19 @@
-﻿using Projet_EasySave.ViewModels;
+using Projet_EasySave.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
+using Projet_EasySave.Properties;
 
 namespace Projet_EasySave
 {
-    internal class Program
+    class Program
     {
         static void Main(string[] args)
         {
-            
+            ViewConsole view = new ViewConsole();
+            view.ShowConsole();
+
         }
     }
 }
