@@ -120,11 +120,47 @@
   <data name="BtnReturn" xml:space="preserve">
     <value>Back</value>
   </data>
+  <data name="CreateFinish" xml:space="preserve">
+    <value>Creation attempt completed</value>
+  </data>
+  <data name="CreateSave" xml:space="preserve">
+    <value>CREATING A BACKUP</value>
+  </data>
+  <data name="DeleteSave" xml:space="preserve">
+    <value>=== DELETING A BACKUP ===</value>
+  </data>
+  <data name="DestPath" xml:space="preserve">
+    <value>Destination path:</value>
+  </data>
+  <data name="EnterReturn" xml:space="preserve">
+    <value>Enter: Delete | Esc: Back</value>
+  </data>
+  <data name="ErrorCreateJob" xml:space="preserve">
+    <value>Error: Unable to create job (limit reached or file error).</value>
+  </data>
+  <data name="ExecuteJob" xml:space="preserve">
+    <value>Execution of {0} ...</value>
+  </data>
+  <data name="FinishDelete" xml:space="preserve">
+    <value>Deletion completed</value>
+  </data>
   <data name="LangEnglish" xml:space="preserve">
     <value>English</value>
   </data>
   <data name="LangFrench" xml:space="preserve">
     <value>French</value>
+  </data>
+  <data name="MenuAucunTravail" xml:space="preserve">
+    <value>No backup job configured</value>
+  </data>
+  <data name="MenuCreate" xml:space="preserve">
+    <value>Create a backup plan</value>
+  </data>
+  <data name="MenuDelete" xml:space="preserve">
+    <value>Delete a backup plan</value>
+  </data>
+  <data name="MenuLaunch" xml:space="preserve">
+    <value>LAUNCH OF BACKUPS</value>
   </data>
   <data name="MenuMainMenu" xml:space="preserve">
     <value>Main Menu</value>
@@ -135,10 +171,34 @@
   <data name="MenuOptionModify" xml:space="preserve">
     <value>Modify Backup Job</value>
   </data>
+  <data name="MenuOptionSave" xml:space="preserve">
+    <value>Space: Select | Enter: Launch | Esc: Return</value>
+  </data>
+  <data name="MenuQuit" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="MenuSaveLaunch" xml:space="preserve">
+    <value>Backups started! Press to continue.</value>
+  </data>
   <data name="MsgWelcome" xml:space="preserve">
     <value>Welcome to EasySave 1.0</value>
   </data>
+  <data name="NameSave" xml:space="preserve">
+    <value>Backup name:</value>
+  </data>
+  <data name="NoSaveDelete" xml:space="preserve">
+    <value>No backups to delete</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="SourcePath" xml:space="preserve">
+    <value>Source path:</value>
+  </data>
+  <data name="SureToDelete" xml:space="preserve">
+    <value>Are you sure you want to delete {0}? (Y/N):</value>
+  </data>
+  <data name="TypeSave" xml:space="preserve">
+    <value>Type (1: Full, 2: Differential):</value>
   </data>
 </root>

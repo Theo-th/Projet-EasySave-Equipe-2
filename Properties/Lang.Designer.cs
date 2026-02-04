@@ -70,6 +70,78 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Tentative de création terminée.
+        /// </summary>
+        public static string CreateFinish {
+            get {
+                return ResourceManager.GetString("CreateFinish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à CREATION D&apos;UNE SAUVEGARDE.
+        /// </summary>
+        public static string CreateSave {
+            get {
+                return ResourceManager.GetString("CreateSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à === SUPPRESSION D&apos;UNE SAUVEGARDE ===.
+        /// </summary>
+        public static string DeleteSave {
+            get {
+                return ResourceManager.GetString("DeleteSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Chemin de destination :.
+        /// </summary>
+        public static string DestPath {
+            get {
+                return ResourceManager.GetString("DestPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Entrée : Supprimer | Echap : Retour.
+        /// </summary>
+        public static string EnterReturn {
+            get {
+                return ResourceManager.GetString("EnterReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur : Impossible de créer le travail (limite atteinte ou erreur fichier)..
+        /// </summary>
+        public static string ErrorCreateJob {
+            get {
+                return ResourceManager.GetString("ErrorCreateJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Exécution de {0} ....
+        /// </summary>
+        public static string ExecuteJob {
+            get {
+                return ResourceManager.GetString("ExecuteJob", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Suppression effectuée.
+        /// </summary>
+        public static string FinishDelete {
+            get {
+                return ResourceManager.GetString("FinishDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Anglais.
         /// </summary>
         public static string LangEnglish {
@@ -88,6 +160,42 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucun travail de sauvegarde configuré.
+        /// </summary>
+        public static string MenuAucunTravail {
+            get {
+                return ResourceManager.GetString("MenuAucunTravail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Créer un plan de sauvegarde.
+        /// </summary>
+        public static string MenuCreate {
+            get {
+                return ResourceManager.GetString("MenuCreate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Supprimer un plan de sauvegarde.
+        /// </summary>
+        public static string MenuDelete {
+            get {
+                return ResourceManager.GetString("MenuDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à LANCEMENT DES SAUVEGARDES.
+        /// </summary>
+        public static string MenuLaunch {
+            get {
+                return ResourceManager.GetString("MenuLaunch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Menu Principal.
         /// </summary>
         public static string MenuMainMenu {
@@ -97,7 +205,7 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à Executer un travail de sauvegarde.
+        ///   Recherche une chaîne localisée semblable à Exécuter un travail de sauvegarde.
         /// </summary>
         public static string MenuOptionExecute {
             get {
@@ -115,6 +223,33 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Espace : Sélectionner | Entrée : Lancer | Echap : Retour.
+        /// </summary>
+        public static string MenuOptionSave {
+            get {
+                return ResourceManager.GetString("MenuOptionSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Quitter.
+        /// </summary>
+        public static string MenuQuit {
+            get {
+                return ResourceManager.GetString("MenuQuit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegardes lancées ! Appuyer pour continuer..
+        /// </summary>
+        public static string MenuSaveLaunch {
+            get {
+                return ResourceManager.GetString("MenuSaveLaunch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Bienvenue dans EasySave 1.0.
         /// </summary>
         public static string MsgWelcome {
@@ -124,11 +259,56 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Nom de la sauvegarde :.
+        /// </summary>
+        public static string NameSave {
+            get {
+                return ResourceManager.GetString("NameSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucune sauvegarde à supprimer.
+        /// </summary>
+        public static string NoSaveDelete {
+            get {
+                return ResourceManager.GetString("NoSaveDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Paramètres.
         /// </summary>
         public static string SettingsTitle {
             get {
                 return ResourceManager.GetString("SettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Chemin source :.
+        /// </summary>
+        public static string SourcePath {
+            get {
+                return ResourceManager.GetString("SourcePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Êtes-vous sûr de vouloir supprimer {0} ? (O/N) :.
+        /// </summary>
+        public static string SureToDelete {
+            get {
+                return ResourceManager.GetString("SureToDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Type (1: Complet, 2: Differentiel) :.
+        /// </summary>
+        public static string TypeSave {
+            get {
+                return ResourceManager.GetString("TypeSave", resourceCulture);
             }
         }
     }

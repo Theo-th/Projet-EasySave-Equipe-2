@@ -120,25 +120,85 @@
   <data name="BtnReturn" xml:space="preserve">
     <value>Retour</value>
   </data>
+  <data name="CreateFinish" xml:space="preserve">
+    <value>Tentative de création terminée</value>
+  </data>
+  <data name="CreateSave" xml:space="preserve">
+    <value>CREATION D'UNE SAUVEGARDE</value>
+  </data>
+  <data name="DeleteSave" xml:space="preserve">
+    <value>=== SUPPRESSION D'UNE SAUVEGARDE ===</value>
+  </data>
+  <data name="DestPath" xml:space="preserve">
+    <value>Chemin de destination :</value>
+  </data>
+  <data name="EnterReturn" xml:space="preserve">
+    <value>Entrée : Supprimer | Echap : Retour</value>
+  </data>
+  <data name="ErrorCreateJob" xml:space="preserve">
+    <value>Erreur : Impossible de créer le travail (limite atteinte ou erreur fichier).</value>
+  </data>
+  <data name="ExecuteJob" xml:space="preserve">
+    <value>Exécution de {0} ...</value>
+  </data>
+  <data name="FinishDelete" xml:space="preserve">
+    <value>Suppression effectuée</value>
+  </data>
   <data name="LangEnglish" xml:space="preserve">
     <value>Anglais</value>
   </data>
   <data name="LangFrench" xml:space="preserve">
     <value>Français</value>
   </data>
+  <data name="MenuAucunTravail" xml:space="preserve">
+    <value>Aucun travail de sauvegarde configuré</value>
+  </data>
+  <data name="MenuCreate" xml:space="preserve">
+    <value>Créer un plan de sauvegarde</value>
+  </data>
+  <data name="MenuDelete" xml:space="preserve">
+    <value>Supprimer un plan de sauvegarde</value>
+  </data>
+  <data name="MenuLaunch" xml:space="preserve">
+    <value>LANCEMENT DES SAUVEGARDES</value>
+  </data>
   <data name="MenuMainMenu" xml:space="preserve">
     <value>Menu Principal</value>
   </data>
   <data name="MenuOptionExecute" xml:space="preserve">
-    <value>Executer un travail de sauvegarde</value>
+    <value>Exécuter un travail de sauvegarde</value>
   </data>
   <data name="MenuOptionModify" xml:space="preserve">
     <value>Modifier un travail de sauvegarde</value>
   </data>
+  <data name="MenuOptionSave" xml:space="preserve">
+    <value>Espace : Sélectionner | Entrée : Lancer | Echap : Retour</value>
+  </data>
+  <data name="MenuQuit" xml:space="preserve">
+    <value>Quitter</value>
+  </data>
+  <data name="MenuSaveLaunch" xml:space="preserve">
+    <value>Sauvegardes lancées ! Appuyer pour continuer.</value>
+  </data>
   <data name="MsgWelcome" xml:space="preserve">
     <value>Bienvenue dans EasySave 1.0</value>
   </data>
+  <data name="NameSave" xml:space="preserve">
+    <value>Nom de la sauvegarde :</value>
+  </data>
+  <data name="NoSaveDelete" xml:space="preserve">
+    <value>Aucune sauvegarde à supprimer</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Paramètres</value>
+  </data>
+  <data name="SourcePath" xml:space="preserve">
+    <value>Chemin source :</value>
+  </data>
+  <data name="SureToDelete" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer {0} ? (O/N) :</value>
+  </data>
+  <data name="TypeSave" xml:space="preserve">
+    <value>Type (1: Complet, 2: Differentiel) :</value>
   </data>
 </root>
