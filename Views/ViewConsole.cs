@@ -9,7 +9,7 @@ namespace Projet_EasySave
 {
     public class ViewConsole
     {
-        
+
         private ViewModelConsole _viewModel;
 
         public ViewConsole(ViewModelConsole viewModel)
@@ -30,11 +30,11 @@ namespace Projet_EasySave
             while (!quitter)
             {
                 string[] options = {
-                    "Lancer plan de sauvegarde", // Lang.MenuLaunch
-                    "Créer plan de sauvegarde",  // Lang.MenuCreate
-                    "Supprimer plan de sauvegarde", // Lang.MenuDelete
-                    "Paramètres / Settings",     // Lang.MenuSettings
-                    "Quitter"                    // Lang.MenuQuit
+                    Lang.MenuOptionExecute,
+                    Lang.MenuCreate,
+                    Lang.MenuDelete,
+                    Lang.SettingsTitle,
+                    Lang.MenuQuit
                 };
 
                 AfficherMenuPrincipal(index, options);
@@ -69,7 +69,7 @@ namespace Projet_EasySave
         {
             Console.Clear();
             Console.WriteLine("-------------------------------------");
-            Console.WriteLine($"      EASY SAVE - MENU PRINCIPAL      ");
+            Console.WriteLine(Lang.MsgWelcome);
             Console.WriteLine("-------------------------------------");
 
             for (int i = 0; i < options.Length; i++)
@@ -101,13 +101,13 @@ namespace Projet_EasySave
             while (!back)
             {
                 Console.Clear();
-                Console.WriteLine("=== LANCEMENT DES SAUVEGARDES ===");
-                Console.WriteLine("Space: Sélectionner | Enter: Lancer | Echapp: Retour");
+                Console.WriteLine(Lang.MenuLaunch);
+                Console.WriteLine(Lang.MenuOptionSave);
                 Console.WriteLine("-------------------------------------");
 
                 if (jobs.Count == 0)
                 {
-                    Console.WriteLine("Aucun travail de sauvegarde configuré.");
+                    Console.WriteLine(Lang.MenuAucunTravail);
                     Console.ReadKey();
                     back = true;
                     continue;
@@ -137,7 +137,7 @@ namespace Projet_EasySave
                     if (selectedIndices.Count > 0)
                     {
                         executeJob(selectedIndices);
-                        Console.WriteLine("Sauvegardes lancées ! Appuyez pour continuer.");
+                        Console.WriteLine(Lang.MenuSaveLaunch);
                         Console.ReadKey();
                         back = true;
                     }
@@ -149,24 +149,24 @@ namespace Projet_EasySave
         private void MenuCreation()
         {
             Console.Clear();
-            Console.WriteLine("=== CREATION D'UNE SAUVEGARDE ===");
+            Console.WriteLine(Lang.CreateSave);
 
-            Console.Write("Nom de la sauvegarde : ");
+            Console.Write(Lang.NameSave);
             string name = Console.ReadLine();
 
-            Console.Write("Chemin source : ");
+            Console.Write(Lang.SourcePath);
             string source = Console.ReadLine();
 
-            Console.Write("Chemin destination : ");
+            Console.Write(Lang.DestPath);
             string dest = Console.ReadLine();
 
-            Console.WriteLine("Type (1: Complet, 2: Différentiel) : ");
+            Console.WriteLine(Lang.TypeSave);
             string type = Console.ReadLine();
 
             // Appel au ViewModel
             createJob(name, source, dest, type);
 
-            Console.WriteLine("\nTentative de création terminée.");
+            Console.WriteLine(Lang.CreateFinish);
             Console.ReadKey();
         }
 
@@ -180,13 +180,13 @@ namespace Projet_EasySave
             while (!back)
             {
                 Console.Clear();
-                Console.WriteLine("=== SUPPRESSION D'UNE SAUVEGARDE ===");
-                Console.WriteLine("Enter: Supprimer | Echapp: Retour");
+                Console.WriteLine(Lang.DeleteSave);
+                Console.WriteLine(Lang.EnterReturn);
                 Console.WriteLine("-------------------------------------");
 
                 if (jobs.Count == 0)
                 {
-                    Console.WriteLine("Aucune sauvegarde à supprimer.");
+                    Console.WriteLine(Lang.NoSaveDelete);
                     Console.ReadKey();
                     back = true;
                     continue;
@@ -207,12 +207,12 @@ namespace Projet_EasySave
                 else if (key.Key == ConsoleKey.Escape) back = true;
                 else if (key.Key == ConsoleKey.Enter)
                 {
-                    Console.Write($"\nÊtes-vous sûr de vouloir supprimer '{jobs[index]}' ? (O/N) : ");
+                    Console.Write(string.Format(Lang.SureToDelete, jobs[index]));
                     string confirm = Console.ReadLine();
                     if (confirm.ToUpper() == "O" || confirm.ToUpper() == "Y")
                     {
                         deleteJob(index);
-                        Console.WriteLine("Suppression effectuée.");
+                        Console.WriteLine(Lang.FinishDelete);
                         Console.ReadKey();
 
                         // Mise à jour de la liste locale pour l'affichage
@@ -231,13 +231,13 @@ namespace Projet_EasySave
             while (!back)
             {
                 string[] options = {
-                    "Français", // Lang.LangFrench
-                    "English",  // Lang.LangEnglish
-                    "Retour"    // Lang.BtnReturn
+                    Lang.LangFrench,
+                    Lang.LangEnglish,
+                    Lang.BtnReturn
                 };
 
                 Console.Clear();
-                Console.WriteLine($"=== {Lang.SettingsTitle ?? "Paramètres"} ===");
+                Console.WriteLine(Lang.SettingsTitle);
                 Console.WriteLine("-------------------------------------");
 
                 for (int i = 0; i < options.Length; i++)
@@ -317,7 +317,7 @@ namespace Projet_EasySave
             bool success = _viewModel.CreateJob(name, source, dest, type);
             if (!success)
             {
-                Console.WriteLine("Erreur: Impossible de créer le travail (limite atteinte ou erreur fichier).");
+                Console.WriteLine(Lang.ErrorCreateJob);
             }
         }
 
@@ -334,7 +334,7 @@ namespace Projet_EasySave
             {
                 // On récupère le nom pour l'afficher joliment
                 string jobName = _viewModel.GetJob(i) ?? "Inconnu";
-                Console.WriteLine($"Exécution de {jobName}...");
+                Console.WriteLine(string.Format(Lang.ExecuteJob, jobName));
             }
 
             // Appel direct au ViewModel pour lancer la liste
