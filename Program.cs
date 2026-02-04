@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using Projet_EasySave.Properties;
+using Projet_EasySave.ViewModels;
 
 namespace Projet_EasySave
 {
@@ -11,8 +12,13 @@ namespace Projet_EasySave
     {
         static void Main(string[] args)
         {
-            ViewConsole view = new ViewConsole();
+            ViewModelConsole viewModel = new ViewModelConsole();
+
+            ViewConsole view = new ViewConsole(viewModel);
             view.ShowConsole();
+
+            
+
 
         }
     }
