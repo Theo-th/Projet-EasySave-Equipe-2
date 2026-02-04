@@ -12,6 +12,7 @@ namespace Projet_EasySave.ViewModels
     public class ViewModelConsole
     {
         private JobConfigService _configService;
+        private BackupService _backupService;
 
         /// <summary>
         /// Initialise une nouvelle instance du ViewModel pour la console.
@@ -19,6 +20,7 @@ namespace Projet_EasySave.ViewModels
         public ViewModelConsole()
         {
             _configService = new JobConfigService();
+            _backupService = new BackupService(_configService);
         }
 
         /// <summary>
@@ -41,7 +43,7 @@ namespace Projet_EasySave.ViewModels
         /// <returns>true si l'exécution a réussi, false sinon</returns>
         public bool ExecuteJob(int jobIndex)
         {
-            return false;
+            return _backupService.ExecuteBackup(jobIndex);
         }
 
         /// <summary>
@@ -51,7 +53,13 @@ namespace Projet_EasySave.ViewModels
         /// <returns>true si tous les travaux ont réussi, false sinon</returns>
         public bool ExecuteJobs(List<int> jobIndices)
         {
-            return true;
+            bool allSuccess = true;
+            foreach (int index in jobIndices)
+            {
+                if (!_backupService.ExecuteBackup(index))
+                    allSuccess = false;
+            }
+            return allSuccess;
         }
 
         /// <summary>
