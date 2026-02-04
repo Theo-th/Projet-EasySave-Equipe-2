@@ -163,6 +163,10 @@ namespace Projet_EasySave
             Console.WriteLine("Type (1: Complet, 2: Différentiel) : ");
             string type = Console.ReadLine();
 
+            if (type == "1")
+                type = "full";
+            else if (type == "2")
+                type = "diff";
 
             // Appel au ViewModel
             createJob(name, source, dest, type);

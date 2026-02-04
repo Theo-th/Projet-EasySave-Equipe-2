@@ -18,12 +18,12 @@ namespace Projet_EasySave.Services
         /// Exécute un travail de sauvegarde par son indice.
         /// </summary>
         /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>true si l'exécution a réussi, false sinon</returns>
-        public bool ExecuteBackup(int jobIndex)
+        /// <returns>Message d'erreur ou null si succès</returns>
+        public string? ExecuteBackup(int jobIndex)
         {
             BackupJob? job = _configService.LoadJob(jobIndex);
             if (job == null)
-                return false;
+                return $"Travail de sauvegarde introuvable à l'indice {jobIndex}.";
 
             return ExecuteBackup(job);
         }
@@ -32,25 +32,23 @@ namespace Projet_EasySave.Services
         /// Exécute un travail de sauvegarde.
         /// </summary>
         /// <param name="job">Le travail à exécuter</param>
-        /// <returns>true si l'exécution a réussi, false sinon</returns>
-        public bool ExecuteBackup(BackupJob job)
+        /// <returns>Message d'information ou d'erreur, null si succès sans message</returns>
+        public string? ExecuteBackup(BackupJob job)
         {
             try
             {
-                IBackupStrategy strategy = job.Type.ToLower() switch
+                IBackupStrategy strategy = job.Type switch
                 {
-                    "complete" or "complète" => new FullBackupStrategy(),
-                    "differential" or "différentielle" => new DifferentialBackupStrategy(),
+                    "full" => new FullBackupStrategy(),
+                    "diff" => new DifferentialBackupStrategy(),
                     _ => new FullBackupStrategy()
                 };
 
-                strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory);
-                return true;
+                return strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors de la sauvegarde : {ex.Message}");
-                return false;
+                return $"Erreur lors de la sauvegarde : {ex.Message}";
             }
         }
     }

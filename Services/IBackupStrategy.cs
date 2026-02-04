@@ -10,6 +10,7 @@ namespace Projet_EasySave.Services
         /// </summary>
         /// <param name="source">Chemin du répertoire source</param>
         /// <param name="target">Chemin du répertoire cible</param>
-        void ProcessBackup(string source, string target);
+        /// <returns>Message d'information ou null si aucun message</returns>
+        string? ProcessBackup(string source, string target);
     }
 }

@@ -8,67 +8,42 @@ namespace Projet_EasySave.Services
     {
         private const string FullBackupFolder = "Full";
         private const string DiffBackupFolder = "Diff";
+        private readonly Func<string, string, string?> _fullBackup;
 
-        public void ProcessBackup(string source, string target)
+        public DifferentialBackupStrategy(Func<string, string, string?>? fullBackup = null)
+        {
+            _fullBackup = fullBackup ?? new FullBackupStrategy().ProcessBackup;
+        }
+
+        public string? ProcessBackup(string source, string target)
         {
             if (!Directory.Exists(source))
                 throw new DirectoryNotFoundException($"Le répertoire source n'existe pas : {source}");
 
-            // Créer le répertoire cible principal
             Directory.CreateDirectory(target);
 
             string fullBackupPath = Path.Combine(target, FullBackupFolder);
-            string diffBackupPath = Path.Combine(target, DiffBackupFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+            string diffBackupPath = Path.Combine(target, DiffBackupFolder);
 
-            // Vérifier si une sauvegarde complète existe
-            if (!Directory.Exists(fullBackupPath) || IsDirectoryEmpty(fullBackupPath))
+            bool hasFullBackup = Directory.Exists(fullBackupPath) && !IsDirectoryEmpty(fullBackupPath);
+
+            if (!hasFullBackup)
             {
-                // Aucune sauvegarde complète : en créer une
-                Console.WriteLine("Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...");
-                CopyAllFiles(source, fullBackupPath);
+                _fullBackup(source, fullBackupPath);
+                return "Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...";
             }
-            else
-            {
-                // Sauvegarde complète existante : créer une sauvegarde différentielle
-                Console.WriteLine("Sauvegarde complète trouvée. Création de la sauvegarde différentielle...");
-                Directory.CreateDirectory(diffBackupPath);
-                CopyModifiedFiles(source, fullBackupPath, diffBackupPath);
-            }
+
+            if (Directory.Exists(diffBackupPath))
+                Directory.Delete(diffBackupPath, true);
+            Directory.CreateDirectory(diffBackupPath);
+
+            CopyModifiedFiles(source, fullBackupPath, diffBackupPath);
+            return "Sauvegarde complète trouvée. Création de la sauvegarde différentielle...";
         }
 
-        /// <summary>
-        /// Vérifie si un répertoire est vide.
-        /// </summary>
-        private bool IsDirectoryEmpty(string path)
-        {
-            return !Directory.EnumerateFileSystemEntries(path).Any();
-        }
+        private static bool IsDirectoryEmpty(string path) =>
+            !Directory.EnumerateFileSystemEntries(path).Any();
 
-        /// <summary>
-        /// Copie tous les fichiers et sous-répertoires (sauvegarde complète).
-        /// </summary>
-        private void CopyAllFiles(string source, string target)
-        {
-            Directory.CreateDirectory(target);
-
-            foreach (string file in Directory.GetFiles(source))
-            {
-                string fileName = Path.GetFileName(file);
-                string destFile = Path.Combine(target, fileName);
-                File.Copy(file, destFile, true);
-            }
-
-            foreach (string dir in Directory.GetDirectories(source))
-            {
-                string dirName = Path.GetFileName(dir);
-                string destDir = Path.Combine(target, dirName);
-                CopyAllFiles(dir, destDir);
-            }
-        }
-
-        /// <summary>
-        /// Copie uniquement les fichiers modifiés par rapport à la sauvegarde complète.
-        /// </summary>
         private void CopyModifiedFiles(string source, string fullBackupPath, string diffBackupPath)
         {
             foreach (string file in Directory.GetFiles(source))
@@ -77,7 +52,6 @@ namespace Projet_EasySave.Services
                 string fullBackupFile = Path.Combine(fullBackupPath, fileName);
                 string diffFile = Path.Combine(diffBackupPath, fileName);
 
-                // Copier si le fichier est nouveau ou modifié par rapport à la sauvegarde complète
                 if (!File.Exists(fullBackupFile) || File.GetLastWriteTime(file) > File.GetLastWriteTime(fullBackupFile))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(diffFile)!);
@@ -85,7 +59,6 @@ namespace Projet_EasySave.Services
                 }
             }
 
-            // Traiter récursivement les sous-répertoires
             foreach (string dir in Directory.GetDirectories(source))
             {
                 string dirName = Path.GetFileName(dir);
