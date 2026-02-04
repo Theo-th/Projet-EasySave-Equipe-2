@@ -24,7 +24,7 @@ namespace ProjetEasySave.Services
             _statePath = path;
         }
 
-        public void UpdateState(List<BackupJob> jobs)
+        public void UpdateState(List<BackupJobState> jobs)
         {
             lock (_lockObject)
             {
@@ -45,8 +45,8 @@ namespace ProjetEasySave.Services
                         Converters = { new JsonStringEnumConverter() }
                     };
 
-                    // Sérialiser directement la liste de BackupJob
-                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJob>(), options);
+                    // Sérialiser directement la liste de BackupJobState
+                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), options);
                     File.WriteAllText(_statePath, json);
                 }
                 catch (Exception ex)

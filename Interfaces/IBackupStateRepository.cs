@@ -11,8 +11,8 @@ namespace ProjetEasySave.Interfaces
         /// <summary>
         /// Met à jour le fichier state.json avec l'état actuel des travaux
         /// </summary>
-        /// <param name="jobs">Liste des travaux de sauvegarde</param>
-        void UpdateState(List<BackupJob> jobs);
+        /// <param name="jobs">Liste des états de travaux de sauvegarde</param>
+        void UpdateState(List<BackupJobState> jobs);
 
         /// <summary>
         /// Définit le chemin où sera sauvegardé le fichier state.json

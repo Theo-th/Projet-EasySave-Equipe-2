@@ -3,9 +3,9 @@ using System;
 namespace ProjetEasySave.Models
 {
     /// <summary>
-    /// Représente un travail de sauvegarde
+    /// Représente l'état d'un travail de sauvegarde pour la persistance temps réel
     /// </summary>
-    public class BackupJob
+    public class BackupJobState
     {
         /// <summary>
         /// Identifiant unique du travail (1 à 5)
