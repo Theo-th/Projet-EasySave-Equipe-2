@@ -26,7 +26,7 @@ Nous utilisons une structure simplifiée pour garantir la stabilité du projet :
 
 ---
 
-## 🛠️ Guide Git (Exemples concrets)
+## 🛠️ Guide Git 
 
 ### Créer une nouvelle fonctionnalité
 
@@ -94,17 +94,4 @@ git clone https://github.com/votre-compte/easy-save.git
 3. **Exécution :**
 
 
-
-
----
-
-## ✅ Checklist pour un Livrable
-
-Avant chaque fusion vers la branche `main` (Livrable) :
-
-* [ ] Le code compile sans avertissement.
-* [ ] Tous les travaux de sauvegarde de base fonctionnent.
-* [ ] La documentation technique est à jour.
-* [ ] Les fichiers de logs sont générés correctement.
-* [ ] Aucun chemin de fichier n'est écrit "en dur" (utilisation de chemins relatifs ou config).
 
