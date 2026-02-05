@@ -1,6 +1,5 @@
 ﻿using Projet_EasySave.Services;
-using System;
-using System.Collections.Generic;
+using Projet_EasySave.EasyLog;
 
 
 namespace Projet_EasySave.ViewModels
@@ -20,7 +19,12 @@ namespace Projet_EasySave.ViewModels
         public ViewModelConsole()
         {
             _configService = new JobConfigService();
-            _backupService = new BackupService(_configService);
+
+            // AppDomain.CurrentDomain.BaseDirectory permet d'avoir le dossier de l'exe
+            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            JsonLog myLogger = new JsonLog(logPath);
+
+            _backupService = new BackupService(_configService, myLogger);
         }
 
         /// <summary>

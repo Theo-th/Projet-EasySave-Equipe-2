@@ -1,3 +1,4 @@
+using Projet_EasySave.EasyLog;
 using Projet_EasySave.Models;
 
 namespace Projet_EasySave.Services
@@ -9,9 +10,12 @@ namespace Projet_EasySave.Services
     {
         private readonly JobConfigService _configService;
 
-        public BackupService(JobConfigService configService)
+        private readonly JsonLog _log;
+
+        public BackupService(JobConfigService configService, JsonLog log)
         {
             _configService = configService;
+            _log = log;
         }
 
         /// <summary>
@@ -44,7 +48,7 @@ namespace Projet_EasySave.Services
                     _ => new FullBackupStrategy()
                 };
 
-                return strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory);
+                return strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory, job.Name, _log);
             }
             catch (Exception ex)
             {
