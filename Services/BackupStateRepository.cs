@@ -16,6 +16,13 @@ namespace Projet_EasySave.Services
         private string _statePath;
         private readonly object _lockObject = new();
 
+        private static readonly JsonSerializerOptions StateOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter() }
+        };
+
         public BackupStateRepository()
         {
             // Chemin relatif au dossier de l'exécutable, portable sur toutes les machines
@@ -43,16 +50,8 @@ namespace Projet_EasySave.Services
                         Directory.CreateDirectory(directory);
                     }
 
-                    // Options de sérialisation pour un JSON lisible
-                    var options = new JsonSerializerOptions
-                    {
-                        WriteIndented = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        Converters = { new JsonStringEnumConverter() }
-                    };
-
-                    // Sérialiser directement la liste de BackupJobState
-                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), options);
+                    // Sérialiser directement la liste de BackupJobState avec options statiques
+                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), StateOptions);
                     File.WriteAllText(_statePath, json);
                 }
                 catch (Exception ex)

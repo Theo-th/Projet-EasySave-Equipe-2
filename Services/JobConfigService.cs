@@ -5,13 +5,18 @@ namespace Projet_EasySave.Services
 {
     /// <summary>
     /// Service de gestion des configurations de travaux de sauvegarde.
-    /// Permet de charger, créer, sauvegarder et supprimer des travaux.
+    /// Permet de charger, crï¿½er, sauvegarder et supprimer des travaux.
     /// </summary>
     public class JobConfigService
     {
         private readonly string _configFilePath;
         private List<BackupJob> _jobs;
         private const int MaxJobs = 5;
+
+        private static readonly JsonSerializerOptions ConfigOptions = new()
+        {
+            WriteIndented = true
+        };
 
         /// <summary>
         /// Initialise une nouvelle instance du service de configuration.
@@ -27,7 +32,7 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Charge tous les travaux depuis le fichier de configuration JSON.
         /// </summary>
-        /// <returns>Liste de tous les travaux chargés</returns>
+        /// <returns>Liste de tous les travaux chargï¿½s</returns>
         public List<BackupJob> LoadAllJobs()
         {
             try
@@ -52,10 +57,10 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Charge un travail spécifique par son indice.
+        /// Charge un travail spï¿½cifique par son indice.
         /// </summary>
         /// <param name="index">Indice du travail (0-based)</param>
-        /// <returns>Le travail demandé ou null s'il n'existe pas</returns>
+        /// <returns>Le travail demandï¿½ ou null s'il n'existe pas</returns>
         public BackupJob? LoadJob(int index)
         {
             if (index >= 0 && index < _jobs.Count)
@@ -67,33 +72,33 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Crée et sauvegarde un nouveau travail de sauvegarde.
+        /// Crï¿½e et sauvegarde un nouveau travail de sauvegarde.
         /// </summary>
         /// <param name="name">Nom du travail</param>
-        /// <param name="sourceDirectory">Répertoire source</param>
-        /// <param name="targetDirectory">Répertoire cible</param>
-        /// <param name="type">Type de sauvegarde (Complète ou Différentielle)</param>
-        /// <returns>true si le travail a été créé avec succès, false sinon</returns>
+        /// <param name="sourceDirectory">Rï¿½pertoire source</param>
+        /// <param name="targetDirectory">Rï¿½pertoire cible</param>
+        /// <param name="type">Type de sauvegarde (Complï¿½te ou Diffï¿½rentielle)</param>
+        /// <returns>true si le travail a ï¿½tï¿½ crï¿½ï¿½ avec succï¿½s, false sinon</returns>
         public bool CreateJob(string name, string sourceDirectory, string targetDirectory, string type)
         {
-            // Vérifier le nombre maximum de travaux
+            // Vï¿½rifier le nombre maximum de travaux
             if (_jobs.Count >= MaxJobs)
             {
                 Console.WriteLine($"Erreur : Nombre maximum de travaux ({MaxJobs}) atteint.");
                 return false;
             }
 
-            // Vérifier que le nom n'existe pas déjà
+            // Vï¿½rifier que le nom n'existe pas dï¿½jï¿½
             if (_jobs.Exists(j => j.Name == name))
             {
-                Console.WriteLine($"Erreur : Un travail avec le nom '{name}' existe déjà.");
+                Console.WriteLine($"Erreur : Un travail avec le nom '{name}' existe dï¿½jï¿½.");
                 return false;
             }
 
-            // Vérifier que les répertoires sont valides
+            // Vï¿½rifier que les rï¿½pertoires sont valides
             if (!Directory.Exists(sourceDirectory))
             {
-                Console.WriteLine($"Erreur : Le répertoire source '{sourceDirectory}' n'existe pas.");
+                Console.WriteLine($"Erreur : Le rï¿½pertoire source '{sourceDirectory}' n'existe pas.");
                 return false;
             }
 
@@ -107,13 +112,12 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Sauvegarde tous les travaux dans le fichier de configuration JSON.
         /// </summary>
-        /// <returns>true si la sauvegarde a été effectuée, false sinon</returns>
+        /// <returns>true si la sauvegarde a ï¿½tï¿½ effectuï¿½e, false sinon</returns>
         public bool SaveJob()
         {
             try
             {
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string json = JsonSerializer.Serialize(_jobs, options);
+                string json = JsonSerializer.Serialize(_jobs, ConfigOptions);
                 File.WriteAllText(_configFilePath, json);
                 return true;
             }
@@ -127,8 +131,8 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Supprime un travail par son indice.
         /// </summary>
-        /// <param name="index">Indice du travail à supprimer (0-based)</param>
-        /// <returns>true si le travail a été supprimé, false sinon</returns>
+        /// <param name="index">Indice du travail ï¿½ supprimer (0-based)</param>
+        /// <returns>true si le travail a ï¿½tï¿½ supprimï¿½, false sinon</returns>
         public bool RemoveJob(int index)
         {
             if (index >= 0 && index < _jobs.Count)
@@ -141,7 +145,7 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Obtient le nombre total de travaux configurés.
+        /// Obtient le nombre total de travaux configurï¿½s.
         /// </summary>
         /// <returns>Nombre de travaux</returns>
         public int GetJobCount()
@@ -150,7 +154,7 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Obtient tous les travaux configurés.
+        /// Obtient tous les travaux configurï¿½s.
         /// </summary>
         /// <returns>Liste de tous les travaux</returns>
         public List<BackupJob> GetAllJobs()
