@@ -46,9 +46,8 @@ namespace Projet_EasySave.Services
         /// <returns>Message d'information ou d'erreur, null si succ�s sans message</returns>
         private string? ExecuteBackup(BackupJob job, int jobIndex = 0)
         {
-            // Compter les fichiers à sauvegarder
-            int totalFiles = CountFiles(job.SourceDirectory);
-            long totalSize = CalculateTotalSize(job.SourceDirectory);
+            // Compter les fichiers et calculer la taille en un seul parcours
+            var (totalFiles, totalSize) = GetFilesInfo(job.SourceDirectory);
 
             // Créer l'état initial (Actif)
             var jobState = new BackupJobState
@@ -69,7 +68,7 @@ namespace Projet_EasySave.Services
             };
 
             // Mettre à jour l'état (début de sauvegarde)
-            _stateRepository.UpdateState(new List<BackupJobState> { jobState });
+            UpdateJobState(jobState, BackupState.Active);
 
             try
             {
@@ -83,54 +82,46 @@ namespace Projet_EasySave.Services
                 var result = strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory, job.Name, _log);
 
                 // Mettre à jour l'état (sauvegarde terminée)
-                jobState.State = BackupState.Completed;
-                jobState.RemainingFiles = 0;
-                jobState.RemainingSize = 0;
-                jobState.LastActionTimestamp = DateTime.Now;
-                _stateRepository.UpdateState(new List<BackupJobState> { jobState });
+                UpdateJobState(jobState, BackupState.Completed, 0, 0);
 
                 return result;
             }
             catch (Exception ex)
             {
                 // Mettre à jour l'état (erreur)
-                jobState.State = BackupState.Error;
-                jobState.LastActionTimestamp = DateTime.Now;
-                _stateRepository.UpdateState(new List<BackupJobState> { jobState });
+                UpdateJobState(jobState, BackupState.Error);
 
                 return $"Erreur lors de la sauvegarde : {ex.Message}";
             }
         }
 
         /// <summary>
-        /// Compte le nombre total de fichiers dans un répertoire et ses sous-répertoires
+        /// Obtient le nombre de fichiers et la taille totale en un seul parcours
         /// </summary>
-        private int CountFiles(string directory)
+        private (int count, long size) GetFilesInfo(string directory)
         {
             try
             {
-                return Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length;
+                var files = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+                return (files.Length, files.Sum(f => new FileInfo(f).Length));
             }
             catch
             {
-                return 0;
+                return (0, 0);
             }
         }
 
         /// <summary>
-        /// Calcule la taille totale des fichiers dans un répertoire et ses sous-répertoires
+        /// Met à jour l'état d'un travail de sauvegarde
         /// </summary>
-        private long CalculateTotalSize(string directory)
+        private void UpdateJobState(BackupJobState jobState, BackupState state, 
+            int remainingFiles = -1, long remainingSize = -1)
         {
-            try
-            {
-                return Directory.GetFiles(directory, "*", SearchOption.AllDirectories)
-                    .Sum(file => new FileInfo(file).Length);
-            }
-            catch
-            {
-                return 0;
-            }
+            jobState.State = state;
+            jobState.LastActionTimestamp = DateTime.Now;
+            if (remainingFiles >= 0) jobState.RemainingFiles = remainingFiles;
+            if (remainingSize >= 0) jobState.RemainingSize = remainingSize;
+            _stateRepository.UpdateState(new List<BackupJobState> { jobState });
         }
     }
 }

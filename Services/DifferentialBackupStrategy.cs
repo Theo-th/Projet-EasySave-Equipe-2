@@ -4,8 +4,8 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Stratégie de sauvegarde différentielle : copie uniquement les fichiers modifiés
-    /// par rapport à la dernière sauvegarde complète.
+    /// Stratï¿½gie de sauvegarde diffï¿½rentielle : copie uniquement les fichiers modifiï¿½s
+    /// par rapport ï¿½ la derniï¿½re sauvegarde complï¿½te.
     /// </summary>
     public class DifferentialBackupStrategy : IBackupStrategy
     {
@@ -21,7 +21,7 @@ namespace Projet_EasySave.Services
         public string? ProcessBackup(string source, string target, string Name, JsonLog log )
         {
             if (!Directory.Exists(source))
-                throw new DirectoryNotFoundException($"Le répertoire source n'existe pas : {source}");
+                throw new DirectoryNotFoundException($"Le rï¿½pertoire source n'existe pas : {source}");
 
             Directory.CreateDirectory(target);
 
@@ -33,7 +33,7 @@ namespace Projet_EasySave.Services
             if (!hasFullBackup)
             {
                 _fullBackup(source, fullBackupPath, Name, log);
-                return "Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...";
+                return "Aucune sauvegarde complï¿½te trouvï¿½e. Crï¿½ation de la sauvegarde complï¿½te de rï¿½fï¿½rence...";
             }
 
             if (Directory.Exists(diffBackupPath))
@@ -41,7 +41,7 @@ namespace Projet_EasySave.Services
             Directory.CreateDirectory(diffBackupPath);
 
             CopyModifiedFiles(source, fullBackupPath, diffBackupPath, Name, log);
-            return "Sauvegarde complète trouvée. Création de la sauvegarde différentielle...";
+            return "Sauvegarde complï¿½te trouvï¿½e. Crï¿½ation de la sauvegarde diffï¿½rentielle...";
         }
 
         private static bool IsDirectoryEmpty(string path) =>
@@ -57,7 +57,12 @@ namespace Projet_EasySave.Services
 
                 if (!File.Exists(fullBackupFile) || File.GetLastWriteTime(file) > File.GetLastWriteTime(fullBackupFile))
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(diffFile)!);
+                    string? diffDir = Path.GetDirectoryName(diffFile);
+                    if (!string.IsNullOrEmpty(diffDir))
+                    {
+                        Directory.CreateDirectory(diffDir);
+                    }
+                    
                     FileInfo fi = new FileInfo(file);
                     Stopwatch sw = new Stopwatch();
                     
@@ -65,16 +70,7 @@ namespace Projet_EasySave.Services
                     File.Copy(file, diffFile, true);
                     sw.Stop();
 
-                    log.WriteLog(new JsonRecord
-                    {
-                        Timestamp = DateTime.Now,
-                        Name = Name,
-                        Source = file,
-                        Target = diffFile,
-                        Size = fi.Length,
-                        Time = sw.ElapsedMilliseconds,
-                        Message = "Success (Diff)"
-                    });
+                    BackupLogger.LogFileOperation(log, Name, file, diffFile, fi.Length, sw.ElapsedMilliseconds, "Success (Diff)");
                 }
             }
 

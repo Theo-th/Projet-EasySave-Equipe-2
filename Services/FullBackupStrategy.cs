@@ -4,14 +4,14 @@ using System.Diagnostics;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Stratégie de sauvegarde complète : copie tous les fichiers.
+    /// Stratï¿½gie de sauvegarde complï¿½te : copie tous les fichiers.
     /// </summary>
     public class FullBackupStrategy : IBackupStrategy
     {
         public string? ProcessBackup(string source, string target, string Name, JsonLog log)
         {
             if (!Directory.Exists(source))
-                throw new DirectoryNotFoundException($"Le répertoire source n'existe pas : {source}");
+                throw new DirectoryNotFoundException($"Le rï¿½pertoire source n'existe pas : {source}");
 
             Directory.CreateDirectory(target);
 
@@ -29,30 +29,12 @@ namespace Projet_EasySave.Services
                     File.Copy(file, destFile, true);
                     sw.Stop();
 
-                    log.WriteLog(new JsonRecord
-                    {
-                        Timestamp = DateTime.Now,
-                        Name = Name,
-                        Source = file,
-                        Target = destFile,
-                        Size = fi.Length,
-                        Time = sw.ElapsedMilliseconds,
-                        Message = "Success"
-                    });
+                    BackupLogger.LogFileOperation(log, Name, file, destFile, fi.Length, sw.ElapsedMilliseconds, "Success");
                 }
                 catch (Exception ex)
                 {
                     sw.Stop();
-                    log.WriteLog(new JsonRecord
-                    {
-                        Timestamp = DateTime.Now,
-                        Name = Name,
-                        Source = file,
-                        Target = destFile,
-                        Size = fi.Length,
-                        Time = -1,
-                        Message = ex.Message
-                    });
+                    BackupLogger.LogFileOperation(log, Name, file, destFile, fi.Length, -1, ex.Message);
                 }
             }
 
