@@ -1,5 +1,8 @@
 ﻿using Projet_EasySave.Services;
 using Projet_EasySave.EasyLog;
+using Projet_EasySave.Interfaces;
+using Projet_EasySave.Models;
+using System.Collections.Generic;
 
 
 namespace Projet_EasySave.ViewModels
@@ -12,6 +15,7 @@ namespace Projet_EasySave.ViewModels
     {
         private JobConfigService _configService;
         private BackupService _backupService;
+        private IBackupStateRepository _stateRepository;
 
         /// <summary>
         /// Initialise une nouvelle instance du ViewModel pour la console.
@@ -20,11 +24,17 @@ namespace Projet_EasySave.ViewModels
         {
             _configService = new JobConfigService();
 
+            // Initialisation du système d'état temps réel
+            _stateRepository = new BackupStateRepository();
+            
+            // Créer le fichier state.json avec un état vide au démarrage si nécessaire
+            _stateRepository.UpdateState(new List<BackupJobState>());
+
             // AppDomain.CurrentDomain.BaseDirectory permet d'avoir le dossier de l'exe
             string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
             JsonLog myLogger = new JsonLog(logPath);
 
-            _backupService = new BackupService(_configService, myLogger);
+            _backupService = new BackupService(_configService, myLogger, _stateRepository);
         }
 
         /// <summary>

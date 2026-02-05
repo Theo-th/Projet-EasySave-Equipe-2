@@ -1,6 +1,6 @@
 using System;
 
-namespace ProjetEasySave.Models
+namespace Projet_EasySave.Models
 {
     /// <summary>
     /// Représente l'état d'un travail de sauvegarde pour la persistance temps réel

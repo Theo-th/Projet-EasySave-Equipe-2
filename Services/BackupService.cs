@@ -1,42 +1,45 @@
 using Projet_EasySave.EasyLog;
 using Projet_EasySave.Models;
+using Projet_EasySave.Interfaces;
+using System.Collections.Generic;
 
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Service d'exécution des travaux de sauvegarde.
+    /// Service d'exÃ©cution des travaux de sauvegarde.
     /// </summary>
     public class BackupService
     {
         private readonly JobConfigService _configService;
-
         private readonly JsonLog _log;
+        private readonly IBackupStateRepository _stateRepository;
 
-        public BackupService(JobConfigService configService, JsonLog log)
+        public BackupService(JobConfigService configService, JsonLog log, IBackupStateRepository stateRepository)
         {
             _configService = configService;
             _log = log;
+            _stateRepository = stateRepository;
         }
 
         /// <summary>
-        /// Exécute un travail de sauvegarde par son indice.
+        /// Exï¿½cute un travail de sauvegarde par son indice.
         /// </summary>
         /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>Message d'erreur ou null si succès</returns>
+        /// <returns>Message d'erreur ou null si succï¿½s</returns>
         public string? ExecuteBackup(int jobIndex)
         {
             BackupJob? job = _configService.LoadJob(jobIndex);
             if (job == null)
-                return $"Travail de sauvegarde introuvable à l'indice {jobIndex}.";
+                return $"Travail de sauvegarde introuvable ï¿½ l'indice {jobIndex}.";
 
             return ExecuteBackup(job);
         }
 
         /// <summary>
-        /// Exécute un travail de sauvegarde.
+        /// Exï¿½cute un travail de sauvegarde.
         /// </summary>
-        /// <param name="job">Le travail à exécuter</param>
-        /// <returns>Message d'information ou d'erreur, null si succès sans message</returns>
+        /// <param name="job">Le travail ï¿½ exï¿½cuter</param>
+        /// <returns>Message d'information ou d'erreur, null si succï¿½s sans message</returns>
         public string? ExecuteBackup(BackupJob job)
         {
             try

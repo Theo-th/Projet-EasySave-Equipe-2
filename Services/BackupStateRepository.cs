@@ -1,20 +1,26 @@
-using ProjetEasySave.Interfaces;
-using ProjetEasySave.Models;
+using Projet_EasySave.Interfaces;
+using Projet_EasySave.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ProjetEasySave.Services
+namespace Projet_EasySave.Services
 {
     /// <summary>
     /// Repository pour la gestion de la persistance de l'état temps réel des sauvegardes (state.json)
     /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
-        private string _statePath = "./state.json";
+        private string _statePath;
         private readonly object _lockObject = new();
+
+        public BackupStateRepository()
+        {
+            // Chemin relatif au dossier de l'exécutable, portable sur toutes les machines
+            _statePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
+        }
 
         public void SetStatePath(string path)
         {

@@ -15,7 +15,6 @@ namespace Projet_EasySave
         static void Main(string[] args)
         {
             ViewModelConsole viewModel = new ViewModelConsole();
-
             ViewConsole view = new ViewConsole(viewModel);
             view.ShowConsole();
         }

@@ -1,4 +1,4 @@
-namespace ProjetEasySave.Models
+namespace Projet_EasySave.Models
 {
     /// <summary>
     /// Type de sauvegarde

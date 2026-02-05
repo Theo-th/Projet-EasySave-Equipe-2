@@ -1,7 +1,7 @@
-using ProjetEasySave.Models;
+using Projet_EasySave.Models;
 using System.Collections.Generic;
 
-namespace ProjetEasySave.Interfaces
+namespace Projet_EasySave.Interfaces
 {
     /// <summary>
     /// Interface pour la persistance de l'état temps réel des sauvegardes (state.json)
