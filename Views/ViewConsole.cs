@@ -163,6 +163,11 @@ namespace Projet_EasySave
             Console.WriteLine(Lang.TypeSave);
             string type = Console.ReadLine();
 
+            if (type == "1")
+                type = "full";
+            else if (type == "2")
+                type = "diff";
+
             // Appel au ViewModel
             createJob(name, source, dest, type);
 

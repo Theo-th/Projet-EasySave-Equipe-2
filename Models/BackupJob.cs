@@ -28,12 +28,6 @@ namespace Projet_EasySave.Models
         /// </summary>
         public string Type { get; set; }
 
-        /// <summary>
-        /// Constructeur par défaut pour la désérialisation JSON.
-        /// </summary>
-        public BackupJob()
-        {
-        }
 
         /// <summary>
         /// Initialise une nouvelle instance de la classe BackupJob avec les paramètres spécifiés.

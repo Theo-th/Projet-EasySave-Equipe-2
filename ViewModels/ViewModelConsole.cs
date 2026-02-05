@@ -12,6 +12,7 @@ namespace Projet_EasySave.ViewModels
     public class ViewModelConsole
     {
         private JobConfigService _configService;
+        private BackupService _backupService;
 
         /// <summary>
         /// Initialise une nouvelle instance du ViewModel pour la console.
@@ -19,6 +20,7 @@ namespace Projet_EasySave.ViewModels
         public ViewModelConsole()
         {
             _configService = new JobConfigService();
+            _backupService = new BackupService(_configService);
         }
 
         /// <summary>
@@ -38,20 +40,26 @@ namespace Projet_EasySave.ViewModels
         /// Exécute un travail de sauvegarde spécifié par son indice.
         /// </summary>
         /// <param name="jobIndex">Indice du travail à exécuter (0-based)</param>
-        /// <returns>true si l'exécution a réussi, false sinon</returns>
-        public bool ExecuteJob(int jobIndex)
+        /// <returns>Message d'information ou d'erreur, null si succès sans message</returns>
+        public string? ExecuteJob(int jobIndex)
         {
-            return false;
+            return _backupService.ExecuteBackup(jobIndex);
         }
 
         /// <summary>
         /// Exécute plusieurs travaux de sauvegarde spécifiés par leurs indices.
         /// </summary>
         /// <param name="jobIndices">Collection des indices des travaux à exécuter</param>
-        /// <returns>true si tous les travaux ont réussi, false sinon</returns>
-        public bool ExecuteJobs(List<int> jobIndices)
+        /// <returns>Liste des messages pour chaque travail (null si succès sans message)</returns>
+        public List<(int Index, string? Message)> ExecuteJobs(List<int> jobIndices)
         {
-            return true;
+            var results = new List<(int, string?)>();
+            foreach (int index in jobIndices)
+            {
+                string? message = _backupService.ExecuteBackup(index);
+                results.Add((index, message));
+            }
+            return results;
         }
 
         /// <summary>
@@ -75,14 +83,14 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Récupère le nom d'un travail spécifique par son indice.
+        /// Récupère le nom et le type d'un travail spécifique par son indice.
         /// </summary>
         /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>Le nom du travail demandé ou null s'il n'existe pas</returns>
+        /// <returns>Une chaîne au format "Name -- Type" ou null s'il n'existe pas</returns>
         public string? GetJob(int jobIndex)
         {
             var job = _configService.LoadJob(jobIndex);
-            return job?.Name;
+            return job != null ? $"{job.Name} -- {job.Type}" : null;
         }
     }
 }
