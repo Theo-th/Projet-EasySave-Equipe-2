@@ -24,7 +24,8 @@ namespace Projet_EasySave.Services
         /// <param name="configFilePath">Chemin du fichier de configuration JSON</param>
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
-            _configFilePath = configFilePath;
+            // Chemin portable : relatif au dossier de l'exécutable
+            _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
             _jobs = new List<BackupJob>();
             LoadAllJobs();
         }
