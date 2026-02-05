@@ -24,10 +24,10 @@ namespace Projet_EasySave
 
         public void ShowConsole()
         {
-            bool quitter = false;
+            bool quit = false;
             int index = 0;
 
-            while (!quitter)
+            while (!quit)
             {
                 string[] options = {
                     Lang.MenuOptionExecute,
@@ -37,34 +37,34 @@ namespace Projet_EasySave
                     Lang.MenuQuit
                 };
 
-                AfficherMenuPrincipal(index, options);
+                ShowMainMenu(index, options);
 
-                ConsoleKeyInfo touche = Console.ReadKey(true);
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
-                if (touche.Key == ConsoleKey.UpArrow)
+                if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     index = (index == 0) ? options.Length - 1 : index - 1;
                 }
-                else if (touche.Key == ConsoleKey.DownArrow)
+                else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     index = (index + 1) % options.Length;
                 }
-                else if (touche.Key == ConsoleKey.Enter)
+                else if (keyInfo.Key == ConsoleKey.Enter)
                 {
                     switch (index)
                     {
-                        case 0: MenuLancement(); break;
-                        case 1: MenuCreation(); break;
-                        case 2: MenuSuppression(); break;
-                        case 3: MenuParametres(); break;
-                        case 4: quitter = true; break;
+                        case 0: LaunchMenu(); break;
+                        case 1: CreationMenu(); break;
+                        case 2: DeleteMenu(); break;
+                        case 3: MenuSettings(); break;
+                        case 4: quit = true; break;
                     }
                 }
             }
         }
 
 
-        private void AfficherMenuPrincipal(int index, string[] options)
+        private void ShowMainMenu(int index, string[] options)
         {
             Console.Clear();
             Console.WriteLine("-------------------------------------");
@@ -88,11 +88,11 @@ namespace Projet_EasySave
             Console.WriteLine("-------------------------------------");
         }
 
-        // --- SOUS-MENUS ---
+        // --- SUB-MENUS ---
 
-        private void MenuLancement()
+        private void LaunchMenu()
         {
-            List<string> jobs = getJob();
+            List<string> jobs = _viewModel.GetAllJobs();
             List<int> selectedIndices = new List<int>();
             int index = 0;
             bool back = false;
@@ -152,7 +152,7 @@ namespace Projet_EasySave
             }
         }
 
-        private void MenuCreation()
+        private void CreationMenu()
         {
             Console.Clear();
             Console.WriteLine(Lang.CreateSave);
@@ -184,9 +184,9 @@ namespace Projet_EasySave
             Console.ReadKey();
         }
 
-        private void MenuSuppression()
+        private void DeleteMenu()
         {
-            List<string> jobs = getJob();
+            List<string> jobs = _viewModel.GetAllJobs();
             int index = 0;
             bool back = false;
 
@@ -229,14 +229,14 @@ namespace Projet_EasySave
                         Console.WriteLine(Lang.FinishDelete);
                         Console.ReadKey();
 
-                        jobs = getJob();
+                        jobs = _viewModel.GetAllJobs();
                         index = 0;
                     }
                 }
             }
         }
 
-        private void MenuParametres()
+        private void MenuSettings()
         {
             int index = 0;
             bool back = false;
@@ -314,11 +314,6 @@ namespace Projet_EasySave
             {
                 Console.WriteLine("Erreur de langue : " + e.Message);
             }
-        }
-
-        private List<string> getJob()
-        {
-            return _viewModel.GetAllJobs();
         }
     }
 }
