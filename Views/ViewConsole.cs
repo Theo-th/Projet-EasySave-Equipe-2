@@ -63,7 +63,6 @@ namespace Projet_EasySave
             }
         }
 
-        // --- AFFICHAGE GENERAL ---
 
         private void AfficherMenuPrincipal(int index, string[] options)
         {
@@ -136,7 +135,14 @@ namespace Projet_EasySave
                 {
                     if (selectedIndices.Count > 0)
                     {
-                        executeJob(selectedIndices);
+                        foreach (int i in selectedIndices)
+                        {
+                            string jobName = _viewModel.GetJob(i);
+                            Console.WriteLine(string.Format(Lang.ExecuteJob, jobName));
+                        }
+
+                        _viewModel.ExecuteJobs(selectedIndices);
+
                         Console.WriteLine(Lang.MenuSaveLaunch);
                         Console.ReadKey();
                         back = true;
@@ -168,8 +174,11 @@ namespace Projet_EasySave
             else if (type == "2")
                 type = "diff";
 
-            // Appel au ViewModel
-            createJob(name, source, dest, type);
+            bool success = _viewModel.CreateJob(name, source, dest, type);
+            if (!success)
+            {
+                Console.WriteLine(Lang.ErrorCreateJob);
+            }
 
             Console.WriteLine(Lang.CreateFinish);
             Console.ReadKey();
@@ -177,7 +186,6 @@ namespace Projet_EasySave
 
         private void MenuSuppression()
         {
-            // Récupère la liste via le ViewModel
             List<string> jobs = getJob();
             int index = 0;
             bool back = false;
@@ -216,11 +224,11 @@ namespace Projet_EasySave
                     string confirm = Console.ReadLine();
                     if (confirm.ToUpper() == "O" || confirm.ToUpper() == "Y")
                     {
-                        deleteJob(index);
+                        _viewModel.DeleteJob(index);
+
                         Console.WriteLine(Lang.FinishDelete);
                         Console.ReadKey();
 
-                        // Mise à jour de la liste locale pour l'affichage
                         jobs = getJob();
                         index = 0;
                     }
@@ -308,42 +316,9 @@ namespace Projet_EasySave
             }
         }
 
-        // --- LIAISON VIEWMODEL (REMPLACEMENT DES MOCKS) ---
-
         private List<string> getJob()
         {
-            // Appel direct au ViewModel pour récupérer la liste réelle
             return _viewModel.GetAllJobs();
-        }
-
-        private void createJob(string name, string source, string dest, string type)
-        {
-            // Appel direct au ViewModel
-            bool success = _viewModel.CreateJob(name, source, dest, type);
-            if (!success)
-            {
-                Console.WriteLine(Lang.ErrorCreateJob);
-            }
-        }
-
-        private void deleteJob(int index)
-        {
-            // Appel direct au ViewModel
-            _viewModel.DeleteJob(index);
-        }
-
-        private void executeJob(List<int> indexes)
-        {
-            // Petit affichage pour l'utilisateur avant de lancer
-            foreach (int i in indexes)
-            {
-                // On récupère le nom pour l'afficher joliment
-                string jobName = _viewModel.GetJob(i) ?? "Inconnu";
-                Console.WriteLine(string.Format(Lang.ExecuteJob, jobName));
-            }
-
-            // Appel direct au ViewModel pour lancer la liste
-            _viewModel.ExecuteJobs(indexes);
         }
     }
 }
