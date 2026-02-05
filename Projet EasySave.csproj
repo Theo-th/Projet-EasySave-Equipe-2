@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <Reference Include="EasyLog">
-      <HintPath>..\..\..\Desktop\EasyLog.dll</HintPath>
+      <HintPath>Libs\EasyLog.dll</HintPath>
     </Reference>
   </ItemGroup>
 
