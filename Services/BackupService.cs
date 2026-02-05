@@ -1,23 +1,19 @@
 using Projet_EasySave.EasyLog;
 using Projet_EasySave.Models;
 using Projet_EasySave.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Projet_EasySave.Services
 {
     /// <summary>
     /// Service d'exécution des travaux de sauvegarde.
     /// </summary>
-    public class BackupService
+    public class BackupService : IBackupService
     {
-        private readonly JobConfigService _configService;
+        private readonly IJobConfigService _configService;
         private readonly JsonLog _log;
         private readonly IBackupStateRepository _stateRepository;
 
-        public BackupService(JobConfigService configService, JsonLog log, IBackupStateRepository stateRepository)
+        public BackupService(IJobConfigService configService, JsonLog log, IBackupStateRepository stateRepository)
         {
             _configService = configService;
             _log = log;
@@ -25,25 +21,25 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Ex�cute un travail de sauvegarde par son indice.
+        /// Exécute un travail de sauvegarde par son indice.
         /// </summary>
         /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>Message d'erreur ou null si succ�s</returns>
+        /// <returns>Message d'erreur ou null si succès</returns>
         public string? ExecuteBackup(int jobIndex)
         {
             BackupJob? job = _configService.LoadJob(jobIndex);
             if (job == null)
-                return $"Travail de sauvegarde introuvable � l'indice {jobIndex}.";
+                return $"Travail de sauvegarde introuvable à l'indice {jobIndex}.";
 
             return ExecuteBackup(job, jobIndex);
         }
 
         /// <summary>
-        /// Ex�cute un travail de sauvegarde.
+        /// Exécute un travail de sauvegarde.
         /// </summary>
-        /// <param name="job">Le travail � ex�cuter</param>
+        /// <param name="job">Le travail à exécuter</param>
         /// <param name="jobIndex">Indice du travail</param>
-        /// <returns>Message d'information ou d'erreur, null si succ�s sans message</returns>
+        /// <returns>Message d'information ou d'erreur, null si succès sans message</returns>
         private string? ExecuteBackup(BackupJob job, int jobIndex = 0)
         {
             // Compter les fichiers et calculer la taille en un seul parcours (optimisé)
@@ -56,7 +52,7 @@ namespace Projet_EasySave.Services
                 Name = job.Name,
                 SourcePath = job.SourceDirectory,
                 TargetPath = job.TargetDirectory,
-                Type = job.Type == "full" ? BackupType.Complete : BackupType.Differential,
+                Type = job.Type == BackupType.Complete ? BackupType.Complete : BackupType.Differential,
                 State = BackupState.Active,
                 LastActionTimestamp = DateTime.Now,
                 TotalFiles = totalFiles,
@@ -74,8 +70,8 @@ namespace Projet_EasySave.Services
             {
                 IBackupStrategy strategy = job.Type switch
                 {
-                    "full" => new FullBackupStrategy(),
-                    "diff" => new DifferentialBackupStrategy(),
+                    BackupType.Complete => new FullBackupStrategy(),
+                    BackupType.Differential => new DifferentialBackupStrategy(),
                     _ => new FullBackupStrategy()
                 };
 

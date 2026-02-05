@@ -1,5 +1,5 @@
 using Projet_EasySave.EasyLog;
-namespace Projet_EasySave.Services
+namespace Projet_EasySave.Interfaces
 {
     /// <summary>
     /// Interface définissant la stratégie de sauvegarde.

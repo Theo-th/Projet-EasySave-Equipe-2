@@ -4,13 +4,13 @@ using System.Globalization;
 using System.Threading;
 using Projet_EasySave.ViewModels;
 using Projet_EasySave.Properties;
+using Projet_EasySave.Models;
 
 namespace Projet_EasySave
 {
     public class ViewConsole
     {
-
-        private ViewModelConsole _viewModel;
+        private readonly ViewModelConsole _viewModel;
 
         public ViewConsole(ViewModelConsole viewModel)
         {
@@ -63,7 +63,6 @@ namespace Projet_EasySave
             }
         }
 
-
         private void ShowMainMenu(int index, string[] options)
         {
             Console.Clear();
@@ -87,8 +86,6 @@ namespace Projet_EasySave
             }
             Console.WriteLine("-------------------------------------");
         }
-
-        // --- SUB-MENUS ---
 
         private void LaunchMenu()
         {
@@ -137,8 +134,8 @@ namespace Projet_EasySave
                     {
                         foreach (int i in selectedIndices)
                         {
-                            string jobName = _viewModel.GetJob(i);
-                            Console.WriteLine(string.Format(Lang.ExecuteJob, jobName));
+                            string? jobName = _viewModel.GetJob(i);
+                            Console.WriteLine(string.Format(Lang.ExecuteJob, jobName ?? "Inconnu"));
                         }
 
                         _viewModel.ExecuteJobs(selectedIndices);
@@ -158,29 +155,40 @@ namespace Projet_EasySave
             Console.WriteLine(Lang.CreateSave);
 
             Console.Write(Lang.NameSave);
-            string name = Console.ReadLine();
+            string? name = Console.ReadLine();
 
             Console.Write(Lang.SourcePath);
-            string source = Console.ReadLine();
+            string? source = Console.ReadLine();
 
             Console.Write(Lang.DestPath);
-            string dest = Console.ReadLine();
+            string? dest = Console.ReadLine();
 
             Console.WriteLine(Lang.TypeSave);
-            string type = Console.ReadLine();
+            string? typeInput = Console.ReadLine();
 
-            if (type == "1")
-                type = "full";
-            else if (type == "2")
-                type = "diff";
+            // Conversion sécurisée du type
+            BackupType type = typeInput switch
+            {
+                "1" => BackupType.Complete,
+                "2" => BackupType.Differential,
+                _ => BackupType.Complete
+            };
 
-            bool success = _viewModel.CreateJob(name, source, dest, type);
+            var (success, errorMessage) = _viewModel.CreateJob(name, source, dest, type);
+
             if (!success)
             {
-                Console.WriteLine(Lang.ErrorCreateJob);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{Lang.ErrorCreateJob} {errorMessage}");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(Lang.CreateFinish);
+                Console.ResetColor();
             }
 
-            Console.WriteLine(Lang.CreateFinish);
             Console.ReadKey();
         }
 
@@ -221,16 +229,21 @@ namespace Projet_EasySave
                 else if (key.Key == ConsoleKey.Enter)
                 {
                     Console.Write(string.Format(Lang.SureToDelete, jobs[index]));
-                    string confirm = Console.ReadLine();
-                    if (confirm.ToUpper() == "O" || confirm.ToUpper() == "Y")
+                    string? confirm = Console.ReadLine();
+
+                    if (!string.IsNullOrEmpty(confirm) && 
+                        (confirm.Equals("O", StringComparison.OrdinalIgnoreCase) || 
+                         confirm.Equals("Y", StringComparison.OrdinalIgnoreCase)))
                     {
                         _viewModel.DeleteJob(index);
 
+                        Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine(Lang.FinishDelete);
+                        Console.ResetColor();
                         Console.ReadKey();
 
                         jobs = _viewModel.GetAllJobs();
-                        index = 0;
+                        index = Math.Min(index, Math.Max(0, jobs.Count - 1));
                     }
                 }
             }
@@ -302,18 +315,10 @@ namespace Projet_EasySave
             }
         }
 
-        private void SetLanguage(string cultureCode)
+        private void SetLanguage(string culture)
         {
-            try
-            {
-                CultureInfo culture = new CultureInfo(cultureCode);
-                Thread.CurrentThread.CurrentUICulture = culture;
-                Thread.CurrentThread.CurrentCulture = culture;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Erreur de langue : " + e.Message);
-            }
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
         }
     }
 }

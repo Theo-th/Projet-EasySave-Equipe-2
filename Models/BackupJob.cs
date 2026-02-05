@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Text.Json.Serialization;
 
 namespace Projet_EasySave.Models
 {
@@ -11,32 +10,33 @@ namespace Projet_EasySave.Models
         /// <summary>
         /// Nom unique de la sauvegarde.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Chemin du répertoire source à sauvegarder.
         /// </summary>
-        public string SourceDirectory { get; set; }
+        public string SourceDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Chemin du répertoire cible où la sauvegarde sera effectuée.
         /// </summary>
-        public string TargetDirectory { get; set; }
+        public string TargetDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Type de sauvegarde : Complete ou Differential.
         /// </summary>
-        public string Type { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public BackupType Type { get; set; } = BackupType.Complete;
 
+        /// <summary>
+        /// Constructeur par défaut requis pour la désérialisation JSON.
+        /// </summary>
+        public BackupJob() { }
 
         /// <summary>
         /// Initialise une nouvelle instance de la classe BackupJob avec les paramètres spécifiés.
         /// </summary>
-        /// <param name="name">Nom de la sauvegarde</param>
-        /// <param name="sourceDirectory">Répertoire source</param>
-        /// <param name="targetDirectory">Répertoire cible</param>
-        /// <param name="type">Type de sauvegarde</param>
-        public BackupJob(string name, string sourceDirectory, string targetDirectory, string type)
+        public BackupJob(string name, string sourceDirectory, string targetDirectory, BackupType type)
         {
             Name = name;
             SourceDirectory = sourceDirectory;

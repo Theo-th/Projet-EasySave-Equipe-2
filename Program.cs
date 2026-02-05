@@ -1,9 +1,7 @@
 ﻿using Projet_EasySave.ViewModels;
+using Projet_EasySave.Services;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
-using Projet_EasySave.Properties;
 
 namespace Projet_EasySave
 {
@@ -15,8 +13,16 @@ namespace Projet_EasySave
         static void Main(string[] args)
         {
             ViewModelConsole viewModel = new ViewModelConsole();
-            ViewConsole view = new ViewConsole(viewModel);
-            view.ShowConsole();
+            List<int>? jobIndices = CommandLineParser.ParseJobIndices(args, 5);
+
+            if (jobIndices != null && jobIndices.Count > 0)
+            {
+                new CommandLineExecutor(viewModel).Execute(jobIndices);
+            }
+            else
+            {
+                new ViewConsole(viewModel).ShowConsole();
+            }
         }
     }
 }

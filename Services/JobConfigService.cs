@@ -1,21 +1,25 @@
+using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Projet_EasySave.Services
 {
     /// <summary>
     /// Service de gestion des configurations de travaux de sauvegarde.
-    /// Permet de charger, cr�er, sauvegarder et supprimer des travaux.
+    /// Permet de charger, créer, sauvegarder et supprimer des travaux.
     /// </summary>
-    public class JobConfigService
+    public class JobConfigService : IJobConfigService
     {
         private readonly string _configFilePath;
         private List<BackupJob> _jobs;
+        private readonly object _lockObject = new();
         private const int MaxJobs = 5;
 
         private static readonly JsonSerializerOptions ConfigOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() }
         };
 
         /// <summary>
@@ -24,7 +28,6 @@ namespace Projet_EasySave.Services
         /// <param name="configFilePath">Chemin du fichier de configuration JSON</param>
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
-            // Chemin portable : relatif au dossier de l'exécutable
             _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
             _jobs = new List<BackupJob>();
             LoadAllJobs();
@@ -33,87 +36,107 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Charge tous les travaux depuis le fichier de configuration JSON.
         /// </summary>
-        /// <returns>Liste de tous les travaux charg�s</returns>
         public List<BackupJob> LoadAllJobs()
         {
-            try
+            lock (_lockObject)
             {
-                if (File.Exists(_configFilePath))
+                try
                 {
-                    string json = File.ReadAllText(_configFilePath);
-                    _jobs = JsonSerializer.Deserialize<List<BackupJob>>(json) ?? new List<BackupJob>();
+                    if (File.Exists(_configFilePath))
+                    {
+                        string json = File.ReadAllText(_configFilePath);
+                        _jobs = JsonSerializer.Deserialize<List<BackupJob>>(json, ConfigOptions) ?? new List<BackupJob>();
+                    }
+                    else
+                    {
+                        _jobs = new List<BackupJob>();
+                    }
                 }
-                else
+                catch
                 {
                     _jobs = new List<BackupJob>();
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du chargement des travaux : {ex.Message}");
-                _jobs = new List<BackupJob>();
-            }
 
-            return _jobs;
+                return _jobs.ToList(); // Retourne une copie
+            }
         }
 
         /// <summary>
-        /// Charge un travail sp�cifique par son indice.
+        /// Charge un travail spécifique par son indice.
         /// </summary>
-        /// <param name="index">Indice du travail (0-based)</param>
-        /// <returns>Le travail demand� ou null s'il n'existe pas</returns>
         public BackupJob? LoadJob(int index)
         {
-            if (index >= 0 && index < _jobs.Count)
+            lock (_lockObject)
             {
-                return _jobs[index];
+                if (index >= 0 && index < _jobs.Count)
+                {
+                    return _jobs[index];
+                }
+                return null;
             }
-
-            return null;
         }
 
         /// <summary>
-        /// Cr�e et sauvegarde un nouveau travail de sauvegarde.
+        /// Crée et sauvegarde un nouveau travail de sauvegarde.
         /// </summary>
-        /// <param name="name">Nom du travail</param>
-        /// <param name="sourceDirectory">R�pertoire source</param>
-        /// <param name="targetDirectory">R�pertoire cible</param>
-        /// <param name="type">Type de sauvegarde (Compl�te ou Diff�rentielle)</param>
-        /// <returns>true si le travail a �t� cr�� avec succ�s, false sinon</returns>
-        public bool CreateJob(string name, string sourceDirectory, string targetDirectory, string type)
+        /// <returns>Tuple indiquant le succès et un message d'erreur éventuel</returns>
+        public (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type)
         {
-            // V�rifier le nombre maximum de travaux
-            if (_jobs.Count >= MaxJobs)
+            lock (_lockObject)
             {
-                Console.WriteLine($"Erreur : Nombre maximum de travaux ({MaxJobs}) atteint.");
-                return false;
+                // Vérifier le nombre maximum de travaux
+                if (_jobs.Count >= MaxJobs)
+                {
+                    return (false, $"Nombre maximum de travaux ({MaxJobs}) atteint.");
+                }
+
+                // Vérifier que le nom n'est pas vide
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return (false, "Le nom du travail ne peut pas être vide.");
+                }
+
+                // Vérifier que le nom n'existe pas déjà
+                if (_jobs.Exists(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return (false, $"Un travail avec le nom '{name}' existe déjà.");
+                }
+
+                // Vérifier que le répertoire source est valide
+                if (string.IsNullOrWhiteSpace(sourceDirectory))
+                {
+                    return (false, "Le répertoire source ne peut pas être vide.");
+                }
+
+                if (!Directory.Exists(sourceDirectory))
+                {
+                    return (false, $"Le répertoire source '{sourceDirectory}' n'existe pas.");
+                }
+
+                // Vérifier que le répertoire cible n'est pas vide
+                if (string.IsNullOrWhiteSpace(targetDirectory))
+                {
+                    return (false, "Le répertoire cible ne peut pas être vide.");
+                }
+
+                var newJob = new BackupJob(name, sourceDirectory, targetDirectory, type);
+                _jobs.Add(newJob);
+
+                if (SaveJob())
+                {
+                    return (true, null);
+                }
+                else
+                {
+                    _jobs.Remove(newJob);
+                    return (false, "Erreur lors de la sauvegarde de la configuration.");
+                }
             }
-
-            // V�rifier que le nom n'existe pas d�j�
-            if (_jobs.Exists(j => j.Name == name))
-            {
-                Console.WriteLine($"Erreur : Un travail avec le nom '{name}' existe d�j�.");
-                return false;
-            }
-
-            // V�rifier que les r�pertoires sont valides
-            if (!Directory.Exists(sourceDirectory))
-            {
-                Console.WriteLine($"Erreur : Le r�pertoire source '{sourceDirectory}' n'existe pas.");
-                return false;
-            }
-
-            var newJob = new BackupJob(name, sourceDirectory, targetDirectory, type);
-
-            _jobs.Add(newJob);
-
-            return SaveJob();
         }
 
         /// <summary>
         /// Sauvegarde tous les travaux dans le fichier de configuration JSON.
         /// </summary>
-        /// <returns>true si la sauvegarde a �t� effectu�e, false sinon</returns>
         public bool SaveJob()
         {
             try
@@ -122,9 +145,8 @@ namespace Projet_EasySave.Services
                 File.WriteAllText(_configFilePath, json);
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Erreur lors de la sauvegarde des travaux : {ex.Message}");
                 return false;
             }
         }
@@ -132,35 +154,39 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Supprime un travail par son indice.
         /// </summary>
-        /// <param name="index">Indice du travail � supprimer (0-based)</param>
-        /// <returns>true si le travail a �t� supprim�, false sinon</returns>
         public bool RemoveJob(int index)
         {
-            if (index >= 0 && index < _jobs.Count)
+            lock (_lockObject)
             {
-                _jobs.RemoveAt(index);
-                return SaveJob();
+                if (index >= 0 && index < _jobs.Count)
+                {
+                    _jobs.RemoveAt(index);
+                    return SaveJob();
+                }
+                return false;
             }
-
-            return false;
         }
 
         /// <summary>
-        /// Obtient le nombre total de travaux configur�s.
+        /// Obtient le nombre total de travaux configurés.
         /// </summary>
-        /// <returns>Nombre de travaux</returns>
         public int GetJobCount()
         {
-            return _jobs.Count;
+            lock (_lockObject)
+            {
+                return _jobs.Count;
+            }
         }
 
         /// <summary>
-        /// Obtient tous les travaux configur�s.
+        /// Obtient tous les travaux configurés (copie défensive).
         /// </summary>
-        /// <returns>Liste de tous les travaux</returns>
         public List<BackupJob> GetAllJobs()
         {
-            return _jobs;
+            lock (_lockObject)
+            {
+                return _jobs.ToList(); // Retourne une copie pour éviter les modifications externes
+            }
         }
     }
 }
