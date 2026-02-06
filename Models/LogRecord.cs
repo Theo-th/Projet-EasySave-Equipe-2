@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Projet_EasySave.Models
+namespace Projet_EasyLog.Models
 {
     /// <summary>
     /// Classe de base représentant un enregistrement de log générique.
