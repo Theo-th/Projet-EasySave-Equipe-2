@@ -1,5 +1,6 @@
 using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
+using Projet_EasySave.Properties;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -87,36 +88,36 @@ namespace Projet_EasySave.Services
                 // Vérifier le nombre maximum de travaux
                 if (_jobs.Count >= MaxJobs)
                 {
-                    return (false, $"Nombre maximum de travaux ({MaxJobs}) atteint.");
+                    return (false, string.Format(Lang.MaxJobsReached, MaxJobs));
                 }
 
                 // Vérifier que le nom n'est pas vide
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    return (false, "Le nom du travail ne peut pas être vide.");
+                    return (false, Lang.JobNameEmpty);
                 }
 
                 // Vérifier que le nom n'existe pas déjà
                 if (_jobs.Exists(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 {
-                    return (false, $"Un travail avec le nom '{name}' existe déjà.");
+                    return (false, string.Format(Lang.JobAlreadyExists, name));
                 }
 
                 // Vérifier que le répertoire source est valide
                 if (string.IsNullOrWhiteSpace(sourceDirectory))
                 {
-                    return (false, "Le répertoire source ne peut pas être vide.");
+                    return (false, Lang.SourceDirectoryEmpty);
                 }
 
                 if (!Directory.Exists(sourceDirectory))
                 {
-                    return (false, $"Le répertoire source '{sourceDirectory}' n'existe pas.");
+                    return (false, string.Format(Lang.SourceDirectoryNotFound, sourceDirectory));
                 }
 
                 // Vérifier que le répertoire cible n'est pas vide
                 if (string.IsNullOrWhiteSpace(targetDirectory))
                 {
-                    return (false, "Le répertoire cible ne peut pas être vide.");
+                    return (false, Lang.TargetDirectoryEmpty);
                 }
 
                 var newJob = new BackupJob(name, sourceDirectory, targetDirectory, type);
@@ -129,7 +130,7 @@ namespace Projet_EasySave.Services
                 else
                 {
                     _jobs.Remove(newJob);
-                    return (false, "Erreur lors de la sauvegarde de la configuration.");
+                    return (false, Lang.ConfigSaveError);
                 }
             }
         }

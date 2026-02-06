@@ -1,4 +1,5 @@
 using Projet_EasySave.EasyLog;
+using Projet_EasySave.Properties;
 
 namespace Projet_EasySave.Services
 {
@@ -21,7 +22,7 @@ namespace Projet_EasySave.Services
             if (!Directory.Exists(fullBackupPath) || IsDirectoryEmpty(fullBackupPath))
             {
                 new FullBackupStrategy().ProcessBackup(source, fullBackupPath, name, log);
-                return "Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...";
+                return Lang.NoFullBackupFound;
             }
 
             if (Directory.Exists(diffBackupPath))
@@ -29,7 +30,7 @@ namespace Projet_EasySave.Services
             Directory.CreateDirectory(diffBackupPath);
 
             CopyModifiedFiles(source, fullBackupPath, diffBackupPath, name, log);
-            return "Sauvegarde différentielle créée.";
+            return Lang.DifferentialBackupCreated;
         }
 
         private static bool IsDirectoryEmpty(string path) =>

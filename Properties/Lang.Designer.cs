@@ -70,6 +70,15 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors de la sauvegarde de la configuration..
+        /// </summary>
+        public static string ConfigSaveError {
+            get {
+                return ResourceManager.GetString("ConfigSaveError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Tentative de création terminée.
         /// </summary>
         public static string CreateFinish {
@@ -102,6 +111,24 @@ namespace Projet_EasySave.Properties {
         public static string DestPath {
             get {
                 return ResourceManager.GetString("DestPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde différentielle créée..
+        /// </summary>
+        public static string DifferentialBackupCreated {
+            get {
+                return ResourceManager.GetString("DifferentialBackupCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Le répertoire source n&apos;existe pas : {0}.
+        /// </summary>
+        public static string DirectoryNoExist {
+            get {
+                return ResourceManager.GetString("DirectoryNoExist", resourceCulture);
             }
         }
         
@@ -142,6 +169,33 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Un travail avec le nom {0} existe déjà..
+        /// </summary>
+        public static string JobAlreadyExists {
+            get {
+                return ResourceManager.GetString("JobAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Travail de sauvegarde introuvable à l&apos;indice {0}.
+        /// </summary>
+        public static string JobIndexNotFound {
+            get {
+                return ResourceManager.GetString("JobIndexNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Le nom du travail ne peut pas être vide..
+        /// </summary>
+        public static string JobNameEmpty {
+            get {
+                return ResourceManager.GetString("JobNameEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Anglais.
         /// </summary>
         public static string LangEnglish {
@@ -156,6 +210,15 @@ namespace Projet_EasySave.Properties {
         public static string LangFrench {
             get {
                 return ResourceManager.GetString("LangFrench", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Nombre maximum de travaux {0} atteint.
+        /// </summary>
+        public static string MaxJobsReached {
+            get {
+                return ResourceManager.GetString("MaxJobsReached", resourceCulture);
             }
         }
         
@@ -268,6 +331,15 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence....
+        /// </summary>
+        public static string NoFullBackupFound {
+            get {
+                return ResourceManager.GetString("NoFullBackupFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Aucune sauvegarde à supprimer.
         /// </summary>
         public static string NoSaveDelete {
@@ -277,11 +349,38 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Erreur lors de la sauvegarde : {0}.
+        /// </summary>
+        public static string SaveErrorWithException {
+            get {
+                return ResourceManager.GetString("SaveErrorWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Paramètres.
         /// </summary>
         public static string SettingsTitle {
             get {
                 return ResourceManager.GetString("SettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Le répertoire source ne peut pas être vide..
+        /// </summary>
+        public static string SourceDirectoryEmpty {
+            get {
+                return ResourceManager.GetString("SourceDirectoryEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Le répertoire source {0] n&apos;existe pas..
+        /// </summary>
+        public static string SourceDirectoryNotFound {
+            get {
+                return ResourceManager.GetString("SourceDirectoryNotFound", resourceCulture);
             }
         }
         
@@ -300,6 +399,15 @@ namespace Projet_EasySave.Properties {
         public static string SureToDelete {
             get {
                 return ResourceManager.GetString("SureToDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Le répertoire cible ne peut pas être vide..
+        /// </summary>
+        public static string TargetDirectoryEmpty {
+            get {
+                return ResourceManager.GetString("TargetDirectoryEmpty", resourceCulture);
             }
         }
         

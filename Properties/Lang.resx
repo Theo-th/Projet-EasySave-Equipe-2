@@ -120,6 +120,9 @@
   <data name="BtnReturn" xml:space="preserve">
     <value>Retour</value>
   </data>
+  <data name="ConfigSaveError" xml:space="preserve">
+    <value>Erreur lors de la sauvegarde de la configuration.</value>
+  </data>
   <data name="CreateFinish" xml:space="preserve">
     <value>Tentative de création terminée</value>
   </data>
@@ -131,6 +134,12 @@
   </data>
   <data name="DestPath" xml:space="preserve">
     <value>Chemin de destination :</value>
+  </data>
+  <data name="DifferentialBackupCreated" xml:space="preserve">
+    <value>Sauvegarde différentielle créée.</value>
+  </data>
+  <data name="DirectoryNoExist" xml:space="preserve">
+    <value>Le répertoire source n'existe pas : {0}</value>
   </data>
   <data name="EnterReturn" xml:space="preserve">
     <value>Entrée : Supprimer | Echap : Retour</value>
@@ -144,11 +153,23 @@
   <data name="FinishDelete" xml:space="preserve">
     <value>Suppression effectuée</value>
   </data>
+  <data name="JobAlreadyExists" xml:space="preserve">
+    <value>Un travail avec le nom {0} existe déjà.</value>
+  </data>
+  <data name="JobIndexNotFound" xml:space="preserve">
+    <value>Travail de sauvegarde introuvable à l'indice {0}</value>
+  </data>
+  <data name="JobNameEmpty" xml:space="preserve">
+    <value>Le nom du travail ne peut pas être vide.</value>
+  </data>
   <data name="LangEnglish" xml:space="preserve">
     <value>Anglais</value>
   </data>
   <data name="LangFrench" xml:space="preserve">
     <value>Français</value>
+  </data>
+  <data name="MaxJobsReached" xml:space="preserve">
+    <value>Nombre maximum de travaux {0} atteint</value>
   </data>
   <data name="MenuAucunTravail" xml:space="preserve">
     <value>Aucun travail de sauvegarde configuré</value>
@@ -186,17 +207,32 @@
   <data name="NameSave" xml:space="preserve">
     <value>Nom de la sauvegarde :</value>
   </data>
+  <data name="NoFullBackupFound" xml:space="preserve">
+    <value>Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...</value>
+  </data>
   <data name="NoSaveDelete" xml:space="preserve">
     <value>Aucune sauvegarde à supprimer</value>
   </data>
+  <data name="SaveErrorWithException" xml:space="preserve">
+    <value>Erreur lors de la sauvegarde : {0}</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Paramètres</value>
+  </data>
+  <data name="SourceDirectoryEmpty" xml:space="preserve">
+    <value>Le répertoire source ne peut pas être vide.</value>
+  </data>
+  <data name="SourceDirectoryNotFound" xml:space="preserve">
+    <value>Le répertoire source {0] n'existe pas.</value>
   </data>
   <data name="SourcePath" xml:space="preserve">
     <value>Chemin source :</value>
   </data>
   <data name="SureToDelete" xml:space="preserve">
     <value>Êtes-vous sûr de vouloir supprimer {0} ? (O/N) :</value>
+  </data>
+  <data name="TargetDirectoryEmpty" xml:space="preserve">
+    <value>Le répertoire cible ne peut pas être vide.</value>
   </data>
   <data name="TypeSave" xml:space="preserve">
     <value>Type (1: Complet, 2: Differentiel) :</value>

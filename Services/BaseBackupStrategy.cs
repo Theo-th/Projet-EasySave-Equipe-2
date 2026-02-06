@@ -1,6 +1,7 @@
 using Projet_EasySave.EasyLog;
 using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
+using Projet_EasySave.Properties;
 using System.Diagnostics;
 
 namespace Projet_EasySave.Services
@@ -15,7 +16,7 @@ namespace Projet_EasySave.Services
         protected void ValidateSourceDirectory(string source)
         {
             if (!Directory.Exists(source))
-                throw new DirectoryNotFoundException($"Le répertoire source n'existe pas : {source}");
+                throw new DirectoryNotFoundException(string.Format(Lang.ExecuteJob, source));
         }
 
         protected void CopyFileWithLog(string sourceFile, string destFile, string name, JsonLog log, string successMessage = "Success")

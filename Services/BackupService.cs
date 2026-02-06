@@ -1,6 +1,7 @@
 using Projet_EasySave.EasyLog;
-using Projet_EasySave.Models;
 using Projet_EasySave.Interfaces;
+using Projet_EasySave.Models;
+using Projet_EasySave.Properties;
 
 namespace Projet_EasySave.Services
 {
@@ -29,7 +30,7 @@ namespace Projet_EasySave.Services
         {
             BackupJob? job = _configService.LoadJob(jobIndex);
             if (job == null)
-                return $"Travail de sauvegarde introuvable à l'indice {jobIndex}.";
+                return string.Format(Lang.JobIndexNotFound, jobIndex);
 
             return ExecuteBackup(job, jobIndex);
         }
@@ -93,7 +94,7 @@ namespace Projet_EasySave.Services
                 jobState.LastActionTimestamp = DateTime.Now;
                 _stateRepository.UpdateState(new List<BackupJobState> { jobState });
 
-                return $"Erreur lors de la sauvegarde : {ex.Message}";
+                return string.Format(Lang.SaveErrorWithException, ex.Message);
             }
         }
 
