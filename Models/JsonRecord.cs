@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Projet_EasyLog.Models
+namespace Projet_EasySave.Models
 {
     /// <summary>
     /// Modèle de données représentant un enregistrement de log spécifique au format JSON.

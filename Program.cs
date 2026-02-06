@@ -1,4 +1,4 @@
-﻿namespace Projet_EasyLog
+﻿namespace Projet_EasySave
 {
     internal class Program
     {
