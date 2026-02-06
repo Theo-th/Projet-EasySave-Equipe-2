@@ -5,8 +5,7 @@ using System.Text;
 namespace Projet_EasySave.EasyLog.Models
 {
     /// <summary>
-    /// Modèle de données représentant un enregistrement de log spécifique au format JSON.
-    /// Cette classe contient toutes les informations d'une sauvegarde.
+    /// Represents a log record for JSON format.
     /// </summary>
     public class JsonRecord : LogRecord
     {

@@ -7,8 +7,7 @@ using System.Text.Json.Serialization;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Service de gestion des configurations de travaux de sauvegarde.
-    /// Permet de charger, créer, sauvegarder et supprimer des travaux.
+    /// Service for managing backup job configurations.
     /// </summary>
     public class JobConfigService : IJobConfigService
     {
@@ -23,10 +22,6 @@ namespace Projet_EasySave.Services
             Converters = { new JsonStringEnumConverter() }
         };
 
-        /// <summary>
-        /// Initialise une nouvelle instance du service de configuration.
-        /// </summary>
-        /// <param name="configFilePath">Chemin du fichier de configuration JSON</param>
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
             _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
@@ -34,9 +29,6 @@ namespace Projet_EasySave.Services
             LoadAllJobs();
         }
 
-        /// <summary>
-        /// Charge tous les travaux depuis le fichier de configuration JSON.
-        /// </summary>
         public List<BackupJob> LoadAllJobs()
         {
             lock (_lockObject)
@@ -58,13 +50,10 @@ namespace Projet_EasySave.Services
                     _jobs = new List<BackupJob>();
                 }
 
-                return _jobs.ToList(); // Retourne une copie
+                return _jobs.ToList(); // Returns a copy
             }
         }
 
-        /// <summary>
-        /// Charge un travail spécifique par son indice.
-        /// </summary>
         public BackupJob? LoadJob(int index)
         {
             lock (_lockObject)
@@ -78,32 +67,28 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Crée et sauvegarde un nouveau travail de sauvegarde.
+        /// Creates and saves a new backup job.
         /// </summary>
-        /// <returns>Tuple indiquant le succès et un message d'erreur éventuel</returns>
+        /// <returns>Tuple indicating success and an optional error message</returns>
         public (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type)
         {
             lock (_lockObject)
             {
-                // Vérifier le nombre maximum de travaux
                 if (_jobs.Count >= MaxJobs)
                 {
                     return (false, string.Format(Lang.MaxJobsReached, MaxJobs));
                 }
 
-                // Vérifier que le nom n'est pas vide
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     return (false, Lang.JobNameEmpty);
                 }
 
-                // Vérifier que le nom n'existe pas déjà
                 if (_jobs.Exists(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 {
                     return (false, string.Format(Lang.JobAlreadyExists, name));
                 }
 
-                // Vérifier que le répertoire source est valide
                 if (string.IsNullOrWhiteSpace(sourceDirectory))
                 {
                     return (false, Lang.SourceDirectoryEmpty);
@@ -114,7 +99,6 @@ namespace Projet_EasySave.Services
                     return (false, string.Format(Lang.SourceDirectoryNotFound, sourceDirectory));
                 }
 
-                // Vérifier que le répertoire cible n'est pas vide
                 if (string.IsNullOrWhiteSpace(targetDirectory))
                 {
                     return (false, Lang.TargetDirectoryEmpty);
@@ -135,9 +119,6 @@ namespace Projet_EasySave.Services
             }
         }
 
-        /// <summary>
-        /// Sauvegarde tous les travaux dans le fichier de configuration JSON.
-        /// </summary>
         public bool SaveJob()
         {
             try
@@ -152,9 +133,6 @@ namespace Projet_EasySave.Services
             }
         }
 
-        /// <summary>
-        /// Supprime un travail par son indice.
-        /// </summary>
         public bool RemoveJob(int index)
         {
             lock (_lockObject)
@@ -168,9 +146,6 @@ namespace Projet_EasySave.Services
             }
         }
 
-        /// <summary>
-        /// Obtient le nombre total de travaux configurés.
-        /// </summary>
         public int GetJobCount()
         {
             lock (_lockObject)
@@ -179,14 +154,11 @@ namespace Projet_EasySave.Services
             }
         }
 
-        /// <summary>
-        /// Obtient tous les travaux configurés (copie défensive).
-        /// </summary>
         public List<BackupJob> GetAllJobs()
         {
             lock (_lockObject)
             {
-                return _jobs.ToList(); // Retourne une copie pour éviter les modifications externes
+                return _jobs.ToList();
             }
         }
     }

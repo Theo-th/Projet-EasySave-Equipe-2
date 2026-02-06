@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Repository pour la gestion de la persistance de l'état temps réel des sauvegardes (state.json)
+    /// Repository for managing real-time backup state persistence (state.json).
     /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
@@ -25,7 +25,6 @@ namespace Projet_EasySave.Services
 
         public BackupStateRepository()
         {
-            // Chemin relatif au dossier de l'exécutable, portable sur toutes les machines
             _statePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
         }
 
@@ -43,14 +42,12 @@ namespace Projet_EasySave.Services
             {
                 try
                 {
-                    // Créer le répertoire si nécessaire
                     string? directory = Path.GetDirectoryName(_statePath);
                     if (!string.IsNullOrEmpty(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    // Sérialiser directement la liste de BackupJobState avec options statiques
                     string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), StateOptions);
                     File.WriteAllText(_statePath, json);
                 }

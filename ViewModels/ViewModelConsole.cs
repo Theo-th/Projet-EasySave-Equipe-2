@@ -6,17 +6,13 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.ViewModels
 {
     /// <summary>
-    /// ViewModel pour la gestion de la console.
-    /// Orchestre la communication entre le modèle (BackupJob) et la vue (console).
+    /// Manages console interactions and coordinates communication between backup jobs and the console view.
     /// </summary>
     public class ViewModelConsole
     {
         private readonly IJobConfigService _configService;
-        private readonly IBackupService _backupService;  // ✅ Interface
+        private readonly IBackupService _backupService;
 
-        /// <summary>
-        /// Initialise une nouvelle instance du ViewModel avec injection de dépendances.
-        /// </summary>
         public ViewModelConsole(IJobConfigService? configService = null, IBackupStateRepository? stateRepository = null)
         {
             _configService = configService ?? new JobConfigService();
@@ -32,12 +28,11 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Crée un nouveau travail de sauvegarde avec les paramètres fournis.
+        /// Creates a new backup job.
         /// </summary>
-        /// <returns>Tuple indiquant le succès et un message d'erreur éventuel</returns>
+        /// <returns>Tuple indicating success and an optional error message</returns>
         public (bool Success, string? ErrorMessage) CreateJob(string? name, string? source, string? destination, BackupType type)
         {
-            // Validation des entrées
             if (string.IsNullOrWhiteSpace(name))
                 return (false, "Le nom du travail est requis.");
 
@@ -51,7 +46,7 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Exécute un travail de sauvegarde spécifié par son indice.
+        /// Executes a backup job by its index.
         /// </summary>
         public string? ExecuteJob(int jobIndex)
         {
@@ -59,7 +54,7 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Exécute plusieurs travaux de sauvegarde spécifiés par leurs indices.
+        /// Executes multiple backup jobs.
         /// </summary>
         public List<(int Index, string? Message)> ExecuteJobs(List<int> jobIndices)
         {
@@ -73,7 +68,7 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Supprime un travail de sauvegarde spécifié par son indice.
+        /// Deletes a backup job by its index.
         /// </summary>
         public bool DeleteJob(int jobIndex)
         {
@@ -81,7 +76,7 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Récupère les noms de tous les travaux de sauvegarde configurés.
+        /// Gets all configured backup job names.
         /// </summary>
         public List<string> GetAllJobs()
         {
@@ -90,7 +85,7 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Récupère le nom et le type d'un travail spécifique par son indice.
+        /// Gets job name and type by index.
         /// </summary>
         public string? GetJob(int jobIndex)
         {

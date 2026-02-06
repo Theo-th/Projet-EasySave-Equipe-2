@@ -3,7 +3,7 @@ using Projet_EasySave.EasyLog;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Stratégie de sauvegarde complète : copie tous les fichiers dans un dossier "Full".
+    /// Full backup strategy: copies all files to a "Full" folder.
     /// </summary>
     public class FullBackupStrategy : BaseBackupStrategy
     {

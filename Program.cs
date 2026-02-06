@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 namespace Projet_EasySave
 {
-    /// <summary>
-    /// Point d'entrée principal de l'application EasySave
-    /// </summary>
     class Program
     {
         static void Main(string[] args)

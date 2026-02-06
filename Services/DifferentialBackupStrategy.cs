@@ -4,7 +4,7 @@ using Projet_EasySave.Properties;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Stratégie de sauvegarde différentielle : copie uniquement les fichiers modifiés.
+    /// Differential backup strategy: copies only modified files.
     /// </summary>
     public class DifferentialBackupStrategy : BaseBackupStrategy
     {

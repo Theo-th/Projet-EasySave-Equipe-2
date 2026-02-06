@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Classe de base abstraite pour les stratégies de sauvegarde.
+    /// Abstract base class for backup strategies.
     /// </summary>
     public abstract class BaseBackupStrategy : IBackupStrategy
     {

@@ -6,7 +6,7 @@ using Projet_EasySave.Properties;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Service d'exécution des travaux de sauvegarde.
+    /// Service for executing backup jobs.
     /// </summary>
     public class BackupService : IBackupService
     {
@@ -22,10 +22,10 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Exécute un travail de sauvegarde par son indice.
+        /// Executes a backup job by its index.
         /// </summary>
-        /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>Message d'erreur ou null si succès</returns>
+        /// <param name="jobIndex">Job index (0-based)</param>
+        /// <returns>Error message or null on success</returns>
         public string? ExecuteBackup(int jobIndex)
         {
             BackupJob? job = _configService.LoadJob(jobIndex);
@@ -36,17 +36,15 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Exécute un travail de sauvegarde.
+        /// Executes a backup job.
         /// </summary>
-        /// <param name="job">Le travail à exécuter</param>
-        /// <param name="jobIndex">Indice du travail</param>
-        /// <returns>Message d'information ou d'erreur, null si succès sans message</returns>
+        /// <param name="job">The job to execute</param>
+        /// <param name="jobIndex">Job index</param>
+        /// <returns>Information or error message, null on success</returns>
         private string? ExecuteBackup(BackupJob job, int jobIndex = 0)
         {
-            // Compter les fichiers et calculer la taille en un seul parcours (optimisé)
             var (totalFiles, totalSize) = GetFilesInfo(job.SourceDirectory);
 
-            // Créer l'état initial (Actif)
             var jobState = new BackupJobState
             {
                 Id = jobIndex + 1,
@@ -64,7 +62,6 @@ namespace Projet_EasySave.Services
                 CurrentTargetFile = ""
             };
 
-            // Mettre à jour l'état (début de sauvegarde)
             _stateRepository.UpdateState(new List<BackupJobState> { jobState });
 
             try
@@ -78,7 +75,6 @@ namespace Projet_EasySave.Services
 
                 var result = strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory, job.Name, _log);
 
-                // Mettre à jour l'état (sauvegarde terminée)
                 jobState.State = BackupState.Completed;
                 jobState.RemainingFiles = 0;
                 jobState.RemainingSize = 0;
@@ -89,7 +85,6 @@ namespace Projet_EasySave.Services
             }
             catch (Exception ex)
             {
-                // Mettre à jour l'état (erreur)
                 jobState.State = BackupState.Error;
                 jobState.LastActionTimestamp = DateTime.Now;
                 _stateRepository.UpdateState(new List<BackupJobState> { jobState });
@@ -98,9 +93,6 @@ namespace Projet_EasySave.Services
             }
         }
 
-        /// <summary>
-        /// Obtient le nombre de fichiers et la taille totale en un seul parcours (optimisé)
-        /// </summary>
         private (int count, long size) GetFilesInfo(string directory)
         {
             try
