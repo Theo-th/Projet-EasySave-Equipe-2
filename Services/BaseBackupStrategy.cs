@@ -31,7 +31,7 @@ namespace Projet_EasySave.Services
                 File.Copy(sourceFile, destFile, true);
                 sw.Stop();
 
-                log.WriteLog(new JsonRecord
+                log.WriteLog(new Record
                 {
                     Timestamp = DateTime.Now,
                     Name = name,
@@ -45,7 +45,7 @@ namespace Projet_EasySave.Services
             catch (Exception ex)
             {
                 sw.Stop();
-                log.WriteLog(new JsonRecord
+                log.WriteLog(new Record
                 {
                     Timestamp = DateTime.Now,
                     Name = name,
