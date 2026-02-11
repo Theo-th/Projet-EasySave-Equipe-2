@@ -52,6 +52,10 @@ namespace Projet_EasySave.Services.Strategies
                 // 3a : Lister les fichiers modifiés par rapport à la sauvegarde complète
                 List<string> modifiedFiles = ListModifiedFilesInSource(fullBackupFolder);
 
+                // Calculer la taille totale et notifier l'initialisation
+                long totalSize = ComputeTotalSize(modifiedFiles, SourceDirectory);
+                RaiseBackupInitialized(modifiedFiles.Count, totalSize);
+
                 // 3b : Générer le rapport des fichiers supprimés
                 var reportResult = CreateDeletedFilesReport(SourceDirectory, fullBackupFolder, diffBackupFolder);
                 if (!reportResult.Success)
@@ -86,6 +90,10 @@ namespace Projet_EasySave.Services.Strategies
             }
 
             List<string> filesToCopy = ListAllFilesInSource();
+
+            // Calculer la taille totale et notifier l'initialisation
+            long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
+            RaiseBackupInitialized(filesToCopy.Count, totalSize);
 
             var copyResult = CopyFilesFromList(filesToCopy, SourceDirectory, fullBackupFolder);
             if (!copyResult.Success)

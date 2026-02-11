@@ -1,5 +1,5 @@
-﻿using Projet_EasySave.Interfaces;
-using Projet_EasySave.Services;
+﻿using Projet_EasySave.Services;
+using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
 
 namespace Projet_EasySave.ViewModels
@@ -11,11 +11,22 @@ namespace Projet_EasySave.ViewModels
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
+        private readonly IBackupStateRepository _backupState;
+
+        /// <summary>
+        /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
+        /// La vue peut s'y abonner pour afficher une barre de chargement.
+        /// </summary>
+        public event Action<BackupJobState>? OnProgressChanged;
 
         public ViewModelConsole(LogType logType = LogType.JSON)
         {
             _configService = new JobConfigService();
-            _backupService = new BackupService(_configService, logType);
+            _backupState = new BackupStateRepository();
+            _backupService = new BackupService(_configService, _backupState, logType);
+
+            // Relayer l'événement du service vers la vue
+            _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
         }
 
         /// <summary>

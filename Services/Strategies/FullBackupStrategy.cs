@@ -45,6 +45,10 @@ namespace Projet_EasySave.Services.Strategies
                 // Étape 2 : Lister tous les fichiers à copier
                 List<string> filesToCopy = ListAllFilesInSource();
 
+                // Calculer la taille totale et notifier l'initialisation
+                long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
+                RaiseBackupInitialized(filesToCopy.Count, totalSize);
+
                 // Étape 3 : Copier les fichiers depuis la liste
                 var copyResult = CopyFilesFromList(filesToCopy, SourceDirectory, fullBackupFolder);
                 if (!copyResult.Success)

@@ -21,6 +21,16 @@ namespace Projet_EasySave.Services.Strategies
         protected string JobName { get; set; }
         protected BaseLog Logger { get; set; }
 
+        /// <summary>
+        /// Événement déclenché avant la copie des fichiers, avec le nombre total de fichiers et la taille totale.
+        /// </summary>
+        public event Action<int, long>? OnBackupInitialized;
+
+        /// <summary>
+        /// Événement déclenché après chaque fichier transféré (sourceFile, targetFile, fileSize).
+        /// </summary>
+        public event Action<string, string, long>? OnFileTransferred;
+
         public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
         {
             SourceDirectory = sourceDirectory;
@@ -104,8 +114,39 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
+        /// Calcule la taille totale d'une liste de fichiers relatifs à un répertoire source.
+        /// </summary>
+        protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
+        {
+            long totalSize = 0;
+            foreach (string relativePath in relativeFilePaths)
+            {
+                var fileInfo = new FileInfo(Path.Combine(sourceDir, relativePath));
+                if (fileInfo.Exists)
+                    totalSize += fileInfo.Length;
+            }
+            return totalSize;
+        }
+
+        /// <summary>
+        /// Déclenche l'événement d'initialisation de la sauvegarde.
+        /// </summary>
+        protected void RaiseBackupInitialized(int totalFiles, long totalSize)
+        {
+            OnBackupInitialized?.Invoke(totalFiles, totalSize);
+        }
+
+        /// <summary>
+        /// Déclenche l'événement de transfert d'un fichier.
+        /// </summary>
+        protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
+        {
+            OnFileTransferred?.Invoke(sourceFile, targetFile, fileSize);
+        }
+
+        /// <summary>
         /// Copie une liste de fichiers (chemins relatifs) depuis un dossier source vers un dossier cible.
-        /// Chaque transfert est logué via Logger.WriteLog().
+        /// Chaque transfert est logué via Logger.WriteLog() et déclenche un événement de progression.
         /// </summary>
         protected (bool Success, string? ErrorMessage) CopyFilesFromList(
             List<string> relativeFilePaths, string sourceDir, string targetDir)
@@ -142,6 +183,9 @@ namespace Projet_EasySave.Services.Strategies
                     };
 
                     Logger.WriteLog(record);
+
+                    // Notifier la progression après chaque fichier copié
+                    RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
                 }
 
                 return (true, null);
