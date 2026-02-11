@@ -412,6 +412,24 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Type de fichier de Log.
+        /// </summary>
+        public static string TitleLog {
+            get {
+                return ResourceManager.GetString("TitleLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Format du fichier Log.
+        /// </summary>
+        public static string TitleLogFormat {
+            get {
+                return ResourceManager.GetString("TitleLogFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Type (1: Complet, 2: Differentiel) :.
         /// </summary>
         public static string TypeSave {
