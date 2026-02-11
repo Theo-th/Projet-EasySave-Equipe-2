@@ -10,6 +10,6 @@ namespace Projet_EasySave.Interfaces
         /// </summary>
         /// <param name="jobIndex">Indice du travail (0-based)</param>
         /// <returns>Message d'erreur ou null si succès</returns>
-        string? ExecuteBackup(int jobIndex);
+        string? ExecuteBackup(List<int> jobIndices);
     }
 }

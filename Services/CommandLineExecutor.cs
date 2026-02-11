@@ -24,12 +24,15 @@ namespace Projet_EasySave.Services
             Console.WriteLine("EasySave - Command line execution mode");
             Console.WriteLine("-------------------------------------");
 
-            var results = _viewModel.ExecuteJobs(jobIndices);
+            var result = _viewModel.ExecuteJobs(jobIndices);
 
-            foreach (var (index, message) in results)
+            if (string.IsNullOrEmpty(result))
             {
-                string jobName = _viewModel.GetJob(index) ?? $"Job {index + 1}";
-                Console.WriteLine($"Job {index + 1} ({jobName}): {message ?? "Success"}");
+                Console.WriteLine("Aucun travail spécifié.");
+            }
+            else
+            {
+                Console.WriteLine(result);
             }
 
             Console.WriteLine("-------------------------------------");

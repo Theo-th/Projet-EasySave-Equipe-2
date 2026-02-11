@@ -7,12 +7,10 @@ namespace Projet_EasySave.Interfaces
     /// </summary>
     public interface IJobConfigService
     {
-        List<BackupJob> LoadAllJobs();
-        BackupJob? LoadJob(int index);
-        (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
-        bool SaveJob();
-        bool RemoveJob(int index);
-        int GetJobCount();
         List<BackupJob> GetAllJobs();
+        BackupJob? GetJob(int index);
+        int GetJobCount();
+        (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
+        bool RemoveJob(int index);
     }
 }

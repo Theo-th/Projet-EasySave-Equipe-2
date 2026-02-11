@@ -1,109 +1,75 @@
-using Projet_EasySave.EasyLog;
-using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
-using Projet_EasySave.Properties;
+using Projet_EasySave.Interfaces;
+using Projet_EasySave.Services.Strategies;
 
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Service for executing backup jobs.
+    /// Service for executing and managing backup operations.
     /// </summary>
     public class BackupService : IBackupService
     {
         private readonly IJobConfigService _configService;
-        private readonly JsonLog _log;
-        private readonly IBackupStateRepository _stateRepository;
 
-        public BackupService(IJobConfigService configService, JsonLog log, IBackupStateRepository stateRepository)
+        public BackupService(IJobConfigService configService)
         {
             _configService = configService;
-            _log = log;
-            _stateRepository = stateRepository;
         }
 
         /// <summary>
         /// Executes a backup job by its index.
         /// </summary>
-        /// <param name="jobIndex">Job index (0-based)</param>
-        /// <returns>Error message or null on success</returns>
-        public string? ExecuteBackup(int jobIndex)
+        /// <returns>Formatted backup status message or error message</returns>
+        public string? ExecuteBackup(List<int> jobIndices)
         {
-            BackupJob? job = _configService.LoadJob(jobIndex);
-            if (job == null)
-                return string.Format(Lang.JobIndexNotFound, jobIndex);
+            if (jobIndices == null || jobIndices.Count == 0)
+            {
+                return "Aucun travail de sauvegarde spécifié.";
+            }
 
-            return ExecuteBackup(job, jobIndex);
+            var allJobs = _configService.GetAllJobs();
+            var results = new List<string>();
+
+            foreach (int index in jobIndices)
+            {
+                if (index < 0 || index >= allJobs.Count)
+                {
+                    results.Add($"Erreur : L'indice {index} est invalide.");
+                    continue;
+                }
+
+                BackupJob job = allJobs[index];
+
+                // Créer la stratégie appropriée selon le type de sauvegarde
+                BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type);
+                
+                // Exécuter la sauvegarde
+                var (success, errorMessage) = strategy.Execute();
+
+                if (success)
+                {
+                    results.Add($"Sauvegarde '{job.Name}' terminée avec succès.");
+                }
+                else
+                {
+                    results.Add($"Erreur lors de la sauvegarde '{job.Name}' : {errorMessage}");
+                }
+            }
+
+            return string.Join("\n", results);
         }
 
         /// <summary>
-        /// Executes a backup job.
+        /// Crée la stratégie de sauvegarde appropriée selon le type.
         /// </summary>
-        /// <param name="job">The job to execute</param>
-        /// <param name="jobIndex">Job index</param>
-        /// <returns>Information or error message, null on success</returns>
-        private string? ExecuteBackup(BackupJob job, int jobIndex = 0)
+        private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType)
         {
-            var (totalFiles, totalSize) = GetFilesInfo(job.SourceDirectory);
-
-            var jobState = new BackupJobState
+            return backupType switch
             {
-                Id = jobIndex + 1,
-                Name = job.Name,
-                SourcePath = job.SourceDirectory,
-                TargetPath = job.TargetDirectory,
-                Type = job.Type == BackupType.Complete ? BackupType.Complete : BackupType.Differential,
-                State = BackupState.Active,
-                LastActionTimestamp = DateTime.Now,
-                TotalFiles = totalFiles,
-                TotalSize = totalSize,
-                RemainingFiles = totalFiles,
-                RemainingSize = totalSize,
-                CurrentSourceFile = "",
-                CurrentTargetFile = ""
+                BackupType.Complete => new FullBackupStrategy(sourceDirectory, targetDirectory, backupType),
+                BackupType.Differential => new DifferentialBackupStrategy(sourceDirectory, targetDirectory, backupType),
+                _ => throw new InvalidOperationException($"Type de sauvegarde non supporté : {backupType}")
             };
-
-            _stateRepository.UpdateState(new List<BackupJobState> { jobState });
-
-            try
-            {
-                IBackupStrategy strategy = job.Type switch
-                {
-                    BackupType.Complete => new FullBackupStrategy(),
-                    BackupType.Differential => new DifferentialBackupStrategy(),
-                    _ => new FullBackupStrategy()
-                };
-
-                var result = strategy.ProcessBackup(job.SourceDirectory, job.TargetDirectory, job.Name, _log);
-
-                jobState.State = BackupState.Completed;
-                jobState.RemainingFiles = 0;
-                jobState.RemainingSize = 0;
-                jobState.LastActionTimestamp = DateTime.Now;
-                _stateRepository.UpdateState(new List<BackupJobState> { jobState });
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                jobState.State = BackupState.Error;
-                jobState.LastActionTimestamp = DateTime.Now;
-                _stateRepository.UpdateState(new List<BackupJobState> { jobState });
-
-                return string.Format(Lang.SaveErrorWithException, ex.Message);
-            }
-        }
-
-        private (int count, long size) GetFilesInfo(string directory)
-        {
-            try
-            {
-                var files = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
-                return (files.Length, files.Sum(f => new FileInfo(f).Length));
-            }
-            catch
-            {
-                return (0, 0);
-            }
         }
     }
 }
