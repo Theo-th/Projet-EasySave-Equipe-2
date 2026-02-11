@@ -1,3 +1,5 @@
+using EasySave.Models;
+using EasyLog;
 using Projet_EasySave.Models;
 
 namespace Projet_EasySave.Services.Strategies
@@ -7,8 +9,8 @@ namespace Projet_EasySave.Services.Strategies
     /// </summary>
     public class FullBackupStrategy : BackupStrategy
     {
-        public FullBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType)
-            : base(sourceDirectory, targetDirectory, backupType)
+        public FullBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
+            : base(sourceDirectory, targetDirectory, backupType, jobName, logger)
         {
         }
 

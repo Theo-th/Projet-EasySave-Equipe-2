@@ -1,3 +1,5 @@
+using EasySave.Models;
+using EasyLog;
 using Projet_EasySave.Models;
 using Projet_EasySave.Interfaces;
 using Projet_EasySave.Services.Strategies;
@@ -10,10 +12,20 @@ namespace Projet_EasySave.Services
     public class BackupService : IBackupService
     {
         private readonly IJobConfigService _configService;
+        private readonly BaseLog _logger;
 
-        public BackupService(IJobConfigService configService)
+        public BackupService(IJobConfigService configService, LogType logType)
         {
             _configService = configService;
+
+            string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+
+            _logger = logType switch
+            {
+                LogType.JSON => new JsonLog(logDirectory),
+                LogType.XML => new XmlLog(logDirectory),
+                _ => new JsonLog(logDirectory)
+            };
         }
 
         /// <summary>
@@ -41,7 +53,7 @@ namespace Projet_EasySave.Services
                 BackupJob job = allJobs[index];
 
                 // Créer la stratégie appropriée selon le type de sauvegarde
-                BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type);
+                BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
                 
                 // Exécuter la sauvegarde
                 var (success, errorMessage) = strategy.Execute();
@@ -62,12 +74,12 @@ namespace Projet_EasySave.Services
         /// <summary>
         /// Crée la stratégie de sauvegarde appropriée selon le type.
         /// </summary>
-        private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType)
+        private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName)
         {
             return backupType switch
             {
-                BackupType.Complete => new FullBackupStrategy(sourceDirectory, targetDirectory, backupType),
-                BackupType.Differential => new DifferentialBackupStrategy(sourceDirectory, targetDirectory, backupType),
+                BackupType.Complete => new FullBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
+                BackupType.Differential => new DifferentialBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
                 _ => throw new InvalidOperationException($"Type de sauvegarde non supporté : {backupType}")
             };
         }

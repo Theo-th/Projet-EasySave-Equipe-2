@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="EasyLog">
-      <HintPath>Libs\EasyLog.dll</HintPath>
+    <Reference Include="EasyLog2">
+      <HintPath>Libs\EasyLog2.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -27,10 +27,6 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Lang.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Libs\" />
   </ItemGroup>
 
 </Project>

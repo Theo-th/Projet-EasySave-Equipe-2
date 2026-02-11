@@ -12,10 +12,10 @@ namespace Projet_EasySave.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
 
-        public ViewModelConsole()
+        public ViewModelConsole(LogType logType = LogType.JSON)
         {
             _configService = new JobConfigService();
-            _backupService = new BackupService(_configService);
+            _backupService = new BackupService(_configService, logType);
         }
 
         /// <summary>

@@ -1,4 +1,7 @@
+using EasySave.Models;
+using EasyLog;
 using Projet_EasySave.Models;
+using System.Diagnostics;
 
 namespace Projet_EasySave.Services.Strategies
 {
@@ -15,12 +18,16 @@ namespace Projet_EasySave.Services.Strategies
         protected string SourceDirectory { get; set; }
         protected string TargetDirectory { get; set; }
         protected BackupType BackupType { get; set; }
+        protected string JobName { get; set; }
+        protected BaseLog Logger { get; set; }
 
-        public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType)
+        public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
         {
             SourceDirectory = sourceDirectory;
             TargetDirectory = targetDirectory;
             BackupType = backupType;
+            JobName = jobName;
+            Logger = logger;
         }
 
         /// <summary>
@@ -70,7 +77,23 @@ namespace Projet_EasySave.Services.Strategies
                 Directory.CreateDirectory(backupFolderPath);
 
                 string markerFilePath = Path.Combine(backupFolderPath, markerFileName);
-                File.WriteAllText(markerFilePath, $"Sauvegarde {markerFileName} créée le {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                string markerContent = $"Sauvegarde {markerFileName} créée le {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+
+                var stopwatch = Stopwatch.StartNew();
+                File.WriteAllText(markerFilePath, markerContent);
+                stopwatch.Stop();
+
+                var record = new Record
+                {
+                    Name = JobName,
+                    Source = "",
+                    Target = markerFilePath,
+                    Size = markerContent.Length,
+                    Time = stopwatch.Elapsed.TotalMilliseconds,
+                    Timestamp = DateTime.Now
+                };
+
+                Logger.WriteLog(record);
 
                 return (true, null);
             }
@@ -82,6 +105,7 @@ namespace Projet_EasySave.Services.Strategies
 
         /// <summary>
         /// Copie une liste de fichiers (chemins relatifs) depuis un dossier source vers un dossier cible.
+        /// Chaque transfert est logué via Logger.WriteLog().
         /// </summary>
         protected (bool Success, string? ErrorMessage) CopyFilesFromList(
             List<string> relativeFilePaths, string sourceDir, string targetDir)
@@ -100,7 +124,24 @@ namespace Projet_EasySave.Services.Strategies
                         Directory.CreateDirectory(targetFileDir);
                     }
 
+                    var fileInfo = new FileInfo(sourceFilePath);
+                    long fileSize = fileInfo.Length;
+
+                    var stopwatch = Stopwatch.StartNew();
                     File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+                    stopwatch.Stop();
+
+                    var record = new Record
+                    {
+                        Name = JobName,
+                        Source = sourceFilePath,
+                        Target = targetFilePath,
+                        Size = fileSize,
+                        Time = stopwatch.Elapsed.TotalMilliseconds,
+                        Timestamp = DateTime.Now
+                    };
+
+                    Logger.WriteLog(record);
                 }
 
                 return (true, null);
