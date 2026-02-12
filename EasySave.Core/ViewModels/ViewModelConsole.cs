@@ -20,12 +20,16 @@ namespace EasySave.Core.ViewModels
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
 
-        public ViewModelConsole(LogType logType = LogType.JSON)
+        public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
         {
-            _configService = new JobConfigService();
+            _configService = new JobConfigService(configPath ?? "jobs_config.json");
             _backupState = new BackupStateRepository();
+            if (!string.IsNullOrEmpty(statePath))
+            {
+                _backupState.SetStatePath(statePath);
+            }
             _currentLogType = logType;
-            _backupService = new BackupService(_configService, _backupState, logType);
+            _backupService = new BackupService(_configService, _backupState, logType, logsPath);
 
             // Relay the event from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);

@@ -14,24 +14,25 @@ namespace EasySave.Core.Services
         private readonly IJobConfigService _configService;
         private readonly IBackupStateRepository _stateRepository;
         private BaseLog _logger;
+        private string _logDirectory;
 
         /// <summary>
         /// Event triggered on each backup job progress change.
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
 
-        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, LogType logType)
+        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, LogType logType, string? logDirectory = null)
         {
             _configService = configService;
             _stateRepository = stateRepository;
 
-            string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            _logDirectory = logDirectory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
 
             _logger = logType switch
             {
-                LogType.JSON => new JsonLog(logDirectory),
-                LogType.XML => new XmlLog(logDirectory),
-                _ => new JsonLog(logDirectory)
+                LogType.JSON => new JsonLog(_logDirectory),
+                LogType.XML => new XmlLog(_logDirectory),
+                _ => new JsonLog(_logDirectory)
             };
         }
 
@@ -156,13 +157,11 @@ namespace EasySave.Core.Services
 
         public void ChangeLogFormat(LogType logType)
         {
-            string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            
             _logger = logType switch
             {
-                LogType.JSON => new JsonLog(logDirectory),
-                LogType.XML => new XmlLog(logDirectory),
-                _ => new JsonLog(logDirectory)
+                LogType.JSON => new JsonLog(_logDirectory),
+                LogType.XML => new XmlLog(_logDirectory),
+                _ => new JsonLog(_logDirectory)
             };
         }
     }

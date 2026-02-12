@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         _currentConfigPath = settings.GetValueOrDefault("ConfigPath", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json"));
         _currentStatePath = settings.GetValueOrDefault("StatePath", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json"));
         
-        _viewModel = new ViewModelConsole(LogType.JSON);
+        _viewModel = new ViewModelConsole(LogType.JSON, _currentConfigPath, _currentStatePath, _currentLogsPath);
         _jobs = new ObservableCollection<JobItem>();
         
         // Initialiser le cache des contrôles
@@ -235,7 +235,9 @@ public partial class MainWindow : Window
                 {
                     _progressMonitor?.Stop();
                     ShowProgress(false);
-                    UpdateStatus($"Erreur: {result}", false);
+                    // Check if it's an error or success message
+                    bool isSuccess = result.Contains("completed successfully");
+                    UpdateStatus(result, isSuccess);
                 });
                 return;
             }
@@ -683,6 +685,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ReloadViewModelWithCurrentPaths()
+    {
+        // Arrêter le monitor s'il est actif
+        _progressMonitor?.Stop();
+        
+        // Recréer le ViewModel avec les chemins actuels
+        _viewModel = new ViewModelConsole(LogType.JSON, _currentConfigPath, _currentStatePath, _currentLogsPath);
+        
+        // Recharger les jobs
+        LoadJobs();
+    }
+
     private async System.Threading.Tasks.Task BrowseLogsFolder()
     {
         var storageProvider = StorageProvider;
@@ -719,9 +733,8 @@ public partial class MainWindow : Window
             // Mettre à jour l'affichage
             UpdateAllPaths();
             
-            // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(LogType.JSON);
-            LoadJobs();
+            // Recréer le ViewModel avec les nouveaux chemins
+            ReloadViewModelWithCurrentPaths();
             
             UpdateStatus($"Dossier des logs configuré : {_currentLogsPath}", true);
         }
@@ -765,9 +778,8 @@ public partial class MainWindow : Window
             // Mettre à jour l'affichage
             UpdateAllPaths();
             
-            // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(LogType.JSON);
-            LoadJobs();
+            // Recréer le ViewModel avec les nouveaux chemins
+            ReloadViewModelWithCurrentPaths();
             
             UpdateStatus($"Fichier de configuration configuré : {_currentConfigPath}", true);
         }
@@ -811,9 +823,8 @@ public partial class MainWindow : Window
             // Mettre à jour l'affichage
             UpdateAllPaths();
             
-            // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(LogType.JSON);
-            LoadJobs();
+            // Recréer le ViewModel avec les nouveaux chemins
+            ReloadViewModelWithCurrentPaths();
             
             UpdateStatus($"Fichier d'état configuré : {_currentStatePath}", true);
         }
