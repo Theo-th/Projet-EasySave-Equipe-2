@@ -1,64 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
+ 
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -236,5 +178,116 @@
   </data>
   <data name="TypeSave" xml:space="preserve">
     <value>Type (1: Complet, 2: Differentiel) :</value>
+  </data>
+  <data name="LanguageChanged" xml:space="preserve">
+    <value>Langue changée avec succès</value>
+  </data>
+  <data name="TabExecute" xml:space="preserve">
+    <value>Exécuter</value>
+  </data>
+  <data name="TabCreate" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="TabManage" xml:space="preserve">
+    <value>Gérer</value>
+  </data>
+  <data name="TabSettings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="ExecuteTitle" xml:space="preserve">
+    <value>Exécuter les sauvegardes</value>
+  </data>
+  <data name="ExecuteDescription" xml:space="preserve">
+    <value>Sélectionnez les travaux à exécuter</value>
+  </data>
+  <data name="BtnExecute" xml:space="preserve">
+    <value>Exécuter les travaux sélectionnés</value>
+  </data>
+  <data name="CreateTitle" xml:space="preserve">
+    <value>Créer une nouvelle sauvegarde</value>
+  </data>
+  <data name="JobName" xml:space="preserve">
+    <value>Nom du travail</value>
+  </data>
+  <data name="SourceFolder" xml:space="preserve">
+    <value>Dossier source</value>
+  </data>
+  <data name="DestinationFolder" xml:space="preserve">
+    <value>Dossier de destination</value>
+  </data>
+  <data name="BackupType" xml:space="preserve">
+    <value>Type de sauvegarde</value>
+  </data>
+  <data name="BackupTypeFull" xml:space="preserve">
+    <value>Complète</value>
+  </data>
+  <data name="BackupTypeDifferential" xml:space="preserve">
+    <value>Différentielle</value>
+  </data>
+  <data name="BtnBrowse" xml:space="preserve">
+    <value>Parcourir</value>
+  </data>
+  <data name="BtnCreate" xml:space="preserve">
+    <value>Créer le travail</value>
+  </data>
+  <data name="ManageTitle" xml:space="preserve">
+    <value>Gérer les sauvegardes</value>
+  </data>
+  <data name="BtnViewDetails" xml:space="preserve">
+    <value>Voir les détails</value>
+  </data>
+  <data name="BtnDelete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="AboutTitle" xml:space="preserve">
+    <value>À propos</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="LogsPath" xml:space="preserve">
+    <value>Chemin des logs</value>
+  </data>
+  <data name="ConfigPath" xml:space="preserve">
+    <value>Chemin de configuration</value>
+  </data>
+  <data name="StateFile" xml:space="preserve">
+    <value>Fichier d'état</value>
+  </data>
+  <data name="ConfigFile" xml:space="preserve">
+    <value>Fichier de configuration</value>
+  </data>
+  <data name="SettingsAppTitle" xml:space="preserve">
+    <value>Paramètres de l'application</value>
+  </data>
+  <data name="LanguageSection" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="LanguageInterface" xml:space="preserve">
+    <value>Langue de l'interface</value>
+  </data>
+  <data name="LanguageChoose" xml:space="preserve">
+    <value>Choisir la langue d'affichage de l'application</value>
+  </data>
+  <data name="AboutSection" xml:space="preserve">
+    <value>À propos</value>
+  </data>
+  <data name="VersionLabel" xml:space="preserve">
+    <value>Version :</value>
+  </data>
+  <data name="LogsPathLabel" xml:space="preserve">
+    <value>Chemin des logs :</value>
+  </data>
+  <data name="ConfigLabel" xml:space="preserve">
+    <value>Configuration :</value>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>État :</value>
+  </data>
+  <data name="ManageDesc" xml:space="preserve">
+    <value>Plans configurés</value>
   </data>
 </root>

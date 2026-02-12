@@ -37,6 +37,16 @@ namespace EasySave.Core.Models
         {
             get
             {
+                if (TotalSize == 0) return 0;
+                long processedSize = TotalSize - RemainingSize;
+                return (int)(processedSize * 100.0 / TotalSize);
+            }
+        }
+        
+        public int ProgressPercentageByFiles
+        {
+            get
+            {
                 if (TotalFiles == 0) return 0;
                 return (int)((TotalFiles - RemainingFiles) * 100.0 / TotalFiles);
             }

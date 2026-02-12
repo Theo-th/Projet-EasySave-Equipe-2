@@ -13,15 +13,19 @@ namespace EasySave.Core.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
 
-        public ViewModelConsole(IJobConfigService? configService = null, IBackupStateRepository? stateRepository = null)
+        public ViewModelConsole(IJobConfigService? configService = null, IBackupStateRepository? stateRepository = null, string? customLogPath = null, string? customConfigPath = null, string? customStatePath = null)
         {
-            _configService = configService ?? new JobConfigService();
+            string configPath = customConfigPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
+            _configService = configService ?? new JobConfigService(configPath);
+            
+            string statePath = customStatePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
             var repo = stateRepository ?? new BackupStateRepository();
+            repo.SetStatePath(statePath);
 
             // Créer le fichier state.json avec un état vide au démarrage si nécessaire
             repo.UpdateState(new List<BackupJobState>());
 
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            string logPath = customLogPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
             JsonLog myLogger = new JsonLog(logPath);
 
             _backupService = new BackupService(_configService, myLogger, repo);
@@ -91,6 +95,14 @@ namespace EasySave.Core.ViewModels
         {
             var job = _configService.LoadJob(jobIndex);
             return job != null ? $"{job.Name} -- {job.Type}" : null;
+        }
+
+        /// <summary>
+        /// Gets full job details by index.
+        /// </summary>
+        public BackupJob? GetJobDetails(int jobIndex)
+        {
+            return _configService.LoadJob(jobIndex);
         }
     }
 }
