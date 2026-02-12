@@ -162,6 +162,9 @@
   <data name="JobNameEmpty" xml:space="preserve">
     <value>The name of the work cannot be empty.</value>
   </data>
+  <data name="ChoiceLang" xml:space="preserve">
+    <value>Choice of language</value>
+  </data>
   <data name="LangEnglish" xml:space="preserve">
     <value>English</value>
   </data>

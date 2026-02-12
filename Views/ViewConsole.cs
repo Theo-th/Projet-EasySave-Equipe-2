@@ -226,7 +226,7 @@ namespace Projet_EasySave
             while (!quit)
             {
                 string[] options = {
-                    "Changer la Langue",
+                    Lang.ChoiceLang,
                     Lang.TitleLog,
                     Lang.MenuQuit
                 };

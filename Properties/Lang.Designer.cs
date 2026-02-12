@@ -70,6 +70,15 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à Choix de langue.
+        /// </summary>
+        public static string ChoiceLang {
+            get {
+                return ResourceManager.GetString("ChoiceLang", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Erreur lors de la sauvegarde de la configuration..
         /// </summary>
         public static string ConfigSaveError {
