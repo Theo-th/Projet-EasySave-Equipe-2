@@ -5,7 +5,7 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.Services.Strategies
 {
     /// <summary>
-    /// Stratégie de sauvegarde différentielle (fichiers modifiés uniquement).
+    /// Differential backup strategy (modified files only).
     /// </summary>
     public class DifferentialBackupStrategy : BackupStrategy
     {
@@ -15,14 +15,14 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Exécute une sauvegarde différentielle :
-        /// 1. Vérifie les dossiers source/destination
-        /// 2. Si aucune sauvegarde complète n'existe, en effectue une
-        /// 3. Sinon, supprime le dossier différentiel précédent, liste les fichiers modifiés, signale les fichiers supprimés, puis copie
+        /// Executes a differential backup:
+        /// 1. Validates source/destination directories
+        /// 2. If no full backup exists, performs one
+        /// 3. Otherwise, clears the previous differential folder, lists modified files, reports deleted files, then copies
         /// </summary>
         public override (bool Success, string? ErrorMessage) Execute()
         {
-            // Étape 1 : Validation des dossiers
+            // Step 1: Directory validation
             var validation = ValidateAndPrepareDirectories();
             if (!validation.Success)
             {
@@ -33,13 +33,13 @@ namespace Projet_EasySave.Services.Strategies
             {
                 string fullBackupFolder = Path.Combine(TargetDirectory, FULL_MARKER);
 
-                // Étape 2 : Vérifier si une sauvegarde complète existe
+                // Step 2: Check if a full backup exists
                 if (!Directory.Exists(fullBackupFolder))
                 {
                     return ExecuteFullBackup(fullBackupFolder);
                 }
 
-                // Étape 3 : Supprimer le contenu du dossier différentiel précédent
+                // Step 3: Clear the contents of the previous differential folder
                 string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_MARKER);
                 ClearBackupFolder(diffBackupFolder);
 
@@ -49,21 +49,21 @@ namespace Projet_EasySave.Services.Strategies
                     return diffFolderCreation;
                 }
 
-                // 3a : Lister les fichiers modifiés par rapport à la sauvegarde complète
+                // 3a: List modified files compared to the full backup
                 List<string> modifiedFiles = ListModifiedFilesInSource(fullBackupFolder);
 
-                // Calculer la taille totale et notifier l'initialisation
+                // Compute total size and notify initialization
                 long totalSize = ComputeTotalSize(modifiedFiles, SourceDirectory);
                 RaiseBackupInitialized(modifiedFiles.Count, totalSize);
 
-                // 3b : Générer le rapport des fichiers supprimés
+                // 3b: Generate the deleted files report
                 var reportResult = CreateDeletedFilesReport(SourceDirectory, fullBackupFolder, diffBackupFolder);
                 if (!reportResult.Success)
                 {
                     return reportResult;
                 }
 
-                // 3c : Copier les fichiers modifiés depuis la liste
+                // 3c: Copy modified files from the list
                 var copyResult = CopyFilesFromList(modifiedFiles, SourceDirectory, diffBackupFolder);
                 if (!copyResult.Success)
                 {
@@ -74,12 +74,12 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Erreur lors de la sauvegarde différentielle : {ex.Message}");
+                return (false, $"Error during differential backup: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Effectue une sauvegarde complète initiale lorsque aucune n'existe.
+        /// Performs an initial full backup when none exists.
         /// </summary>
         private (bool Success, string? ErrorMessage) ExecuteFullBackup(string fullBackupFolder)
         {
@@ -91,7 +91,7 @@ namespace Projet_EasySave.Services.Strategies
 
             List<string> filesToCopy = ListAllFilesInSource();
 
-            // Calculer la taille totale et notifier l'initialisation
+            // Compute total size and notify initialization
             long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
             RaiseBackupInitialized(filesToCopy.Count, totalSize);
 
@@ -105,7 +105,7 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Liste tous les fichiers du dossier source sous forme de chemins relatifs.
+        /// Lists all files in the source directory as relative paths.
         /// </summary>
         private List<string> ListAllFilesInSource()
         {
@@ -125,7 +125,7 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Liste les fichiers modifiés dans la source par rapport à la sauvegarde complète.
+        /// Lists modified files in the source compared to the full backup.
         /// </summary>
         private List<string> ListModifiedFilesInSource(string fullBackupDir)
         {
@@ -138,7 +138,7 @@ namespace Projet_EasySave.Services.Strategies
                 string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
                 string fullBackupFilePath = Path.Combine(fullBackupDir, relativePath);
 
-                // Fichier nouveau ou modifié
+                // New or modified file
                 if (!File.Exists(fullBackupFilePath) ||
                     sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
                 {
@@ -150,8 +150,8 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Détecte les fichiers supprimés (présents dans la sauvegarde complète mais absents de la source)
-        /// et génère un rapport dans le dossier de destination.
+        /// Detects deleted files (present in the full backup but missing from the source)
+        /// and generates a report in the destination folder.
         /// </summary>
         private (bool Success, string? ErrorMessage) CreateDeletedFilesReport(
             string sourceDir, string fullBackupDir, string targetDir)
@@ -187,7 +187,7 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Erreur lors de la détection des fichiers supprimés : {ex.Message}");
+                return (false, $"Error detecting deleted files: {ex.Message}");
             }
         }
     }

@@ -16,7 +16,7 @@ namespace Projet_EasySave.Services
         private BaseLog _logger;
 
         /// <summary>
-        /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
+        /// Event triggered on each backup job progress change.
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
 
@@ -43,7 +43,7 @@ namespace Projet_EasySave.Services
         {
             if (jobIndices == null || jobIndices.Count == 0)
             {
-                return "Aucun travail de sauvegarde spécifié.";
+                return "No backup job specified.";
             }
 
             var allJobs = _configService.GetAllJobs();
@@ -54,13 +54,13 @@ namespace Projet_EasySave.Services
             {
                 if (index < 0 || index >= allJobs.Count)
                 {
-                    results.Add($"Erreur : L'indice {index} est invalide.");
+                    results.Add($"Error: Index {index} is invalid.");
                     continue;
                 }
 
                 BackupJob job = allJobs[index];
 
-                // Initialiser l'état du travail
+                // Initialize the job state
                 var jobState = new BackupJobState
                 {
                     Id = index,
@@ -72,17 +72,17 @@ namespace Projet_EasySave.Services
                     LastActionTimestamp = DateTime.Now
                 };
 
-                // Ajouter l'état à la liste AVANT l'exécution pour que le fichier state.json soit à jour pendant la copie
+                // Add the state to the list BEFORE execution so the state.json file is up-to-date during copy
                 states.Add(jobState);
                 _stateRepository.UpdateState(states);
                 OnProgressChanged?.Invoke(jobState);
 
                 try
                 {
-                    // Créer la stratégie appropriée selon le type de sauvegarde
+                    // Create the appropriate strategy based on the backup type
                     BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
 
-                    // S'abonner à l'événement d'initialisation (nombre total de fichiers + taille)
+                    // Subscribe to the initialization event (total file count + size)
                     strategy.OnBackupInitialized += (totalFiles, totalSize) =>
                     {
                         jobState.TotalFiles = totalFiles;
@@ -94,7 +94,7 @@ namespace Projet_EasySave.Services
                         OnProgressChanged?.Invoke(jobState);
                     };
 
-                    // S'abonner à l'événement de transfert de fichier (progression fichier par fichier)
+                    // Subscribe to the file transfer event (file-by-file progress)
                     strategy.OnFileTransferred += (sourceFile, targetFile, fileSize) =>
                     {
                         jobState.RemainingFiles--;
@@ -106,10 +106,10 @@ namespace Projet_EasySave.Services
                         OnProgressChanged?.Invoke(jobState);
                     };
 
-                    // Exécuter la sauvegarde
+                    // Execute the backup
                     var (success, errorMessage) = strategy.Execute();
 
-                    // Mettre à jour l'état final
+                    // Update the final state
                     jobState.State = success ? BackupState.Completed : BackupState.Error;
                     jobState.CurrentSourceFile = string.Empty;
                     jobState.CurrentTargetFile = string.Empty;
@@ -121,11 +121,11 @@ namespace Projet_EasySave.Services
 
                     if (success)
                     {
-                        results.Add($"Sauvegarde '{job.Name}' terminée avec succès.");
+                        results.Add($"Backup '{job.Name}' completed successfully.");
                     }
                     else
                     {
-                        results.Add($"Erreur lors de la sauvegarde '{job.Name}' : {errorMessage}");
+                        results.Add($"Error during backup '{job.Name}': {errorMessage}");
                     }
                 }
                 catch (Exception ex)
@@ -134,7 +134,7 @@ namespace Projet_EasySave.Services
                     jobState.LastActionTimestamp = DateTime.Now;
                     _stateRepository.UpdateState(states);
                     OnProgressChanged?.Invoke(jobState);
-                    results.Add($"Exception lors de la sauvegarde '{job.Name}' : {ex.Message}");
+                    results.Add($"Exception during backup '{job.Name}': {ex.Message}");
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Projet_EasySave.Services
         }
 
         /// <summary>
-        /// Crée la stratégie de sauvegarde appropriée selon le type.
+        /// Creates the appropriate backup strategy based on the type.
         /// </summary>
         private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName)
         {
@@ -150,7 +150,7 @@ namespace Projet_EasySave.Services
             {
                 BackupType.Complete => new FullBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
                 BackupType.Differential => new DifferentialBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
-                _ => throw new InvalidOperationException($"Type de sauvegarde non supporté : {backupType}")
+                _ => throw new InvalidOperationException($"Unsupported backup type: {backupType}")
             };
         }
 

@@ -3,20 +3,22 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.Interfaces
 {
     /// <summary>
-    /// Interface pour le service d'exécution des travaux de sauvegarde.
+    /// Interface for the backup job execution service.
     /// </summary>
     public interface IBackupService
     {
         /// <summary>
-        /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
+        /// Event triggered when a backup job's progress changes.
         /// </summary>
         event Action<BackupJobState>? OnProgressChanged;
 
         /// <summary>
-        /// Exécute un travail de sauvegarde par son indice.
+        /// Executes a backup job by its index.
         /// </summary>
-        /// <param name="jobIndices">Liste des indices des travaux (0-based)</param>
-        /// <returns>Message d'erreur ou null si succès</returns>
+        /// <param name="jobIndices">List of job indices (0-based)</param>
+        /// <returns>Error message or null if successful</returns>
         string? ExecuteBackup(List<int> jobIndices);
+
+        public void ChangeLogFormat(LogType logType);
     }
 }

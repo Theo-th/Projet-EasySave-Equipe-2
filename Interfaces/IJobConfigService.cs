@@ -3,7 +3,7 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.Interfaces
 {
     /// <summary>
-    /// Interface pour le service de configuration des travaux de sauvegarde.
+    /// Interface for the backup job configuration service.
     /// </summary>
     public interface IJobConfigService
     {

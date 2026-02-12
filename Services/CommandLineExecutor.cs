@@ -28,7 +28,7 @@ namespace Projet_EasySave.Services
 
             if (string.IsNullOrEmpty(result))
             {
-                Console.WriteLine("Aucun travail spécifié.");
+                Console.WriteLine("No job specified.");
             }
             else
             {

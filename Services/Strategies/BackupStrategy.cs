@@ -6,11 +6,11 @@ using System.Diagnostics;
 namespace Projet_EasySave.Services.Strategies
 {
     /// <summary>
-    /// Classe abstraite définissant la stratégie de sauvegarde.
+    /// Abstract class defining the backup strategy.
     /// </summary>
     public abstract class BackupStrategy
     {
-        // Constantes pour les fichiers marqueurs
+        // Constants for marker files
         protected const string FULL_MARKER = "full";
         protected const string DIFFERENTIAL_MARKER = "differential";
         protected const string DELETED_FILES_REPORT = "_deleted_files.txt";
@@ -22,12 +22,12 @@ namespace Projet_EasySave.Services.Strategies
         protected BaseLog Logger { get; set; }
 
         /// <summary>
-        /// Événement déclenché avant la copie des fichiers, avec le nombre total de fichiers et la taille totale.
+        /// Event triggered before file copy, with the total file count and total size.
         /// </summary>
         public event Action<int, long>? OnBackupInitialized;
 
         /// <summary>
-        /// Événement déclenché après chaque fichier transféré (sourceFile, targetFile, fileSize).
+        /// Event triggered after each file transfer (sourceFile, targetFile, fileSize).
         /// </summary>
         public event Action<string, string, long>? OnFileTransferred;
 
@@ -41,18 +41,18 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Exécute la stratégie de sauvegarde.
+        /// Executes the backup strategy.
         /// </summary>
         public abstract (bool Success, string? ErrorMessage) Execute();
 
         /// <summary>
-        /// Valide et prépare les dossiers source et destination.
+        /// Validates and prepares the source and destination directories.
         /// </summary>
         protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
         {
             if (!Directory.Exists(SourceDirectory))
             {
-                return (false, $"Le dossier source '{SourceDirectory}' n'existe pas.");
+                return (false, $"Source directory '{SourceDirectory}' does not exist.");
             }
 
             try
@@ -65,12 +65,12 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Impossible de créer le dossier de destination : {ex.Message}");
+                return (false, $"Unable to create the destination directory: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Vérifie si un fichier est un marqueur de sauvegarde.
+        /// Checks whether a file is a backup marker.
         /// </summary>
         protected bool IsBackupMarker(string fileName)
         {
@@ -78,7 +78,7 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Crée un dossier de sauvegarde et son fichier marqueur.
+        /// Creates a backup folder and its marker file.
         /// </summary>
         protected (bool Success, string? ErrorMessage) CreateBackupFolder(string backupFolderPath, string markerFileName)
         {
@@ -87,7 +87,7 @@ namespace Projet_EasySave.Services.Strategies
                 Directory.CreateDirectory(backupFolderPath);
 
                 string markerFilePath = Path.Combine(backupFolderPath, markerFileName);
-                string markerContent = $"Sauvegarde {markerFileName} créée le {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                string markerContent = $"Backup {markerFileName} created on {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
 
                 var stopwatch = Stopwatch.StartNew();
                 File.WriteAllText(markerFilePath, markerContent);
@@ -109,12 +109,12 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Erreur lors de la création du dossier de sauvegarde : {ex.Message}");
+                return (false, $"Error creating the backup folder: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Calcule la taille totale d'une liste de fichiers relatifs à un répertoire source.
+        /// Computes the total size of a list of files relative to a source directory.
         /// </summary>
         protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
         {
@@ -129,7 +129,7 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Déclenche l'événement d'initialisation de la sauvegarde.
+        /// Raises the backup initialization event.
         /// </summary>
         protected void RaiseBackupInitialized(int totalFiles, long totalSize)
         {
@@ -137,7 +137,7 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Déclenche l'événement de transfert d'un fichier.
+        /// Raises the file transfer event.
         /// </summary>
         protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
         {
@@ -145,8 +145,8 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Copie une liste de fichiers (chemins relatifs) depuis un dossier source vers un dossier cible.
-        /// Chaque transfert est logué via Logger.WriteLog() et déclenche un événement de progression.
+        /// Copies a list of files (relative paths) from a source directory to a target directory.
+        /// Each transfer is logged via Logger.WriteLog() and triggers a progress event.
         /// </summary>
         protected (bool Success, string? ErrorMessage) CopyFilesFromList(
             List<string> relativeFilePaths, string sourceDir, string targetDir)
@@ -158,7 +158,7 @@ namespace Projet_EasySave.Services.Strategies
                     string sourceFilePath = Path.Combine(sourceDir, relativePath);
                     string targetFilePath = Path.Combine(targetDir, relativePath);
 
-                    // Créer les sous-dossiers nécessaires
+                    // Create necessary subdirectories
                     string? targetFileDir = Path.GetDirectoryName(targetFilePath);
                     if (targetFileDir != null && !Directory.Exists(targetFileDir))
                     {
@@ -184,7 +184,7 @@ namespace Projet_EasySave.Services.Strategies
 
                     Logger.WriteLog(record);
 
-                    // Notifier la progression après chaque fichier copié
+                    // Notify progress after each file copied
                     RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
                 }
 
@@ -192,12 +192,12 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Erreur lors de la copie des fichiers : {ex.Message}");
+                return (false, $"Error copying files: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Supprime le contenu d'un dossier de sauvegarde sans supprimer le dossier lui-même.
+        /// Clears the contents of a backup folder without deleting the folder itself.
         /// </summary>
         protected void ClearBackupFolder(string backupFolder)
         {
@@ -207,13 +207,13 @@ namespace Projet_EasySave.Services.Strategies
                 {
                     var dirInfo = new DirectoryInfo(backupFolder);
                     
-                    // Supprimer tous les fichiers
+                    // Delete all files
                     foreach (var file in dirInfo.GetFiles())
                     {
                         file.Delete();
                     }
                     
-                    // Supprimer tous les sous-dossiers
+                    // Delete all subdirectories
                     foreach (var subDir in dirInfo.GetDirectories())
                     {
                         subDir.Delete(recursive: true);
@@ -221,13 +221,13 @@ namespace Projet_EasySave.Services.Strategies
                 }
                 else
                 {
-                    // Si le dossier n'existe pas, le créer
+                    // If the folder does not exist, create it
                     Directory.CreateDirectory(backupFolder);
                 }
             }
             catch (Exception)
             {
-                // En cas d'erreur, s'assurer que le dossier existe
+                // On error, ensure the folder exists
                 if (!Directory.Exists(backupFolder))
                 {
                     Directory.CreateDirectory(backupFolder);
