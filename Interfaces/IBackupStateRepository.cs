@@ -4,20 +4,21 @@ using System.Collections.Generic;
 namespace Projet_EasySave.Interfaces
 {
     /// <summary>
-    /// Interface pour la persistance de l'√©tat temps r√©el des sauvegardes (state.json)
+    /// Interface pour la gestion de la persistance de l'Ètat temps rÈel des sauvegardes (state.json)
     /// </summary>
     public interface IBackupStateRepository
     {
         /// <summary>
-        /// Met √† jour le fichier state.json avec l'√©tat actuel des travaux
+        /// DÈfinit le chemin du fichier d'Ètat
         /// </summary>
-        /// <param name="jobs">Liste des √©tats de travaux de sauvegarde</param>
-        void UpdateState(List<BackupJobState> jobs);
+        /// <param name="path">Le chemin du fichier d'Ètat</param>
+        /// <exception cref="System.ArgumentException">LevÈe si le chemin est null ou vide</exception>
+        void SetStatePath(string path);
 
         /// <summary>
-        /// D√©finit le chemin o√π sera sauvegard√© le fichier state.json
+        /// Met ‡ jour l'Ètat des travaux de sauvegarde dans le fichier state.json
         /// </summary>
-        /// <param name="path">Chemin du fichier state.json</param>
-        void SetStatePath(string path);
+        /// <param name="jobs">Liste des Ètats des travaux de sauvegarde ‡ persister</param>
+        void UpdateState(List<BackupJobState> jobs);
     }
 }

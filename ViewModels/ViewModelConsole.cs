@@ -1,5 +1,4 @@
 ﻿using Projet_EasySave.Services;
-using Projet_EasySave.EasyLog;
 using Projet_EasySave.Interfaces;
 using Projet_EasySave.Models;
 
@@ -12,19 +11,22 @@ namespace Projet_EasySave.ViewModels
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
+        private readonly IBackupStateRepository _backupState;
 
-        public ViewModelConsole(IJobConfigService? configService = null, IBackupStateRepository? stateRepository = null)
+        /// <summary>
+        /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
+        /// La vue peut s'y abonner pour afficher une barre de chargement.
+        /// </summary>
+        public event Action<BackupJobState>? OnProgressChanged;
+
+        public ViewModelConsole(LogType logType = LogType.JSON)
         {
-            _configService = configService ?? new JobConfigService();
-            var repo = stateRepository ?? new BackupStateRepository();
+            _configService = new JobConfigService();
+            _backupState = new BackupStateRepository();
+            _backupService = new BackupService(_configService, _backupState, logType);
 
-            // Créer le fichier state.json avec un état vide au démarrage si nécessaire
-            repo.UpdateState(new List<BackupJobState>());
-
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            JsonLog myLogger = new JsonLog(logPath);
-
-            _backupService = new BackupService(_configService, myLogger, repo);
+            // Relayer l'événement du service vers la vue
+            _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
         }
 
         /// <summary>
@@ -46,25 +48,13 @@ namespace Projet_EasySave.ViewModels
         }
 
         /// <summary>
-        /// Executes a backup job by its index.
-        /// </summary>
-        public string? ExecuteJob(int jobIndex)
-        {
-            return _backupService.ExecuteBackup(jobIndex);
-        }
-
-        /// <summary>
         /// Executes multiple backup jobs.
         /// </summary>
-        public List<(int Index, string? Message)> ExecuteJobs(List<int> jobIndices)
+        public string? ExecuteJobs(List<int> jobIndices)
         {
-            var results = new List<(int, string?)>();
-            foreach (int index in jobIndices)
-            {
-                string? message = _backupService.ExecuteBackup(index);
-                results.Add((index, message));
-            }
-            return results;
+            string? message = _backupService.ExecuteBackup(jobIndices);
+            
+            return message;
         }
 
         /// <summary>
@@ -89,7 +79,7 @@ namespace Projet_EasySave.ViewModels
         /// </summary>
         public string? GetJob(int jobIndex)
         {
-            var job = _configService.LoadJob(jobIndex);
+            var job = _configService.GetJob(jobIndex);
             return job != null ? $"{job.Name} -- {job.Type}" : null;
         }
     }

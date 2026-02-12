@@ -9,24 +9,12 @@ using System.Text.Json.Serialization;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Repository for managing real-time backup state persistence (state.json).
+    /// Repository pour la gestion de la persistance de l'état temps réel des sauvegardes (state.json)
     /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
-        private string _statePath;
+        private string _statePath = "./state.json";
         private readonly object _lockObject = new();
-
-        private static readonly JsonSerializerOptions StateOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters = { new JsonStringEnumConverter() }
-        };
-
-        public BackupStateRepository()
-        {
-            _statePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
-        }
 
         public void SetStatePath(string path)
         {
@@ -42,13 +30,23 @@ namespace Projet_EasySave.Services
             {
                 try
                 {
+                    // Créer le répertoire si nécessaire
                     string? directory = Path.GetDirectoryName(_statePath);
                     if (!string.IsNullOrEmpty(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), StateOptions);
+                    // Options de sérialisation pour un JSON lisible
+                    var options = new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        Converters = { new JsonStringEnumConverter() }
+                    };
+
+                    // Sérialiser directement la liste de BackupJobState
+                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), options);
                     File.WriteAllText(_statePath, json);
                 }
                 catch (Exception ex)
