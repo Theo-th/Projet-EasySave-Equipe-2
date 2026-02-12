@@ -176,6 +176,12 @@
   <data name="TargetDirectoryEmpty" xml:space="preserve">
     <value>Le répertoire cible ne peut pas être vide.</value>
   </data>
+  <data name="TitleLog" xml:space="preserve">
+    <value>Type de fichier de Log</value>
+  </data>
+  <data name="TitleLogFormat" xml:space="preserve">
+    <value>Format du fichier Log</value>
+  </data>
   <data name="TypeSave" xml:space="preserve">
     <value>Type (1: Complet, 2: Differentiel) :</value>
   </data>

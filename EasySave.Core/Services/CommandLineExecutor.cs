@@ -1,4 +1,5 @@
 using EasySave.Core.ViewModels;
+using EasySave.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 
@@ -24,12 +25,15 @@ namespace EasySave.Core.Services
             Console.WriteLine("EasySave - Command line execution mode");
             Console.WriteLine("-------------------------------------");
 
-            var results = _viewModel.ExecuteJobs(jobIndices);
+            var result = _viewModel.ExecuteJobs(jobIndices);
 
-            foreach (var (index, message) in results)
+            if (string.IsNullOrEmpty(result))
             {
-                string jobName = _viewModel.GetJob(index) ?? $"Job {index + 1}";
-                Console.WriteLine($"Job {index + 1} ({jobName}): {message ?? "Success"}");
+                Console.WriteLine("No job specified.");
+            }
+            else
+            {
+                Console.WriteLine(result);
             }
 
             Console.WriteLine("-------------------------------------");

@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         _currentConfigPath = settings.GetValueOrDefault("ConfigPath", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json"));
         _currentStatePath = settings.GetValueOrDefault("StatePath", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json"));
         
-        _viewModel = new ViewModelConsole(customLogPath: _currentLogsPath, customConfigPath: _currentConfigPath, customStatePath: _currentStatePath);
+        _viewModel = new ViewModelConsole(LogType.JSON);
         _jobs = new ObservableCollection<JobItem>();
         
         // Initialiser le cache des contrôles
@@ -114,19 +114,20 @@ public partial class MainWindow : Window
         
         for (int i = 0; i < jobCount; i++)
         {
-            var job = _viewModel.GetJobDetails(i);
-            if (job != null)
+            var jobInfo = _viewModel.GetJob(i);
+            if (jobInfo != null)
             {
+                var parts = jobInfo.Split(" -- ");
                 _jobs.Add(new JobItem 
                 { 
-                    Name = job.Name,
+                    Name = parts[0],
                     Index = i,
                     IsSelected = false,
-                    Type = job.Type.ToString(),
-                    Source = job.SourceDirectory,
-                    Target = job.TargetDirectory
+                    Type = parts.Length > 1 ? parts[1] : "Unknown",
+                    Source = parts.Length > 2 ? parts[2] : "",
+                    Target = parts.Length > 3 ? parts[3] : ""
                 });
-                jobNamesList.Add(job.Name);
+                jobNamesList.Add(parts[0]);
             }
         }
         
@@ -227,19 +228,16 @@ public partial class MainWindow : Window
         // Exécuter les sauvegardes dans un thread séparé
         await System.Threading.Tasks.Task.Run(() =>
         {
-            foreach (var index in selectedIndices)
+            var result = _viewModel.ExecuteJobs(selectedIndices);
+            if (result != null)
             {
-                var result = _viewModel.ExecuteJob(index);
-                if (result != null)
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        _progressMonitor?.Stop();
-                        ShowProgress(false);
-                        UpdateStatus($"Erreur: {result}", false);
-                    });
-                    return;
-                }
+                    _progressMonitor?.Stop();
+                    ShowProgress(false);
+                    UpdateStatus($"Erreur: {result}", false);
+                });
+                return;
             }
         });
         
@@ -722,7 +720,7 @@ public partial class MainWindow : Window
             UpdateAllPaths();
             
             // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(customLogPath: _currentLogsPath, customConfigPath: _currentConfigPath, customStatePath: _currentStatePath);
+            _viewModel = new ViewModelConsole(LogType.JSON);
             LoadJobs();
             
             UpdateStatus($"Dossier des logs configuré : {_currentLogsPath}", true);
@@ -768,7 +766,7 @@ public partial class MainWindow : Window
             UpdateAllPaths();
             
             // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(customLogPath: _currentLogsPath, customConfigPath: _currentConfigPath, customStatePath: _currentStatePath);
+            _viewModel = new ViewModelConsole(LogType.JSON);
             LoadJobs();
             
             UpdateStatus($"Fichier de configuration configuré : {_currentConfigPath}", true);
@@ -814,7 +812,7 @@ public partial class MainWindow : Window
             UpdateAllPaths();
             
             // Recréer le ViewModel avec le nouveau chemin
-            _viewModel = new ViewModelConsole(customLogPath: _currentLogsPath, customConfigPath: _currentConfigPath, customStatePath: _currentStatePath);
+            _viewModel = new ViewModelConsole(LogType.JSON);
             LoadJobs();
             
             UpdateStatus($"Fichier d'état configuré : {_currentStatePath}", true);

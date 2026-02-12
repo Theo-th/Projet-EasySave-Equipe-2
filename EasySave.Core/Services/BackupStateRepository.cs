@@ -9,24 +9,12 @@ using System.Text.Json.Serialization;
 namespace EasySave.Core.Services
 {
     /// <summary>
-    /// Repository for managing real-time backup state persistence (state.json).
+    /// Repository for managing the persistence of the real-time backup state (state.json)
     /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
-        private string _statePath;
+        private string _statePath = "./state.json";
         private readonly object _lockObject = new();
-
-        private static readonly JsonSerializerOptions StateOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters = { new JsonStringEnumConverter() }
-        };
-
-        public BackupStateRepository()
-        {
-            _statePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
-        }
 
         public void SetStatePath(string path)
         {
@@ -42,13 +30,23 @@ namespace EasySave.Core.Services
             {
                 try
                 {
+                    // Create the directory if necessary
                     string? directory = Path.GetDirectoryName(_statePath);
                     if (!string.IsNullOrEmpty(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), StateOptions);
+                    // Serialization options for readable JSON
+                    var options = new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        Converters = { new JsonStringEnumConverter() }
+                    };
+
+                    // Serialize the BackupJobState list directly
+                    string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), options);
                     File.WriteAllText(_statePath, json);
                 }
                 catch (Exception ex)

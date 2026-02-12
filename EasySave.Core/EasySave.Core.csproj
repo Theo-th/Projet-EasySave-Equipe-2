@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="EasyLog">
-      <HintPath>Libs\EasyLog.dll</HintPath>
+    <Reference Include="EasyLog2">
+      <HintPath>Libs\EasyLog2.dll</HintPath>
     </Reference>
   </ItemGroup>
 

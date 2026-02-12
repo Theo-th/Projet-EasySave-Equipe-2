@@ -1,5 +1,6 @@
 namespace EasySave.Core.Models
 {
+
     public enum BackupState
     {
 

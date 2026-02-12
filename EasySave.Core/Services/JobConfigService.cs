@@ -12,7 +12,6 @@ namespace EasySave.Core.Services
     public class JobConfigService : IJobConfigService
     {
         private readonly string _configFilePath;
-        private List<BackupJob> _jobs;
         private readonly object _lockObject = new();
         private const int MaxJobs = 5;
 
@@ -25,11 +24,9 @@ namespace EasySave.Core.Services
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
             _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
-            _jobs = new List<BackupJob>();
-            LoadAllJobs();
         }
 
-        public List<BackupJob> LoadAllJobs()
+        public List<BackupJob> GetAllJobs()
         {
             lock (_lockObject)
             {
@@ -38,29 +35,28 @@ namespace EasySave.Core.Services
                     if (File.Exists(_configFilePath))
                     {
                         string json = File.ReadAllText(_configFilePath);
-                        _jobs = JsonSerializer.Deserialize<List<BackupJob>>(json, ConfigOptions) ?? new List<BackupJob>();
+                        return JsonSerializer.Deserialize<List<BackupJob>>(json, ConfigOptions) ?? new List<BackupJob>();
                     }
                     else
                     {
-                        _jobs = new List<BackupJob>();
+                        return new List<BackupJob>();
                     }
                 }
                 catch
                 {
-                    _jobs = new List<BackupJob>();
+                    return new List<BackupJob>();
                 }
-
-                return _jobs.ToList(); // Returns a copy
             }
         }
 
-        public BackupJob? LoadJob(int index)
+        public BackupJob? GetJob(int index)
         {
             lock (_lockObject)
             {
-                if (index >= 0 && index < _jobs.Count)
+                var jobs = GetAllJobs();
+                if (index >= 0 && index < jobs.Count)
                 {
-                    return _jobs[index];
+                    return jobs[index];
                 }
                 return null;
             }
@@ -74,7 +70,9 @@ namespace EasySave.Core.Services
         {
             lock (_lockObject)
             {
-                if (_jobs.Count >= MaxJobs)
+                var jobs = GetAllJobs();
+
+                if (jobs.Count >= MaxJobs)
                 {
                     return (false, string.Format(Lang.MaxJobsReached, MaxJobs));
                 }
@@ -84,7 +82,7 @@ namespace EasySave.Core.Services
                     return (false, Lang.JobNameEmpty);
                 }
 
-                if (_jobs.Exists(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                if (jobs.Exists(j => j.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 {
                     return (false, string.Format(Lang.JobAlreadyExists, name));
                 }
@@ -105,31 +103,16 @@ namespace EasySave.Core.Services
                 }
 
                 var newJob = new BackupJob(name, sourceDirectory, targetDirectory, type);
-                _jobs.Add(newJob);
+                jobs.Add(newJob);
 
-                if (SaveJob())
+                if (SaveJobsList(jobs))
                 {
                     return (true, null);
                 }
                 else
                 {
-                    _jobs.Remove(newJob);
                     return (false, Lang.ConfigSaveError);
                 }
-            }
-        }
-
-        public bool SaveJob()
-        {
-            try
-            {
-                string json = JsonSerializer.Serialize(_jobs, ConfigOptions);
-                File.WriteAllText(_configFilePath, json);
-                return true;
-            }
-            catch
-            {
-                return false;
             }
         }
 
@@ -137,10 +120,11 @@ namespace EasySave.Core.Services
         {
             lock (_lockObject)
             {
-                if (index >= 0 && index < _jobs.Count)
+                var jobs = GetAllJobs();
+                if (index >= 0 && index < jobs.Count)
                 {
-                    _jobs.RemoveAt(index);
-                    return SaveJob();
+                    jobs.RemoveAt(index);
+                    return SaveJobsList(jobs);
                 }
                 return false;
             }
@@ -150,15 +134,21 @@ namespace EasySave.Core.Services
         {
             lock (_lockObject)
             {
-                return _jobs.Count;
+                return GetAllJobs().Count;
             }
         }
 
-        public List<BackupJob> GetAllJobs()
+        private bool SaveJobsList(List<BackupJob> jobs)
         {
-            lock (_lockObject)
+            try
             {
-                return _jobs.ToList();
+                string json = JsonSerializer.Serialize(jobs, ConfigOptions);
+                File.WriteAllText(_configFilePath, json);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

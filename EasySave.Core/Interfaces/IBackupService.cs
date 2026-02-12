@@ -1,15 +1,25 @@
+using EasySave.Core.Models;
+
 namespace EasySave.Core.Interfaces
 {
     /// <summary>
-    /// Interface pour le service d'exécution des travaux de sauvegarde.
+    /// Interface for the backup job execution service.
     /// </summary>
     public interface IBackupService
     {
         /// <summary>
-        /// Exécute un travail de sauvegarde par son indice.
+        /// Event triggered when a backup job's progress changes.
         /// </summary>
-        /// <param name="jobIndex">Indice du travail (0-based)</param>
-        /// <returns>Message d'erreur ou null si succès</returns>
-        string? ExecuteBackup(int jobIndex);
+        event Action<BackupJobState>? OnProgressChanged;
+
+        /// <summary>
+        /// Executes a backup job by its index.
+        /// </summary>
+        /// <param name="jobIndices">List of job indices (0-based)</param>
+        /// <returns>Error message or null if successful</returns>
+        string? ExecuteBackup(List<int> jobIndices);
+
+        public void ChangeLogFormat(LogType logType);
     }
+
 }

@@ -1,17 +1,17 @@
 namespace EasySave.Core.Models
 {
     /// <summary>
-    /// Type de sauvegarde
+    /// Backup type
     /// </summary>
     public enum BackupType
     {
         /// <summary>
-        /// Sauvegarde complète (tous les fichiers)
+        /// Full backup (all files)
         /// </summary>
         Complete,
 
         /// <summary>
-        /// Sauvegarde différentielle (fichiers modifiés uniquement)
+        /// Differential backup (modified files only)
         /// </summary>
         Differential
     }

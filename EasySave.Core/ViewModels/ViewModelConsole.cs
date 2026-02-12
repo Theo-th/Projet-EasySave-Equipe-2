@@ -1,5 +1,4 @@
 ﻿using EasySave.Core.Services;
-using Projet_EasySave.EasyLog;
 using EasySave.Core.Interfaces;
 using EasySave.Core.Models;
 
@@ -12,23 +11,24 @@ namespace EasySave.Core.ViewModels
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
+        private readonly IBackupStateRepository _backupState;
+        private LogType _currentLogType;
 
-        public ViewModelConsole(IJobConfigService? configService = null, IBackupStateRepository? stateRepository = null, string? customLogPath = null, string? customConfigPath = null, string? customStatePath = null)
+        /// <summary>
+        /// Event triggered on each backup job progress change.
+        /// The view can subscribe to it to display a loading bar.
+        /// </summary>
+        public event Action<BackupJobState>? OnProgressChanged;
+
+        public ViewModelConsole(LogType logType = LogType.JSON)
         {
-            string configPath = customConfigPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
-            _configService = configService ?? new JobConfigService(configPath);
-            
-            string statePath = customStatePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
-            var repo = stateRepository ?? new BackupStateRepository();
-            repo.SetStatePath(statePath);
+            _configService = new JobConfigService();
+            _backupState = new BackupStateRepository();
+            _currentLogType = logType;
+            _backupService = new BackupService(_configService, _backupState, logType);
 
-            // Créer le fichier state.json avec un état vide au démarrage si nécessaire
-            repo.UpdateState(new List<BackupJobState>());
-
-            string logPath = customLogPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            JsonLog myLogger = new JsonLog(logPath);
-
-            _backupService = new BackupService(_configService, myLogger, repo);
+            // Relay the event from the service to the view
+            _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
         }
 
         /// <summary>
@@ -38,37 +38,25 @@ namespace EasySave.Core.ViewModels
         public (bool Success, string? ErrorMessage) CreateJob(string? name, string? source, string? destination, BackupType type)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return (false, "Le nom du travail est requis.");
+                return (false, "Job name is required.");
 
             if (string.IsNullOrWhiteSpace(source))
-                return (false, "Le répertoire source est requis.");
+                return (false, "Source directory is required.");
 
             if (string.IsNullOrWhiteSpace(destination))
-                return (false, "Le répertoire de destination est requis.");
+                return (false, "Destination directory is required.");
 
             return _configService.CreateJob(name.Trim(), source.Trim(), destination.Trim(), type);
         }
 
         /// <summary>
-        /// Executes a backup job by its index.
-        /// </summary>
-        public string? ExecuteJob(int jobIndex)
-        {
-            return _backupService.ExecuteBackup(jobIndex);
-        }
-
-        /// <summary>
         /// Executes multiple backup jobs.
         /// </summary>
-        public List<(int Index, string? Message)> ExecuteJobs(List<int> jobIndices)
+        public string? ExecuteJobs(List<int> jobIndices)
         {
-            var results = new List<(int, string?)>();
-            foreach (int index in jobIndices)
-            {
-                string? message = _backupService.ExecuteBackup(index);
-                results.Add((index, message));
-            }
-            return results;
+            string? message = _backupService.ExecuteBackup(jobIndices);
+            
+            return message;
         }
 
         /// <summary>
@@ -93,16 +81,22 @@ namespace EasySave.Core.ViewModels
         /// </summary>
         public string? GetJob(int jobIndex)
         {
-            var job = _configService.LoadJob(jobIndex);
+            var job = _configService.GetJob(jobIndex);
             return job != null ? $"{job.Name} -- {job.Type}" : null;
         }
 
-        /// <summary>
-        /// Gets full job details by index.
-        /// </summary>
-        public BackupJob? GetJobDetails(int jobIndex)
+        public string CurrentLogFormat() 
         {
-            return _configService.LoadJob(jobIndex);
+            return _currentLogType.ToString();
+        }
+
+        public void ChangeLogFormat(string format)
+        {
+            if (Enum.TryParse<LogType>(format, ignoreCase: true, out var logType))
+            {
+                _currentLogType = logType;
+                _backupService.ChangeLogFormat(logType);
+            }
         }
     }
 }

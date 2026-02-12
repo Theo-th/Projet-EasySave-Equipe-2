@@ -4,20 +4,21 @@ using System.Collections.Generic;
 namespace EasySave.Core.Interfaces
 {
     /// <summary>
-    /// Interface pour la persistance de l'état temps réel des sauvegardes (state.json)
+    /// Interface for managing the persistence of the real-time backup state (state.json)
     /// </summary>
     public interface IBackupStateRepository
     {
         /// <summary>
-        /// Met à jour le fichier state.json avec l'état actuel des travaux
+        /// Sets the state file path
         /// </summary>
-        /// <param name="jobs">Liste des états de travaux de sauvegarde</param>
-        void UpdateState(List<BackupJobState> jobs);
+        /// <param name="path">The state file path</param>
+        /// <exception cref="System.ArgumentException">Thrown if the path is null or empty</exception>
+        void SetStatePath(string path);
 
         /// <summary>
-        /// Définit le chemin où sera sauvegardé le fichier state.json
+        /// Updates the backup job states in the state.json file
         /// </summary>
-        /// <param name="path">Chemin du fichier state.json</param>
-        void SetStatePath(string path);
+        /// <param name="jobs">List of backup job states to persist</param>
+        void UpdateState(List<BackupJobState> jobs);
     }
 }

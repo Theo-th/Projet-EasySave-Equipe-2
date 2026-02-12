@@ -3,16 +3,14 @@ using EasySave.Core.Models;
 namespace EasySave.Core.Interfaces
 {
     /// <summary>
-    /// Interface pour le service de configuration des travaux de sauvegarde.
+    /// Interface for the backup job configuration service.
     /// </summary>
     public interface IJobConfigService
     {
-        List<BackupJob> LoadAllJobs();
-        BackupJob? LoadJob(int index);
-        (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
-        bool SaveJob();
-        bool RemoveJob(int index);
-        int GetJobCount();
         List<BackupJob> GetAllJobs();
+        BackupJob? GetJob(int index);
+        int GetJobCount();
+        (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
+        bool RemoveJob(int index);
     }
 }
