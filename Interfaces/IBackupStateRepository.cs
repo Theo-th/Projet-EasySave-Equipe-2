@@ -4,21 +4,21 @@ using System.Collections.Generic;
 namespace Projet_EasySave.Interfaces
 {
     /// <summary>
-    /// Interface pour la gestion de la persistance de l'état temps réel des sauvegardes (state.json)
+    /// Interface for managing the persistence of the real-time backup state (state.json)
     /// </summary>
     public interface IBackupStateRepository
     {
         /// <summary>
-        /// Définit le chemin du fichier d'état
+        /// Sets the state file path
         /// </summary>
-        /// <param name="path">Le chemin du fichier d'état</param>
-        /// <exception cref="System.ArgumentException">Levée si le chemin est null ou vide</exception>
+        /// <param name="path">The state file path</param>
+        /// <exception cref="System.ArgumentException">Thrown if the path is null or empty</exception>
         void SetStatePath(string path);
 
         /// <summary>
-        /// Met à jour l'état des travaux de sauvegarde dans le fichier state.json
+        /// Updates the backup job states in the state.json file
         /// </summary>
-        /// <param name="jobs">Liste des états des travaux de sauvegarde à persister</param>
+        /// <param name="jobs">List of backup job states to persist</param>
         void UpdateState(List<BackupJobState> jobs);
     }
 }

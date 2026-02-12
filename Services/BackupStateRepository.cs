@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace Projet_EasySave.Services
 {
     /// <summary>
-    /// Repository pour la gestion de la persistance de l'état temps réel des sauvegardes (state.json)
+    /// Repository for managing the persistence of the real-time backup state (state.json)
     /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
@@ -30,14 +30,14 @@ namespace Projet_EasySave.Services
             {
                 try
                 {
-                    // Créer le répertoire si nécessaire
+                    // Create the directory if necessary
                     string? directory = Path.GetDirectoryName(_statePath);
                     if (!string.IsNullOrEmpty(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    // Options de sérialisation pour un JSON lisible
+                    // Serialization options for readable JSON
                     var options = new JsonSerializerOptions
                     {
                         WriteIndented = true,
@@ -45,7 +45,7 @@ namespace Projet_EasySave.Services
                         Converters = { new JsonStringEnumConverter() }
                     };
 
-                    // Sérialiser directement la liste de BackupJobState
+                    // Serialize the BackupJobState list directly
                     string json = JsonSerializer.Serialize(jobs ?? new List<BackupJobState>(), options);
                     File.WriteAllText(_statePath, json);
                 }

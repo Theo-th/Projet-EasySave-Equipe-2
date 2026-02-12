@@ -15,8 +15,8 @@ namespace Projet_EasySave.ViewModels
         private LogType _currentLogType;
 
         /// <summary>
-        /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
-        /// La vue peut s'y abonner pour afficher une barre de chargement.
+        /// Event triggered on each backup job progress change.
+        /// The view can subscribe to it to display a loading bar.
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
 
@@ -27,7 +27,7 @@ namespace Projet_EasySave.ViewModels
             _currentLogType = logType;
             _backupService = new BackupService(_configService, _backupState, logType);
 
-            // Relayer l'événement du service vers la vue
+            // Relay the event from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
         }
 
@@ -38,13 +38,13 @@ namespace Projet_EasySave.ViewModels
         public (bool Success, string? ErrorMessage) CreateJob(string? name, string? source, string? destination, BackupType type)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return (false, "Le nom du travail est requis.");
+                return (false, "Job name is required.");
 
             if (string.IsNullOrWhiteSpace(source))
-                return (false, "Le répertoire source est requis.");
+                return (false, "Source directory is required.");
 
             if (string.IsNullOrWhiteSpace(destination))
-                return (false, "Le répertoire de destination est requis.");
+                return (false, "Destination directory is required.");
 
             return _configService.CreateJob(name.Trim(), source.Trim(), destination.Trim(), type);
         }

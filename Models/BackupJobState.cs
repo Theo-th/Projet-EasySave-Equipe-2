@@ -4,77 +4,77 @@ using System;
 namespace Projet_EasySave.Models
 {
     /// <summary>
-    /// Représente l'état d'un travail de sauvegarde pour la persistance temps réel
+    /// Represents the state of a backup job for real-time persistence
     /// </summary>
     public class BackupJobState
     {
         /// <summary>
-        /// Identifiant unique du travail (1 à 5)
+        /// Unique job identifier (1 to 5)
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// Nom du travail de sauvegarde
+        /// Backup job name
         /// </summary>
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Chemin du répertoire source
+        /// Source directory path
         /// </summary>
         public string SourcePath { get; set; } = string.Empty;
 
         /// <summary>
-        /// Chemin du répertoire cible
+        /// Target directory path
         /// </summary>
         public string TargetPath { get; set; } = string.Empty;
 
         /// <summary>
-        /// Type de sauvegarde (Complète ou Différentielle)
+        /// Backup type (Full or Differential)
         /// </summary>
         public BackupType Type { get; set; } = BackupType.Complete;
 
         /// <summary>
-        /// État actuel du travail
+        /// Current job state
         /// </summary>
         public BackupState State { get; set; } = BackupState.Inactive;
 
         /// <summary>
-        /// Horodatage de la dernière action
+        /// Last action timestamp
         /// </summary>
         public DateTime LastActionTimestamp { get; set; } = DateTime.Now;
 
         /// <summary>
-        /// Nombre total de fichiers à sauvegarder
+        /// Total number of files to back up
         /// </summary>
         public int TotalFiles { get; set; }
 
         /// <summary>
-        /// Taille totale des fichiers à sauvegarder (en octets)
+        /// Total size of files to back up (in bytes)
         /// </summary>
         public long TotalSize { get; set; }
 
         /// <summary>
-        /// Nombre de fichiers restants à sauvegarder
+        /// Number of remaining files to back up
         /// </summary>
         public int RemainingFiles { get; set; }
 
         /// <summary>
-        /// Taille restante à sauvegarder (en octets)
+        /// Remaining size to back up (in bytes)
         /// </summary>
         public long RemainingSize { get; set; }
 
         /// <summary>
-        /// Fichier source en cours de sauvegarde
+        /// Source file currently being backed up
         /// </summary>
         public string CurrentSourceFile { get; set; } = string.Empty;
 
         /// <summary>
-        /// Fichier cible en cours de sauvegarde
+        /// Target file currently being backed up
         /// </summary>
         public string CurrentTargetFile { get; set; } = string.Empty;
 
         /// <summary>
-        /// Pourcentage de progression (0-100)
+        /// Progress percentage (0-100)
         /// </summary>
         public int ProgressPercentage
         {

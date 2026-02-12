@@ -5,7 +5,7 @@ using Projet_EasySave.Models;
 namespace Projet_EasySave.Services.Strategies
 {
     /// <summary>
-    /// Stratégie de sauvegarde complète.
+    /// Full backup strategy.
     /// </summary>
     public class FullBackupStrategy : BackupStrategy
     {
@@ -15,14 +15,14 @@ namespace Projet_EasySave.Services.Strategies
         }
 
         /// <summary>
-        /// Exécute une sauvegarde complète :
-        /// 1. Vérifie les dossiers source/destination
-        /// 2. Liste tous les fichiers à copier
-        /// 3. Copie les fichiers depuis la liste
+        /// Executes a full backup:
+        /// 1. Validates source/destination directories
+        /// 2. Lists all files to copy
+        /// 3. Copies files from the list
         /// </summary>
         public override (bool Success, string? ErrorMessage) Execute()
         {
-            // Étape 1 : Validation des dossiers
+            // Step 1: Directory validation
             var validation = ValidateAndPrepareDirectories();
             if (!validation.Success)
             {
@@ -33,7 +33,7 @@ namespace Projet_EasySave.Services.Strategies
             {
                 string fullBackupFolder = Path.Combine(TargetDirectory, FULL_MARKER);
                 
-                // Nettoyer le contenu précédent s'il existe
+                // Clean previous content if it exists
                 ClearBackupFolder(fullBackupFolder);
 
                 var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
@@ -42,14 +42,14 @@ namespace Projet_EasySave.Services.Strategies
                     return folderCreation;
                 }
 
-                // Étape 2 : Lister tous les fichiers à copier
+                // Step 2: List all files to copy
                 List<string> filesToCopy = ListAllFilesInSource();
 
-                // Calculer la taille totale et notifier l'initialisation
+                // Compute total size and notify initialization
                 long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
                 RaiseBackupInitialized(filesToCopy.Count, totalSize);
 
-                // Étape 3 : Copier les fichiers depuis la liste
+                // Step 3: Copy files from the list
                 var copyResult = CopyFilesFromList(filesToCopy, SourceDirectory, fullBackupFolder);
                 if (!copyResult.Success)
                 {
@@ -60,12 +60,12 @@ namespace Projet_EasySave.Services.Strategies
             }
             catch (Exception ex)
             {
-                return (false, $"Erreur lors de la sauvegarde complète : {ex.Message}");
+                return (false, $"Error during full backup: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Liste récursivement tous les fichiers du dossier source sous forme de chemins relatifs.
+        /// Recursively lists all files in the source directory as relative paths.
         /// </summary>
         private List<string> ListAllFilesInSource()
         {
