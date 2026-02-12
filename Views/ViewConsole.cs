@@ -192,6 +192,54 @@ namespace Projet_EasySave
             Console.ReadKey();
         }
 
+
+
+        private void MenuLogFormat()
+        {
+            int index = 0;
+            bool back = false;
+            string[] formats = { "JSON", "XML" };
+
+            while (!back)
+            {
+                Console.Clear();
+                Console.WriteLine(Lang.TitleLogFormat);
+                Console.WriteLine("-------------------------------------");
+
+                for (int i = 0; i < formats.Length; i++)
+                {
+                    string activeTag = (_viewModel.CurrentLogFormat == formats[i]) ? " [Active]" : "";
+
+                    if (i == index)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"> {formats[i]}{activeTag}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {formats[i]}{activeTag}");
+                    }
+                }
+                Console.WriteLine("-------------------------------------");
+                Console.WriteLine(Lang.BtnReturn + " (Escape)");
+
+                ConsoleKeyInfo key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.UpArrow) index = (index == 0) ? formats.Length - 1 : index - 1;
+                else if (key.Key == ConsoleKey.DownArrow) index = (index + 1) % formats.Length;
+                else if (key.Key == ConsoleKey.Escape) back = true;
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    _viewModel.ChangeLogFormat(formats[index]);
+                    back = true; 
+                }
+            }
+        }
+
+
+
         private void DeleteMenu()
         {
             List<string> jobs = _viewModel.GetAllJobs();
@@ -259,6 +307,7 @@ namespace Projet_EasySave
                 string[] options = {
                     Lang.LangFrench,
                     Lang.LangEnglish,
+                    Lang.TitleLog,
                     Lang.BtnReturn
                 };
 
