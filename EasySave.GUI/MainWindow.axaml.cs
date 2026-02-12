@@ -7,7 +7,6 @@ using Avalonia.Layout;
 using EasySave.Core.ViewModels;
 using EasySave.Core.Models;
 using EasySave.Core.Properties;
-using EasySave.GUI.Services;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -23,7 +22,6 @@ public partial class MainWindow : Window
 {
     private ViewModelConsole _viewModel;
     private ObservableCollection<JobItem> _jobs;
-    private ProgressMonitorService? _progressMonitor;
 
     // Cache des contrôles pour optimisation
     private ListBox? _jobListBox;
@@ -66,6 +64,9 @@ public partial class MainWindow : Window
         
         _viewModel = new ViewModelConsole(LogType.JSON, _currentConfigPath, _currentStatePath, _currentLogsPath);
         _jobs = new ObservableCollection<JobItem>();
+        
+        // S'abonner à l'événement de progression du ViewModel
+        _viewModel.OnProgressChanged += OnBackupProgressChanged;
         
         // Initialiser le cache des contrôles
         CacheControls();
@@ -221,10 +222,6 @@ public partial class MainWindow : Window
         UpdateStatus($"Exécution de {selectedIndices.Count} sauvegarde(s)...", true);
         ShowProgress(true);
         
-        // Démarrer la surveillance de progression
-        _progressMonitor = new ProgressMonitorService(_currentStatePath, UpdateProgressUI);
-        _progressMonitor.Start();
-        
         // Exécuter les sauvegardes dans un thread séparé
         await System.Threading.Tasks.Task.Run(() =>
         {
@@ -233,7 +230,6 @@ public partial class MainWindow : Window
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    _progressMonitor?.Stop();
                     ShowProgress(false);
                     // Check if it's an error or success message
                     bool isSuccess = result.Contains("completed successfully");
@@ -243,7 +239,6 @@ public partial class MainWindow : Window
             }
         });
         
-        _progressMonitor?.Stop();
         ShowProgress(false);
         UpdateStatus($"{selectedIndices.Count} sauvegarde(s) terminée(s) !", true);
     }
@@ -373,19 +368,27 @@ public partial class MainWindow : Window
         }
     }
     
-    private void UpdateProgressUI(double progress, string currentFile)
+    private void OnBackupProgressChanged(BackupJobState state)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
+            // Calculer le pourcentage de progression
+            double progress = 0;
+            if (state.TotalSize > 0)
+            {
+                long processedSize = state.TotalSize - state.RemainingSize;
+                progress = (double)processedSize / state.TotalSize * 100.0;
+            }
+            
             if (_progressBar != null)
                 _progressBar.Value = Math.Min(100, Math.Max(0, progress));
                 
             if (_progressText != null)
                 _progressText.Text = $"{(int)progress}%";
                 
-            if (_currentFileText != null && !string.IsNullOrEmpty(currentFile))
+            if (_currentFileText != null && !string.IsNullOrEmpty(state.CurrentSourceFile))
             {
-                string fileName = Path.GetFileName(currentFile);
+                string fileName = Path.GetFileName(state.CurrentSourceFile);
                 _currentFileText.Text = $"Fichier en cours : {fileName}";
             }
         });

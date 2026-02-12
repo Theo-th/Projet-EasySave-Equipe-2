@@ -19,7 +19,12 @@ namespace EasySave.Core.Interfaces
         /// <returns>Error message or null if successful</returns>
         string? ExecuteBackup(List<int> jobIndices);
 
-        public void ChangeLogFormat(LogType logType);
+        void ChangeLogFormat(LogType logType);
+        
+        /// <summary>
+        /// Updates the logs directory path.
+        /// </summary>
+        void UpdateLogsDirectory(string newLogsDirectory);
     }
 
 }

@@ -12,5 +12,10 @@ namespace EasySave.Core.Interfaces
         int GetJobCount();
         (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
         bool RemoveJob(int index);
+        
+        /// <summary>
+        /// Updates the configuration file path.
+        /// </summary>
+        void UpdateConfigPath(string newConfigPath);
     }
 }
