@@ -18,5 +18,8 @@ namespace Projet_EasySave.Interfaces
         /// <param name="jobIndices">Liste des indices des travaux (0-based)</param>
         /// <returns>Message d'erreur ou null si succès</returns>
         string? ExecuteBackup(List<int> jobIndices);
+
+        public void ChangeLogFormat(LogType logType);
     }
+
 }

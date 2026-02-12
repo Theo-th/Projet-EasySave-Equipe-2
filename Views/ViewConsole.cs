@@ -63,6 +63,32 @@ namespace Projet_EasySave
             }
         }
 
+
+
+        private void ShowSettings(int index, string[] options)
+        {
+            Console.Clear();
+            Console.WriteLine("-------------------------------------");
+            Console.WriteLine(Lang.SettingsTitle);
+            Console.WriteLine("-------------------------------------");
+
+            for (int i = 0; i < options.Length; i++)
+            {
+                if (i == index)
+                {
+                    Console.BackgroundColor = ConsoleColor.Blue;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine($"> {options[i]}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.WriteLine($"  {options[i]}");
+                }
+            }
+            Console.WriteLine("-------------------------------------");
+        }
+
         private void ShowMainMenu(int index, string[] options)
         {
             Console.Clear();
@@ -192,6 +218,56 @@ namespace Projet_EasySave
         }
 
 
+        public void MenuSettings()
+        {
+            bool quit = false;
+            int index = 0;
+
+            while (!quit)
+            {
+                string[] options = {
+                    "Changer la Langue",
+                    Lang.TitleLog,
+                    Lang.MenuQuit
+                };
+
+                ShowSettings(index, options);
+
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                if (keyInfo.Key == ConsoleKey.UpArrow)
+                {
+                    index = (index == 0) ? options.Length - 1 : index - 1;
+                }
+                else if (keyInfo.Key == ConsoleKey.DownArrow)
+                {
+                    index = (index + 1) % options.Length;
+                }
+                else if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    switch (index)
+                    {
+                        case 0: LangSettings(); break;
+                        case 1: MenuLogFormat(); break;
+                        case 2: quit = true; break;
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private void MenuLogFormat()
         {
             int index = 0;
@@ -294,7 +370,7 @@ namespace Projet_EasySave
             }
         }
 
-        private void MenuSettings()
+        private void LangSettings()
         {
             int index = 0;
             bool back = false;
@@ -304,7 +380,6 @@ namespace Projet_EasySave
                 string[] options = {
                     Lang.LangFrench,
                     Lang.LangEnglish,
-                    Lang.TitleLog,
                     Lang.BtnReturn
                 };
 
