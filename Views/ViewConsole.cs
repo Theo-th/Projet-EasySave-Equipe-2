@@ -166,7 +166,6 @@ namespace Projet_EasySave
             Console.WriteLine(Lang.TypeSave);
             string? typeInput = Console.ReadLine();
 
-            // Conversion sécurisée du type
             BackupType type = typeInput switch
             {
                 "1" => BackupType.Complete,
@@ -191,6 +190,52 @@ namespace Projet_EasySave
 
             Console.ReadKey();
         }
+
+
+        private void MenuLogFormat()
+        {
+            int index = 0;
+            bool back = false;
+            string[] formats = { "JSON", "XML" };
+
+            while (!back)
+            {
+                Console.Clear();
+                Console.WriteLine(Lang.TitleLogFormat);
+                Console.WriteLine("-------------------------------------");
+
+                for (int i = 0; i < formats.Length; i++)
+                {
+                    string activeTag = (_viewModel.CurrentLogFormat() == formats[i]) ? " [Active]" : "";
+
+                    if (i == index)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"> {formats[i]}{activeTag}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {formats[i]}{activeTag}");
+                    }
+                }
+                Console.WriteLine("-------------------------------------");
+                Console.WriteLine(Lang.BtnReturn + " (Escape)");
+
+                ConsoleKeyInfo key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.UpArrow) index = (index == 0) ? formats.Length - 1 : index - 1;
+                else if (key.Key == ConsoleKey.DownArrow) index = (index + 1) % formats.Length;
+                else if (key.Key == ConsoleKey.Escape) back = true;
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    _viewModel.ChangeLogFormat(formats[index]);
+                    back = true;
+                }
+            }
+        }
+
 
         private void DeleteMenu()
         {
@@ -231,8 +276,8 @@ namespace Projet_EasySave
                     Console.Write(string.Format(Lang.SureToDelete, jobs[index]));
                     string? confirm = Console.ReadLine();
 
-                    if (!string.IsNullOrEmpty(confirm) && 
-                        (confirm.Equals("O", StringComparison.OrdinalIgnoreCase) || 
+                    if (!string.IsNullOrEmpty(confirm) &&
+                        (confirm.Equals("O", StringComparison.OrdinalIgnoreCase) ||
                          confirm.Equals("Y", StringComparison.OrdinalIgnoreCase)))
                     {
                         _viewModel.DeleteJob(index);
@@ -259,6 +304,7 @@ namespace Projet_EasySave
                 string[] options = {
                     Lang.LangFrench,
                     Lang.LangEnglish,
+                    Lang.TitleLog,
                     Lang.BtnReturn
                 };
 

@@ -12,6 +12,7 @@ namespace Projet_EasySave.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
         private readonly IBackupStateRepository _backupState;
+        private LogType _currentLogType;
 
         /// <summary>
         /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
@@ -23,6 +24,7 @@ namespace Projet_EasySave.ViewModels
         {
             _configService = new JobConfigService();
             _backupState = new BackupStateRepository();
+            _currentLogType = logType;
             _backupService = new BackupService(_configService, _backupState, logType);
 
             // Relayer l'événement du service vers la vue
@@ -81,6 +83,20 @@ namespace Projet_EasySave.ViewModels
         {
             var job = _configService.GetJob(jobIndex);
             return job != null ? $"{job.Name} -- {job.Type}" : null;
+        }
+
+        public string CurrentLogFormat() 
+        {
+            return _currentLogType.ToString();
+        }
+
+        public void ChangeLogFormat(string format)
+        {
+            if (Enum.TryParse<LogType>(format, ignoreCase: true, out var logType))
+            {
+                _currentLogType = logType;
+                _backupService.ChangeLogFormat(logType);
+            }
         }
     }
 }

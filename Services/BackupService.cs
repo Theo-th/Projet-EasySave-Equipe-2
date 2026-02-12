@@ -13,7 +13,7 @@ namespace Projet_EasySave.Services
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupStateRepository _stateRepository;
-        private readonly BaseLog _logger;
+        private BaseLog _logger;
 
         /// <summary>
         /// Événement déclenché à chaque changement de progression d'un travail de sauvegarde.
@@ -151,6 +151,18 @@ namespace Projet_EasySave.Services
                 BackupType.Complete => new FullBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
                 BackupType.Differential => new DifferentialBackupStrategy(sourceDirectory, targetDirectory, backupType, jobName, _logger),
                 _ => throw new InvalidOperationException($"Type de sauvegarde non supporté : {backupType}")
+            };
+        }
+
+        public void ChangeLogFormat(LogType logType)
+        {
+            string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            
+            _logger = logType switch
+            {
+                LogType.JSON => new JsonLog(logDirectory),
+                LogType.XML => new XmlLog(logDirectory),
+                _ => new JsonLog(logDirectory)
             };
         }
     }
