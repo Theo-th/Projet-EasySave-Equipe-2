@@ -11,7 +11,7 @@ namespace EasySave.Core.Services
     /// </summary>
     public class JobConfigService : IJobConfigService
     {
-        private readonly string _configFilePath;
+        private string _configFilePath;
         private readonly object _lockObject = new();
         private const int MaxJobs = 5;
 
@@ -23,7 +23,10 @@ namespace EasySave.Core.Services
 
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
-            _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
+            // Si c'est un chemin absolu, l'utiliser tel quel, sinon le combiner avec BaseDirectory
+            _configFilePath = Path.IsPathRooted(configFilePath) 
+                ? configFilePath 
+                : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
         }
 
         public List<BackupJob> GetAllJobs()
@@ -149,6 +152,19 @@ namespace EasySave.Core.Services
             catch
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Updates the configuration file path without recreating the service.
+        /// </summary>
+        public void UpdateConfigPath(string newConfigPath)
+        {
+            lock (_lockObject)
+            {
+                _configFilePath = Path.IsPathRooted(newConfigPath) 
+                    ? newConfigPath 
+                    : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, newConfigPath);
             }
         }
     }

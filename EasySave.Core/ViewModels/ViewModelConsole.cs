@@ -102,5 +102,29 @@ namespace EasySave.Core.ViewModels
                 _backupService.ChangeLogFormat(logType);
             }
         }
+
+        /// <summary>
+        /// Updates the logs directory path without recreating the entire ViewModel.
+        /// </summary>
+        public void UpdateLogsPath(string logsPath)
+        {
+            _backupService.UpdateLogsDirectory(logsPath);
+        }
+
+        /// <summary>
+        /// Updates the config file path without recreating the entire ViewModel.
+        /// </summary>
+        public void UpdateConfigPath(string configPath)
+        {
+            _configService.UpdateConfigPath(configPath);
+        }
+
+        /// <summary>
+        /// Updates the state file path without recreating the entire ViewModel.
+        /// </summary>
+        public void UpdateStatePath(string statePath)
+        {
+            _backupState.SetStatePath(statePath);
+        }
     }
 }

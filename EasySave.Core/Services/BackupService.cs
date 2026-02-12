@@ -164,5 +164,23 @@ namespace EasySave.Core.Services
                 _ => new JsonLog(_logDirectory)
             };
         }
+
+        /// <summary>
+        /// Updates the logs directory and recreates the logger with the new path.
+        /// </summary>
+        public void UpdateLogsDirectory(string newLogsDirectory)
+        {
+            _logDirectory = newLogsDirectory;
+            
+            // Recreate the logger with the current type and new directory
+            if (_logger is JsonLog)
+            {
+                _logger = new JsonLog(_logDirectory);
+            }
+            else if (_logger is XmlLog)
+            {
+                _logger = new XmlLog(_logDirectory);
+            }
+        }
     }
 }

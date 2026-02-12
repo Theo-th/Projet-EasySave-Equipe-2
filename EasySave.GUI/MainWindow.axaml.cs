@@ -687,13 +687,13 @@ public partial class MainWindow : Window
 
     private void ReloadViewModelWithCurrentPaths()
     {
-        // Arrêter le monitor s'il est actif
-        _progressMonitor?.Stop();
+        // Mettre à jour les chemins directement dans le ViewModel existant
+        // sans recréer l'instance complète
+        _viewModel.UpdateLogsPath(_currentLogsPath);
+        _viewModel.UpdateConfigPath(_currentConfigPath);
+        _viewModel.UpdateStatePath(_currentStatePath);
         
-        // Recréer le ViewModel avec les chemins actuels
-        _viewModel = new ViewModelConsole(LogType.JSON, _currentConfigPath, _currentStatePath, _currentLogsPath);
-        
-        // Recharger les jobs
+        // Recharger les jobs pour refléter les changements de configuration
         LoadJobs();
     }
 
