@@ -247,4 +247,7 @@
   <data name="TypeSave" xml:space="preserve">
     <value>Type (1: Complet, 2: Differentiel) :</value>
   </data>
+  <data name="SourceDirectory" xml:space="preserve">
+    <value>La source et la cible doivent être au format UNC (\\...)</value>
+  </data>
 </root>

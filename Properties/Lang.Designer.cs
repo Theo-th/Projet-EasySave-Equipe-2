@@ -376,6 +376,15 @@ namespace Projet_EasySave.Properties {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à La source et la cible doivent être au format UNC (\\...).
+        /// </summary>
+        public static string SourceDirectory {
+            get {
+                return ResourceManager.GetString("SourceDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à Le répertoire source ne peut pas être vide..
         /// </summary>
         public static string SourceDirectoryEmpty {
