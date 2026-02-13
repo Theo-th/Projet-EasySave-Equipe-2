@@ -268,35 +268,49 @@
                         <StackPanel MaxWidth="600">
                             <TextBlock Name="SettingsTitleText" Text="Paramètres" FontSize="16" 
                                        FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-                            
                             <StackPanel Spacing="16">
+                                <!-- Chemins -->
                                 <StackPanel>
                                     <TextBlock Text="Dossier logs" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="LogsPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseLogsButton" Grid.Column="1" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseLogsButton" Grid.Column="1" Width="120" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
-                                
                                 <StackPanel>
                                     <TextBlock Text="Fichier config" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="ConfigPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseConfigButton" Grid.Column="1" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseConfigButton" Grid.Column="1" Width="120" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
-                                
                                 <StackPanel>
                                     <TextBlock Text="Fichier état" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="StatePathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseStateButton" Grid.Column="1" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseStateButton" Grid.Column="1" Width="120" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
-                                
+                                <!-- Langue -->
                                 <StackPanel>
                                     <TextBlock Name="LanguageInterfaceText" Text="Langue" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <ComboBox Name="LanguageComboBox" SelectedIndex="0"/>
+                                </StackPanel>
+                                <!-- Clé de cryptage -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                    <TextBlock Text="Clé de cryptage :" FontSize="12" Foreground="#6B7280" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBox Name="EncryptionKeyTextBox" Width="180" IsReadOnly="True" VerticalAlignment="Center"/>
+                                    <Button Name="EditEncryptionKeyButton" Content="Modifier" Width="120" Padding="12,10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <!-- Extensions à chiffrer -->
+                                <StackPanel>
+                                    <TextBlock Text="Extensions à chiffrer" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                                    <ListBox Name="EncryptionExtensionsListBox" Height="80"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                        <TextBox Name="AddExtensionTextBox" Width="100" Watermark=".ext"/>
+                                        <Button Name="AddExtensionButton" Content="Ajouter" Width="80"/>
+                                        <Button Name="RemoveExtensionButton" Content="Supprimer sélection" Width="130"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>

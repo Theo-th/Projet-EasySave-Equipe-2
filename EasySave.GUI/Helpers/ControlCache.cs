@@ -28,6 +28,13 @@ public class ControlCache
     public Button? NextPageButton { get; set; }
     public ComboBox? ItemsPerPageComboBox { get; set; }
 
+    public TextBox? EncryptionKeyTextBox { get; set; }
+    public Button? EditEncryptionKeyButton { get; set; }
+    public ListBox? EncryptionExtensionsListBox { get; set; }
+    public TextBox? AddExtensionTextBox { get; set; }
+    public Button? AddExtensionButton { get; set; }
+    public Button? RemoveExtensionButton { get; set; }
+
     public void InitializeFrom(Window window)
     {
         JobListBox = window.FindControl<ListBox>("JobListBox");
@@ -52,5 +59,12 @@ public class ControlCache
         PreviousPageButton = window.FindControl<Button>("PreviousPageButton");
         NextPageButton = window.FindControl<Button>("NextPageButton");
         ItemsPerPageComboBox = window.FindControl<ComboBox>("ItemsPerPageComboBox");
+
+        EncryptionKeyTextBox = window.FindControl<TextBox>("EncryptionKeyTextBox");
+        EditEncryptionKeyButton = window.FindControl<Button>("EditEncryptionKeyButton");
+        EncryptionExtensionsListBox = window.FindControl<ListBox>("EncryptionExtensionsListBox");
+        AddExtensionTextBox = window.FindControl<TextBox>("AddExtensionTextBox");
+        AddExtensionButton = window.FindControl<Button>("AddExtensionButton");
+        RemoveExtensionButton = window.FindControl<Button>("RemoveExtensionButton");
     }
 }
