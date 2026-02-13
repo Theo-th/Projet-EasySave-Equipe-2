@@ -17,7 +17,8 @@ namespace EasySave.Core.Services.Strategies
         /// Executes a differential backup:
         /// 1. Validates source/destination directories
         /// 2. If no full backup exists, performs one
-        /// 3. Otherwise, clears the previous differential folder, lists modified files, reports deleted files, then copies
+        /// 3. Otherwise, clears the previous differential folder, traverses source files,
+        ///    copies modified ones immediately, and reports deleted files
         /// </summary>
         public override (bool Success, string? ErrorMessage) Execute()
         {
@@ -48,25 +49,55 @@ namespace EasySave.Core.Services.Strategies
                     return diffFolderCreation;
                 }
 
-                // 3a: List modified files compared to the full backup
-                List<string> modifiedFiles = ListModifiedFilesInSource(fullBackupFolder);
-
-                // Compute total size and notify initialization
-                long totalSize = ComputeTotalSize(modifiedFiles, SourceDirectory);
-                RaiseBackupInitialized(modifiedFiles.Count, totalSize);
-
-                // 3b: Generate the deleted files report
+                // 3a: Generate the deleted files report
                 var reportResult = CreateDeletedFilesReport(SourceDirectory, fullBackupFolder, diffBackupFolder);
                 if (!reportResult.Success)
                 {
                     return reportResult;
                 }
 
-                // 3c: Copy modified files from the list
-                var copyResult = CopyFilesFromList(modifiedFiles, SourceDirectory, diffBackupFolder);
-                if (!copyResult.Success)
+                // 3b: Traverse source files, compare with full backup, and copy modified ones immediately
+                var dirInfo = new DirectoryInfo(SourceDirectory);
+                if (!dirInfo.Exists)
                 {
-                    return copyResult;
+                    return (false, $"Source directory '{SourceDirectory}' does not exist.");
+                }
+
+                var sourceFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
+
+                // Pre-compute modified files count and size for initialization event
+                int modifiedCount = 0;
+                long totalSize = 0;
+                foreach (var sourceFile in sourceFiles)
+                {
+                    string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
+                    string fullBackupFilePath = Path.Combine(fullBackupFolder, relativePath);
+
+                    if (!File.Exists(fullBackupFilePath) ||
+                        sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
+                    {
+                        modifiedCount++;
+                        totalSize += sourceFile.Length;
+                    }
+                }
+
+                RaiseBackupInitialized(modifiedCount, totalSize);
+
+                // Now traverse again and copy each modified file immediately
+                foreach (var sourceFile in sourceFiles)
+                {
+                    string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
+                    string fullBackupFilePath = Path.Combine(fullBackupFolder, relativePath);
+
+                    if (!File.Exists(fullBackupFilePath) ||
+                        sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
+                    {
+                        var copyResult = CopyFile(relativePath, SourceDirectory, diffBackupFolder);
+                        if (!copyResult.Success)
+                        {
+                            return copyResult;
+                        }
+                    }
                 }
 
                 return (true, null);
@@ -88,64 +119,30 @@ namespace EasySave.Core.Services.Strategies
                 return folderCreation;
             }
 
-            List<string> filesToCopy = ListAllFilesInSource();
+            var dirInfo = new DirectoryInfo(SourceDirectory);
+            if (!dirInfo.Exists)
+            {
+                return (false, $"Source directory '{SourceDirectory}' does not exist.");
+            }
+
+            var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
 
             // Compute total size and notify initialization
-            long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
-            RaiseBackupInitialized(filesToCopy.Count, totalSize);
+            long totalSize = allFiles.Sum(f => f.Length);
+            RaiseBackupInitialized(allFiles.Length, totalSize);
 
-            var copyResult = CopyFilesFromList(filesToCopy, SourceDirectory, fullBackupFolder);
-            if (!copyResult.Success)
-            {
-                return copyResult;
-            }
-
-            return (true, null);
-        }
-
-        /// <summary>
-        /// Lists all files in the source directory as relative paths.
-        /// </summary>
-        private List<string> ListAllFilesInSource()
-        {
-            var files = new List<string>();
-            var dirInfo = new DirectoryInfo(SourceDirectory);
-
-            if (!dirInfo.Exists)
-                return files;
-
-            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            foreach (var file in allFiles)
             {
                 string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
-                files.Add(relativePath);
-            }
 
-            return files;
-        }
-
-        /// <summary>
-        /// Lists modified files in the source compared to the full backup.
-        /// </summary>
-        private List<string> ListModifiedFilesInSource(string fullBackupDir)
-        {
-            var modifiedFiles = new List<string>();
-            var sourceFiles = new DirectoryInfo(SourceDirectory)
-                .GetFiles("*", SearchOption.AllDirectories);
-
-            foreach (var sourceFile in sourceFiles)
-            {
-                string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
-                string fullBackupFilePath = Path.Combine(fullBackupDir, relativePath);
-
-                // New or modified file
-                if (!File.Exists(fullBackupFilePath) ||
-                    sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
+                var copyResult = CopyFile(relativePath, SourceDirectory, fullBackupFolder);
+                if (!copyResult.Success)
                 {
-                    modifiedFiles.Add(relativePath);
+                    return copyResult;
                 }
             }
 
-            return modifiedFiles;
+            return (true, null);
         }
 
         /// <summary>

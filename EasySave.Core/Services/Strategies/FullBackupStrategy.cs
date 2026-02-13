@@ -16,8 +16,7 @@ namespace EasySave.Core.Services.Strategies
         /// <summary>
         /// Executes a full backup:
         /// 1. Validates source/destination directories
-        /// 2. Lists all files to copy
-        /// 3. Copies files from the list
+        /// 2. Traverses all source files and copies each one immediately
         /// </summary>
         public override (bool Success, string? ErrorMessage) Execute()
         {
@@ -41,18 +40,29 @@ namespace EasySave.Core.Services.Strategies
                     return folderCreation;
                 }
 
-                // Step 2: List all files to copy
-                List<string> filesToCopy = ListAllFilesInSource();
+                // Step 2: Traverse source and copy each file immediately
+                var dirInfo = new DirectoryInfo(SourceDirectory);
+                if (!dirInfo.Exists)
+                {
+                    return (false, $"Source directory '{SourceDirectory}' does not exist.");
+                }
+
+                var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
 
                 // Compute total size and notify initialization
-                long totalSize = ComputeTotalSize(filesToCopy, SourceDirectory);
-                RaiseBackupInitialized(filesToCopy.Count, totalSize);
+                long totalSize = allFiles.Sum(f => f.Length);
+                RaiseBackupInitialized(allFiles.Length, totalSize);
 
-                // Step 3: Copy files from the list
-                var copyResult = CopyFilesFromList(filesToCopy, SourceDirectory, fullBackupFolder);
-                if (!copyResult.Success)
+                // Copy each file as it is encountered
+                foreach (var file in allFiles)
                 {
-                    return copyResult;
+                    string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
+
+                    var copyResult = CopyFile(relativePath, SourceDirectory, fullBackupFolder);
+                    if (!copyResult.Success)
+                    {
+                        return copyResult;
+                    }
                 }
 
                 return (true, null);
@@ -61,26 +71,6 @@ namespace EasySave.Core.Services.Strategies
             {
                 return (false, $"Error during full backup: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// Recursively lists all files in the source directory as relative paths.
-        /// </summary>
-        private List<string> ListAllFilesInSource()
-        {
-            var files = new List<string>();
-            var dirInfo = new DirectoryInfo(SourceDirectory);
-
-            if (!dirInfo.Exists)
-                return files;
-
-            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
-            {
-                string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
-                files.Add(relativePath);
-            }
-
-            return files;
         }
     }
 }
