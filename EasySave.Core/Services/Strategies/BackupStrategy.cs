@@ -4,9 +4,7 @@ using System.Diagnostics;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Abstract class defining the backup strategy.
-    /// </summary>
+    // Abstract class defining the backup strategy.
     public abstract class BackupStrategy
     {
         // Constants for marker files
@@ -20,14 +18,10 @@ namespace EasySave.Core.Services.Strategies
         protected string JobName { get; set; }
         protected BaseLog Logger { get; set; }
 
-        /// <summary>
-        /// Event triggered before file copy, with the total file count and total size.
-        /// </summary>
+        // Event triggered before file copy, with the total file count and total size.
         public event Action<int, long>? OnBackupInitialized;
 
-        /// <summary>
-        /// Event triggered after each file transfer (sourceFile, targetFile, fileSize).
-        /// </summary>
+        // Event triggered after each file transfer (sourceFile, targetFile, fileSize).
         public event Action<string, string, long>? OnFileTransferred;
 
         public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
@@ -39,14 +33,10 @@ namespace EasySave.Core.Services.Strategies
             Logger = logger;
         }
 
-        /// <summary>
-        /// Executes the backup strategy.
-        /// </summary>
+        // Executes the backup strategy.
         public abstract (bool Success, string? ErrorMessage) Execute();
 
-        /// <summary>
-        /// Validates and prepares the source and destination directories.
-        /// </summary>
+        // Validates and prepares the source and destination directories.
         protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
         {
             if (!Directory.Exists(SourceDirectory))
@@ -68,17 +58,13 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        /// <summary>
-        /// Checks whether a file is a backup marker.
-        /// </summary>
+        // Checks whether a file is a backup marker.
         protected bool IsBackupMarker(string fileName)
         {
             return fileName == FULL_MARKER || fileName == DIFFERENTIAL_MARKER;
         }
 
-        /// <summary>
-        /// Creates a backup folder and its marker file.
-        /// </summary>
+        // Creates a backup folder and its marker file.
         protected (bool Success, string? ErrorMessage) CreateBackupFolder(string backupFolderPath, string markerFileName)
         {
             try
@@ -113,9 +99,7 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        /// <summary>
-        /// Computes the total size of a list of files relative to a source directory.
-        /// </summary>
+        // Computes the total size of a list of files relative to a source directory.
         protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
         {
             long totalSize = 0;
@@ -128,17 +112,13 @@ namespace EasySave.Core.Services.Strategies
             return totalSize;
         }
 
-        /// <summary>
-        /// Raises the backup initialization event.
-        /// </summary>
+        // Raises the backup initialization event.
         protected void RaiseBackupInitialized(int totalFiles, long totalSize)
         {
             OnBackupInitialized?.Invoke(totalFiles, totalSize);
         }
 
-        /// <summary>
-        /// Raises the file transfer event.
-        /// </summary>
+        // Raises the file transfer event.
         protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
         {
             OnFileTransferred?.Invoke(sourceFile, targetFile, fileSize);
@@ -196,9 +176,7 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        /// <summary>
-        /// Clears the contents of a backup folder without deleting the folder itself.
-        /// </summary>
+        // Clears the contents of a backup folder without deleting the folder itself.
         protected void ClearBackupFolder(string backupFolder)
         {
             try

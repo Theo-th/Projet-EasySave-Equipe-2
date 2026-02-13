@@ -3,9 +3,8 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Full backup strategy.
-    /// </summary>
+    
+    // Full backup strategy.
     public class FullBackupStrategy : BackupStrategy
     {
         public FullBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)

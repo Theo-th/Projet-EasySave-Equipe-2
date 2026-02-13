@@ -4,9 +4,7 @@ using EasySave.Core.Models;
 
 namespace EasySave.Core.ViewModels
 {
-    /// <summary>
-    /// Manages console interactions and coordinates communication between backup jobs and the console view.
-    /// </summary>
+    // Manages console interactions and coordinates communication between backup jobs and the console view.
     public class ViewModelConsole
     {
         private readonly IJobConfigService _configService;
@@ -14,10 +12,8 @@ namespace EasySave.Core.ViewModels
         private readonly IBackupStateRepository _backupState;
         private LogType _currentLogType;
 
-        /// <summary>
-        /// Event triggered on each backup job progress change.
-        /// The view can subscribe to it to display a loading bar.
-        /// </summary>
+        // Event triggered on each backup job progress change.
+        // The view can subscribe to it to display a loading bar.
         public event Action<BackupJobState>? OnProgressChanged;
 
         public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
@@ -35,10 +31,8 @@ namespace EasySave.Core.ViewModels
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
         }
 
-        /// <summary>
-        /// Creates a new backup job.
-        /// </summary>
-        /// <returns>Tuple indicating success and an optional error message</returns>
+        // Creates a new backup job.
+        // Returns: Tuple indicating success and an optional error message
         public (bool Success, string? ErrorMessage) CreateJob(string? name, string? source, string? destination, BackupType type)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -53,9 +47,7 @@ namespace EasySave.Core.ViewModels
             return _configService.CreateJob(name.Trim(), source.Trim(), destination.Trim(), type);
         }
 
-        /// <summary>
-        /// Executes multiple backup jobs.
-        /// </summary>
+        // Executes multiple backup jobs.
         public string? ExecuteJobs(List<int> jobIndices)
         {
             string? message = _backupService.ExecuteBackup(jobIndices);
@@ -63,30 +55,24 @@ namespace EasySave.Core.ViewModels
             return message;
         }
 
-        /// <summary>
-        /// Deletes a backup job by its index.
-        /// </summary>
+        // Deletes a backup job by its index.
         public bool DeleteJob(int jobIndex)
         {
             return _configService.RemoveJob(jobIndex);
         }
 
-        /// <summary>
-        /// Gets all configured backup job names.
-        /// </summary>
+        // Gets all configured backup job names.
         public List<string> GetAllJobs()
         {
             var jobs = _configService.GetAllJobs();
             return jobs.ConvertAll(job => job.Name);
         }
 
-        /// <summary>
-        /// Gets job name and type by index.
-        /// </summary>
+        // Gets job name and type by index.
         public string? GetJob(int jobIndex)
         {
             var job = _configService.GetJob(jobIndex);
-            return job != null ? $"{job.Name} -- {job.Type}" : null;
+            return job != null ? $"{job.Name} -- {job.Type} -- {job.SourceDirectory} -- {job.TargetDirectory}" : null;
         }
 
         public string CurrentLogFormat() 
@@ -103,25 +89,19 @@ namespace EasySave.Core.ViewModels
             }
         }
 
-        /// <summary>
-        /// Updates the logs directory path without recreating the entire ViewModel.
-        /// </summary>
+        // Updates the logs directory path without recreating the entire ViewModel.
         public void UpdateLogsPath(string logsPath)
         {
             _backupService.UpdateLogsDirectory(logsPath);
         }
 
-        /// <summary>
-        /// Updates the config file path without recreating the entire ViewModel.
-        /// </summary>
+        // Updates the config file path without recreating the entire ViewModel.
         public void UpdateConfigPath(string configPath)
         {
             _configService.UpdateConfigPath(configPath);
         }
 
-        /// <summary>
-        /// Updates the state file path without recreating the entire ViewModel.
-        /// </summary>
+        // Updates the state file path without recreating the entire ViewModel.
         public void UpdateStatePath(string statePath)
         {
             _backupState.SetStatePath(statePath);

@@ -296,4 +296,13 @@
   <data name="ManageDesc" xml:space="preserve">
     <value>Configured plans</value>
   </data>
+  <data name="BtnModify" xml:space="preserve">
+    <value>Modify</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>File backup management software</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
 </root>

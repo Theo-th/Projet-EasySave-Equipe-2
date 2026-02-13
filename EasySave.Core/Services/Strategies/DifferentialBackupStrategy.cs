@@ -3,9 +3,9 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Differential backup strategy (modified files only).
-    /// </summary>
+    
+    // Differential backup strategy (modified files only).
+
     public class DifferentialBackupStrategy : BackupStrategy
     {
         public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
@@ -13,7 +13,7 @@ namespace EasySave.Core.Services.Strategies
         {
         }
 
-        /// <summary>
+        
         /// Executes a differential backup:
         /// 1. Validates source/destination directories
         /// 2. If no full backup exists, performs one
@@ -107,10 +107,7 @@ namespace EasySave.Core.Services.Strategies
                 return (false, $"Error during differential backup: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// Performs an initial full backup when none exists.
-        /// </summary>
+    // Performs an initial full backup when none exists.
         private (bool Success, string? ErrorMessage) ExecuteFullBackup(string fullBackupFolder)
         {
             var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
@@ -144,11 +141,8 @@ namespace EasySave.Core.Services.Strategies
 
             return (true, null);
         }
-
-        /// <summary>
-        /// Detects deleted files (present in the full backup but missing from the source)
-        /// and generates a report in the destination folder.
-        /// </summary>
+    // Detects deleted files (present in the full backup but missing from the source)
+    // and generates a report in the destination folder.
         private (bool Success, string? ErrorMessage) CreateDeletedFilesReport(
             string sourceDir, string fullBackupDir, string targetDir)
         {

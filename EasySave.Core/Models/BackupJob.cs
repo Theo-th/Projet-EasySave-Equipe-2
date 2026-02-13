@@ -2,9 +2,9 @@
 
 namespace EasySave.Core.Models
 {
-    /// <summary>
+
     /// Represents a backup job with its properties.
-    /// </summary>
+
     public class BackupJob
     {
         public string Name { get; set; } = string.Empty;

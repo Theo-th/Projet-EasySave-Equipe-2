@@ -122,7 +122,7 @@
                 <Image Source="avares://EasySave.GUI/Assets/logo.png" Width="60" Height="60" Margin="0,0,16,0"/>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="EasySave 2.0" FontSize="20" FontWeight="SemiBold" Foreground="#111827"/>
-                    <TextBlock Name="HeaderStatusText" Text="Logiciel de sauvegarde" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock Name="HeaderDescriptionText" FontSize="11" Foreground="#6B7280"/>
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -216,7 +216,7 @@
                                     <TextBlock Name="SourceLabel" Text="Source" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="SourcePathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseSourceButton" Grid.Column="1" Content="Modifier" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseSourceButton" Grid.Column="1" Width="95" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
                                 
@@ -224,7 +224,7 @@
                                     <TextBlock Name="TargetLabel" Text="Destination" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="TargetPathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseTargetButton" Grid.Column="1" Content="Modifier" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseTargetButton" Grid.Column="1" Width="95" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
                                 
@@ -274,7 +274,7 @@
                                     <TextBlock Text="Dossier logs" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="LogsPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseLogsButton" Grid.Column="1" Content="Modifier" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseLogsButton" Grid.Column="1" Width="95" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
                                 
@@ -282,7 +282,7 @@
                                     <TextBlock Text="Fichier config" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="ConfigPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseConfigButton" Grid.Column="1" Content="Modifier" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseConfigButton" Grid.Column="1" Width="95" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
                                 
@@ -290,7 +290,7 @@
                                     <TextBlock Text="Fichier état" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBox Name="StatePathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseStateButton" Grid.Column="1" Content="Modifier" Width="95" Padding="12,10"/>
+                                        <Button Name="BrowseStateButton" Grid.Column="1" Width="95" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
                                 
@@ -308,7 +308,7 @@
         <!-- Pied de page -->
         <Border Grid.Row="2" Background="#F9FAFB" Padding="16,12" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
             <Grid>
-                <TextBlock Name="FooterText" Text="Prêt" Foreground="#6B7280" FontSize="11" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Name="FooterText" Foreground="#6B7280" FontSize="11" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock Text="EasySave v2.0 © 2026" Foreground="#9CA3AF" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </Grid>
         </Border>
