@@ -12,7 +12,12 @@ namespace EasySave.Core.Interfaces
 
         event Action<BackupJobState>? OnProgressChanged;
 
-        
+        /// <summary>
+        /// Event triggered when a backup is interrupted because a watched process was detected.
+        /// </summary>
+        event Action<string>? OnBackupInterrupted;
+
+        /// <summary>
         /// Executes a backup job by its index.
 
         /// <param name="jobIndices">List of job indices (0-based)</param>

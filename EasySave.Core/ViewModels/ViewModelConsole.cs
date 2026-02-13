@@ -10,11 +10,17 @@ namespace EasySave.Core.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
         private readonly IBackupStateRepository _backupState;
+        private readonly ProcessDetector _processDetector;
         private LogType _currentLogType;
 
         // Event triggered on each backup job progress change.
         // The view can subscribe to it to display a loading bar.
         public event Action<BackupJobState>? OnProgressChanged;
+
+        /// <summary>
+        /// Event triggered when a backup is interrupted because a watched process was detected.
+        /// </summary>
+        public event Action<string>? OnBackupInterrupted;
 
         public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
         {
@@ -25,10 +31,16 @@ namespace EasySave.Core.ViewModels
                 _backupState.SetStatePath(statePath);
             }
             _currentLogType = logType;
-            _backupService = new BackupService(_configService, _backupState, logType, logsPath);
 
-            // Relay the event from the service to the view
+            // Shared ProcessDetector instance between ViewModel and BackupService
+            _processDetector = new ProcessDetector();
+            _processDetector.StartContinuousMonitoring();
+
+            _backupService = new BackupService(_configService, _backupState, _processDetector, logType, logsPath);
+
+            // Relay the events from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
+            _backupService.OnBackupInterrupted += (processName) => OnBackupInterrupted?.Invoke(processName);
         }
 
         // Creates a new backup job.
@@ -108,47 +120,27 @@ namespace EasySave.Core.ViewModels
         }
 
         /// <summary>
-        /// Retrieves the current encryption key.
+        /// Adds a process name to the watch list.
         /// </summary>
-        public string GetEncryptionKey()
+        public void AddWatchedProcess(string processName)
         {
-            return EncryptionService.Instance.GetKey();
+            _processDetector.AddWatchedProcess(processName);
         }
 
         /// <summary>
-        /// Updates the encryption key.
+        /// Removes a process name from the watch list.
         /// </summary>
-        /// <param name="key">The new key to set.</param>
-        public void SetEncryptionKey(string key)
+        public void RemoveWatchedProcess(string processName)
         {
-            EncryptionService.Instance.SetKey(key);
+            _processDetector.RemoveWatchedProcess(processName);
         }
 
         /// <summary>
-        /// Retrieves the list of file extensions configured for encryption.
+        /// Gets the list of currently watched process names.
         /// </summary>
-        /// <returns>A list of extensions (e.g., ".txt", ".json").</returns>
-        public List<string> GetEncryptionExtensions()
+        public List<string> GetWatchedProcesses()
         {
-            return EncryptionService.Instance.GetExtensions();
-        }
-
-        /// <summary>
-        /// Adds a file extension to the encryption list.
-        /// </summary>
-        /// <param name="extension">The extension to add (e.g., ".txt").</param>
-        public void AddEncryptionExtension(string extension)
-        {
-            EncryptionService.Instance.AddExtension(extension);
-        }
-
-        /// <summary>
-        /// Removes a file extension from the encryption list.
-        /// </summary>
-        /// <param name="extension">The extension to remove.</param>
-        public void RemoveEncryptionExtension(string extension)
-        {
-            EncryptionService.Instance.RemoveExtension(extension);
+            return _processDetector.GetWatchedProcesses();
         }
     }
 }

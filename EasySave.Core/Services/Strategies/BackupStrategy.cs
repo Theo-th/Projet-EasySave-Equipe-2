@@ -7,7 +7,6 @@ namespace EasySave.Core.Services.Strategies
     // Abstract class defining the backup strategy.
     public abstract class BackupStrategy
     {
-        // Constants for marker files
         protected const string FULL_MARKER = "full";
         protected const string DIFFERENTIAL_MARKER = "differential";
         protected const string DELETED_FILES_REPORT = "_deleted_files.txt";
@@ -17,6 +16,11 @@ namespace EasySave.Core.Services.Strategies
         protected BackupType BackupType { get; set; }
         protected string JobName { get; set; }
         protected BaseLog Logger { get; set; }
+        
+        /// <summary>
+        /// Flag pour arr�ter la sauvegarde en cours.
+        /// </summary>
+        protected bool _shouldStop = false;
 
         // Event triggered before file copy, with the total file count and total size.
         public event Action<int, long>? OnBackupInitialized;
@@ -36,7 +40,17 @@ namespace EasySave.Core.Services.Strategies
         // Executes the backup strategy.
         public abstract (bool Success, string? ErrorMessage) Execute();
 
-        // Validates and prepares the source and destination directories.
+        /// <summary>
+        /// Arr�te la sauvegarde en cours de mani�re gracieuse.
+        /// </summary>
+        public void Stop()
+        {
+            _shouldStop = true;
+        }
+
+        /// <summary>
+        /// Valide et pr�pare les r�pertoires source et destination.
+        /// </summary>
         protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
         {
             if (!Directory.Exists(SourceDirectory))
@@ -58,13 +72,17 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        // Checks whether a file is a backup marker.
+        /// <summary>
+        /// V�rifie si un fichier est un marqueur de sauvegarde.
+        /// </summary>
         protected bool IsBackupMarker(string fileName)
         {
             return fileName == FULL_MARKER || fileName == DIFFERENTIAL_MARKER;
         }
 
-        // Creates a backup folder and its marker file.
+        /// <summary>
+        /// Cr�e un dossier de sauvegarde et son fichier marqueur.
+        /// </summary>
         protected (bool Success, string? ErrorMessage) CreateBackupFolder(string backupFolderPath, string markerFileName)
         {
             try
@@ -99,7 +117,9 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        // Computes the total size of a list of files relative to a source directory.
+        /// <summary>
+        /// Calcule la taille totale d'une liste de fichiers relative � un r�pertoire source.
+        /// </summary>
         protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
         {
             long totalSize = 0;
@@ -112,21 +132,25 @@ namespace EasySave.Core.Services.Strategies
             return totalSize;
         }
 
-        // Raises the backup initialization event.
+        /// <summary>
+        /// D�clenche l'�v�nement d'initialisation de sauvegarde.
+        /// </summary>
         protected void RaiseBackupInitialized(int totalFiles, long totalSize)
         {
             OnBackupInitialized?.Invoke(totalFiles, totalSize);
         }
 
-        // Raises the file transfer event.
+        /// <summary>
+        /// D�clenche l'�v�nement de transfert de fichier.
+        /// </summary>
         protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
         {
             OnFileTransferred?.Invoke(sourceFile, targetFile, fileSize);
         }
 
         /// <summary>
-        /// Copies a single file (relative path) from a source directory to a target directory.
-        /// The transfer is logged via Logger.WriteLog() and triggers a progress event.
+        /// Copie une liste de fichiers (chemins relatifs) d'un r�pertoire source vers un r�pertoire cible.
+        /// Chaque transfert est enregistr� et d�clenche un �v�nement de progression.
         /// </summary>
         protected (bool Success, string? ErrorMessage) CopyFile(
             string relativePath, string sourceDir, string targetDir)
@@ -140,8 +164,14 @@ namespace EasySave.Core.Services.Strategies
                 string? targetFileDir = Path.GetDirectoryName(targetFilePath);
                 if (targetFileDir != null && !Directory.Exists(targetFileDir))
                 {
-                    Directory.CreateDirectory(targetFileDir);
-                }
+                    // V�rifier si l'arr�t a �t� demand�
+                    if (_shouldStop)
+                    {
+                        return (false, "Backup stopped: watched process detected.");
+                    }
+
+                    string sourceFilePath = Path.Combine(sourceDir, relativePath);
+                    string targetFilePath = Path.Combine(targetDir, relativePath);
 
                 var fileInfo = new FileInfo(sourceFilePath);
                 long fileSize = fileInfo.Length;
@@ -176,7 +206,9 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        // Clears the contents of a backup folder without deleting the folder itself.
+        /// <summary>
+        /// Vide le contenu d'un dossier de sauvegarde sans supprimer le dossier lui-m�me.
+        /// </summary>
         protected void ClearBackupFolder(string backupFolder)
         {
             try
