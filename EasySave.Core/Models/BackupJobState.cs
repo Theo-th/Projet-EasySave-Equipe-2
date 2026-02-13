@@ -4,8 +4,10 @@ using System;
 namespace EasySave.Core.Models
 {
     // Represents the state of a backup job for real-time persistence
-    public class BackupJobState
-    {
+        public class BackupJobState
+        {
+            // Timestamp du début de la sauvegarde
+            public DateTime StartTimestamp { get; set; } = DateTime.Now;
         // Unique job identifier (1 to 5)
         public int Id { get; set; }
 

@@ -87,6 +87,7 @@ namespace EasySave.Core.Services
                         jobState.TotalSize = totalSize;
                         jobState.RemainingFiles = totalFiles;
                         jobState.RemainingSize = totalSize;
+                        jobState.StartTimestamp = DateTime.Now;
                         jobState.LastActionTimestamp = DateTime.Now;
                         _stateRepository.UpdateState(states);
                         OnProgressChanged?.Invoke(jobState);

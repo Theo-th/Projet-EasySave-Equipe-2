@@ -307,7 +307,7 @@ public class JobEventHandler
             int filesDone = state.TotalFiles - state.RemainingFiles;
             if (filesDone > 0 && state.RemainingFiles > 0)
             {
-                var elapsed = (DateTime.Now - state.LastActionTimestamp).TotalSeconds;
+                var elapsed = (DateTime.Now - state.StartTimestamp).TotalSeconds;
                 double avgPerFile = elapsed / filesDone;
                 int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
                 int min = secondsLeft / 60;

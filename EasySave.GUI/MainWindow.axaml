@@ -177,15 +177,14 @@
                             <Button Name="ExecuteButton" Content="Lancer les sauvegardes sélectionnées" 
                                     HorizontalAlignment="Center" Padding="24,12"/>
                             
-                            <Border Name="ProgressArea" Background="White" CornerRadius="4" 
+                                <Border Name="ProgressArea" Background="White" CornerRadius="4" 
                                     Padding="16" Margin="0,16,0,0" IsVisible="False">
                                 <StackPanel>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="Progression" FontSize="12" Foreground="#6B7280"/>
-                                        <TextBlock Grid.Column="1" Name="ProgressText" Text="0%" FontSize="12" FontWeight="SemiBold"/>
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0" Text="Progression" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Name="ProgressBar" Height="6" Minimum="0" Maximum="100" Value="0" Margin="8,0,8,0" CornerRadius="3" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Name="ProgressText" Text="0%" FontSize="14" FontWeight="Bold" Foreground="#374151" VerticalAlignment="Center" Margin="0,0,0,0"/>
                                     </Grid>
-                                    <ProgressBar Name="ProgressBar" Height="6" Minimum="0" Maximum="100" Value="0" 
-                                                Margin="0,8,0,0" CornerRadius="3"/>
                                     <TextBlock Name="CurrentFileText" Text="" FontSize="11" Foreground="#6B7280" 
                                               Margin="0,8,0,0" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
