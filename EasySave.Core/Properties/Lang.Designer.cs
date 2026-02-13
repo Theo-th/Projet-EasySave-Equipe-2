@@ -12,7 +12,7 @@ namespace EasySave.Core.Properties {
     using System;
     
     
-    /// <summary>
+    
     ///   Une classe de ressource fortement typée destinée, entre autres, à la consultation des chaînes localisées.
     /// </summary>
     // Cette classe a été générée automatiquement par la classe StronglyTypedResourceBuilder
@@ -32,7 +32,7 @@ namespace EasySave.Core.Properties {
         internal Lang() {
         }
         
-        /// <summary>
+        
         ///   Retourne l'instance ResourceManager mise en cache utilisée par cette classe.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -46,7 +46,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Remplace la propriété CurrentUICulture du thread actuel pour toutes
         ///   les recherches de ressources à l'aide de cette classe de ressource fortement typée.
         /// </summary>
@@ -60,7 +60,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Retour.
         /// </summary>
         public static string BtnReturn {
@@ -69,7 +69,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Erreur lors de la sauvegarde de la configuration..
         /// </summary>
         public static string ConfigSaveError {
@@ -78,7 +78,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Tentative de création terminée.
         /// </summary>
         public static string CreateFinish {
@@ -87,7 +87,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à CREATION D&apos;UNE SAUVEGARDE.
         /// </summary>
         public static string CreateSave {
@@ -96,7 +96,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à === SUPPRESSION D&apos;UNE SAUVEGARDE ===.
         /// </summary>
         public static string DeleteSave {
@@ -105,7 +105,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Chemin de destination :.
         /// </summary>
         public static string DestPath {
@@ -114,7 +114,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Sauvegarde différentielle créée..
         /// </summary>
         public static string DifferentialBackupCreated {
@@ -123,7 +123,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Le répertoire source n&apos;existe pas : {0}.
         /// </summary>
         public static string DirectoryNoExist {
@@ -132,7 +132,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Entrée : Supprimer | Echap : Retour.
         /// </summary>
         public static string EnterReturn {
@@ -141,7 +141,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Erreur : Impossible de créer le travail (limite atteinte ou erreur fichier)..
         /// </summary>
         public static string ErrorCreateJob {
@@ -150,7 +150,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Exécution de {0} ....
         /// </summary>
         public static string ExecuteJob {
@@ -159,7 +159,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Suppression effectuée.
         /// </summary>
         public static string FinishDelete {
@@ -168,7 +168,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Un travail avec le nom {0} existe déjà..
         /// </summary>
         public static string JobAlreadyExists {
@@ -177,7 +177,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Travail de sauvegarde introuvable à l&apos;indice {0}.
         /// </summary>
         public static string JobIndexNotFound {
@@ -186,7 +186,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Le nom du travail ne peut pas être vide..
         /// </summary>
         public static string JobNameEmpty {
@@ -195,7 +195,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Anglais.
         /// </summary>
         public static string LangEnglish {
@@ -204,7 +204,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        
         ///   Recherche une chaîne localisée semblable à Français.
         /// </summary>
         public static string LangFrench {
@@ -213,7 +213,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Nombre maximum de travaux {0} atteint.
         /// </summary>
         public static string MaxJobsReached {
@@ -222,7 +222,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Aucun travail de sauvegarde configuré.
         /// </summary>
         public static string MenuAucunTravail {
@@ -231,7 +231,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Créer un plan de sauvegarde.
         /// </summary>
         public static string MenuCreate {
@@ -240,7 +240,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Supprimer un plan de sauvegarde.
         /// </summary>
         public static string MenuDelete {
@@ -249,7 +249,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à LANCEMENT DES SAUVEGARDES.
         /// </summary>
         public static string MenuLaunch {
@@ -258,7 +258,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Menu Principal.
         /// </summary>
         public static string MenuMainMenu {
@@ -267,7 +267,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Exécuter un travail de sauvegarde.
         /// </summary>
         public static string MenuOptionExecute {
@@ -276,7 +276,7 @@ namespace EasySave.Core.Properties {
             }
         }
         
-        /// <summary>
+        // ...existing code...
         ///   Recherche une chaîne localisée semblable à Modifier un travail de sauvegarde.
         /// </summary>
         public static string MenuOptionModify {

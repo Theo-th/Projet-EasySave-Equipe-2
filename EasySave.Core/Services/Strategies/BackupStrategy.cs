@@ -4,9 +4,7 @@ using System.Diagnostics;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Abstract class defining the backup strategy.
-    /// </summary>
+    // Abstract class defining the backup strategy.
     public abstract class BackupStrategy
     {
         protected const string FULL_MARKER = "full";
@@ -20,18 +18,14 @@ namespace EasySave.Core.Services.Strategies
         protected BaseLog Logger { get; set; }
         
         /// <summary>
-        /// Flag pour arrêter la sauvegarde en cours.
+        /// Flag pour arrï¿½ter la sauvegarde en cours.
         /// </summary>
         protected bool _shouldStop = false;
 
-        /// <summary>
-        /// Event triggered before file copy, with the total file count and total size.
-        /// </summary>
+        // Event triggered before file copy, with the total file count and total size.
         public event Action<int, long>? OnBackupInitialized;
 
-        /// <summary>
-        /// Event triggered after each file transfer (sourceFile, targetFile, fileSize).
-        /// </summary>
+        // Event triggered after each file transfer (sourceFile, targetFile, fileSize).
         public event Action<string, string, long>? OnFileTransferred;
 
         public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
@@ -43,13 +37,11 @@ namespace EasySave.Core.Services.Strategies
             Logger = logger;
         }
 
-        /// <summary>
-        /// Executes the backup strategy.
-        /// </summary>
+        // Executes the backup strategy.
         public abstract (bool Success, string? ErrorMessage) Execute();
 
         /// <summary>
-        /// Arrête la sauvegarde en cours de manière gracieuse.
+        /// Arrï¿½te la sauvegarde en cours de maniï¿½re gracieuse.
         /// </summary>
         public void Stop()
         {
@@ -57,7 +49,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Valide et prépare les répertoires source et destination.
+        /// Valide et prï¿½pare les rï¿½pertoires source et destination.
         /// </summary>
         protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
         {
@@ -81,7 +73,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Vérifie si un fichier est un marqueur de sauvegarde.
+        /// Vï¿½rifie si un fichier est un marqueur de sauvegarde.
         /// </summary>
         protected bool IsBackupMarker(string fileName)
         {
@@ -89,7 +81,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Crée un dossier de sauvegarde et son fichier marqueur.
+        /// Crï¿½e un dossier de sauvegarde et son fichier marqueur.
         /// </summary>
         protected (bool Success, string? ErrorMessage) CreateBackupFolder(string backupFolderPath, string markerFileName)
         {
@@ -103,6 +95,7 @@ namespace EasySave.Core.Services.Strategies
                 var stopwatch = Stopwatch.StartNew();
                 File.WriteAllText(markerFilePath, markerContent);
                 stopwatch.Stop();
+
 
                 var record = new Record
                 {
@@ -125,7 +118,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Calcule la taille totale d'une liste de fichiers relative à un répertoire source.
+        /// Calcule la taille totale d'une liste de fichiers relative ï¿½ un rï¿½pertoire source.
         /// </summary>
         protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
         {
@@ -140,7 +133,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Déclenche l'événement d'initialisation de sauvegarde.
+        /// Dï¿½clenche l'ï¿½vï¿½nement d'initialisation de sauvegarde.
         /// </summary>
         protected void RaiseBackupInitialized(int totalFiles, long totalSize)
         {
@@ -148,7 +141,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Déclenche l'événement de transfert de fichier.
+        /// Dï¿½clenche l'ï¿½vï¿½nement de transfert de fichier.
         /// </summary>
         protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
         {
@@ -156,17 +149,22 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Copie une liste de fichiers (chemins relatifs) d'un répertoire source vers un répertoire cible.
-        /// Chaque transfert est enregistré et déclenche un événement de progression.
+        /// Copie une liste de fichiers (chemins relatifs) d'un rï¿½pertoire source vers un rï¿½pertoire cible.
+        /// Chaque transfert est enregistrï¿½ et dï¿½clenche un ï¿½vï¿½nement de progression.
         /// </summary>
-        protected (bool Success, string? ErrorMessage) CopyFilesFromList(
-            List<string> relativeFilePaths, string sourceDir, string targetDir)
+        protected (bool Success, string? ErrorMessage) CopyFile(
+            string relativePath, string sourceDir, string targetDir)
         {
             try
             {
-                foreach (string relativePath in relativeFilePaths)
+                string sourceFilePath = Path.Combine(sourceDir, relativePath);
+                string targetFilePath = Path.Combine(targetDir, relativePath);
+
+                // Create necessary subdirectories
+                string? targetFileDir = Path.GetDirectoryName(targetFilePath);
+                if (targetFileDir != null && !Directory.Exists(targetFileDir))
                 {
-                    // Vérifier si l'arrêt a été demandé
+                    // Vï¿½rifier si l'arrï¿½t a ï¿½tï¿½ demandï¿½
                     if (_shouldStop)
                     {
                         return (false, "Backup stopped: watched process detected.");
@@ -175,46 +173,41 @@ namespace EasySave.Core.Services.Strategies
                     string sourceFilePath = Path.Combine(sourceDir, relativePath);
                     string targetFilePath = Path.Combine(targetDir, relativePath);
 
-                    // Create necessary subdirectories
-                    string? targetFileDir = Path.GetDirectoryName(targetFilePath);
-                    if (targetFileDir != null && !Directory.Exists(targetFileDir))
-                    {
-                        Directory.CreateDirectory(targetFileDir);
-                    }
+                var fileInfo = new FileInfo(sourceFilePath);
+                long fileSize = fileInfo.Length;
 
-                    var fileInfo = new FileInfo(sourceFilePath);
-                    long fileSize = fileInfo.Length;
+                var stopwatch = Stopwatch.StartNew();
+                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+                stopwatch.Stop();
 
-                    var stopwatch = Stopwatch.StartNew();
-                    File.Copy(sourceFilePath, targetFilePath, overwrite: true);
-                    stopwatch.Stop();
+                long encryptionTime = EncryptionService.Instance.EncryptFile(targetFilePath);
 
-                    var record = new Record
-                    {
-                        Name = JobName,
-                        Source = sourceFilePath,
-                        Target = targetFilePath,
-                        Size = fileSize,
-                        Time = stopwatch.Elapsed.TotalMilliseconds,
-                        Timestamp = DateTime.Now
-                    };
+                var record = new Record
+                {
+                    Name = JobName,
+                    Source = sourceFilePath,
+                    Target = targetFilePath,
+                    Size = fileSize,
+                    Time = stopwatch.Elapsed.TotalMilliseconds,
+                    Timestamp = DateTime.Now,
+                    EncryptionTime = encryptionTime,
+                };
 
-                    Logger.WriteLog(record);
+                Logger.WriteLog(record);
 
-                    // Notify progress after each file copied
-                    RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
-                }
+                // Notify progress after file copied
+                RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
 
                 return (true, null);
             }
             catch (Exception ex)
             {
-                return (false, $"Error copying files: {ex.Message}");
+                return (false, $"Error copying file '{relativePath}': {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Vide le contenu d'un dossier de sauvegarde sans supprimer le dossier lui-même.
+        /// Vide le contenu d'un dossier de sauvegarde sans supprimer le dossier lui-mï¿½me.
         /// </summary>
         protected void ClearBackupFolder(string backupFolder)
         {

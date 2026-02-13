@@ -3,22 +3,16 @@ using System.Collections.Generic;
 
 namespace EasySave.Core.Interfaces
 {
-    /// <summary>
-    /// Interface for managing the persistence of the real-time backup state (state.json)
-    /// </summary>
+    
+    // Interface for managing the persistence of the real-time backup state (state.json)
     public interface IBackupStateRepository
     {
-        /// <summary>
-        /// Sets the state file path
-        /// </summary>
-        /// <param name="path">The state file path</param>
-        /// <exception cref="System.ArgumentException">Thrown if the path is null or empty</exception>
+        
+        // Sets the state file path. Throws ArgumentException if path is null or empty.
         void SetStatePath(string path);
 
-        /// <summary>
-        /// Updates the backup job states in the state.json file
-        /// </summary>
-        /// <param name="jobs">List of backup job states to persist</param>
+        
+        // Updates the backup job states in the state.json file.
         void UpdateState(List<BackupJobState> jobs);
     }
 }

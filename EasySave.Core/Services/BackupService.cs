@@ -6,9 +6,8 @@ using EasySave.Core.Services.Strategies;
 
 namespace EasySave.Core.Services
 {
-    /// <summary>
-    /// Service for executing and managing backup operations.
-    /// </summary>
+    
+    // Service for executing and managing backup operations.
     public class BackupService : IBackupService
     {
         private readonly IJobConfigService _configService;
@@ -19,9 +18,8 @@ namespace EasySave.Core.Services
         private string? _detectedProcessName;
         private BackupStrategy? _currentStrategy;
 
-        /// <summary>
-        /// Event triggered on each backup job progress change.
-        /// </summary>
+        
+        // Event triggered on each backup job progress change.
         public event Action<BackupJobState>? OnProgressChanged;
 
         /// <summary>
@@ -58,10 +56,9 @@ namespace EasySave.Core.Services
             }
         }
 
-        /// <summary>
-        /// Executes backup jobs by their indices.
-        /// </summary>
-        /// <returns>Formatted backup status message or error message</returns>
+        
+        // Executes backup jobs by their indices.
+        // Returns a formatted backup status message or error message.
         public string? ExecuteBackup(List<int> jobIndices)
         {
             if (jobIndices == null || jobIndices.Count == 0)
@@ -185,9 +182,7 @@ namespace EasySave.Core.Services
             return string.Join("\n", results);
         }
 
-        /// <summary>
-        /// Creates the appropriate backup strategy based on the type.
-        /// </summary>
+        // Creates the appropriate backup strategy based on the type.
         private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName)
         {
             return backupType switch
@@ -208,9 +203,7 @@ namespace EasySave.Core.Services
             };
         }
 
-        /// <summary>
-        /// Updates the logs directory and recreates the logger with the new path.
-        /// </summary>
+        // Updates the logs directory and recreates the logger with the new path.
         public void UpdateLogsDirectory(string newLogsDirectory)
         {
             _logDirectory = newLogsDirectory;

@@ -8,9 +8,8 @@ using System.Text.Json.Serialization;
 
 namespace EasySave.Core.Services
 {
-    /// <summary>
-    /// Repository for managing the persistence of the real-time backup state (state.json)
-    /// </summary>
+    
+    // Repository for managing the persistence of the real-time backup state (state.json)
     public class BackupStateRepository : IBackupStateRepository
     {
         private string _statePath = "./state.json";

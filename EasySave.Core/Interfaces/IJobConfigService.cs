@@ -2,9 +2,8 @@ using EasySave.Core.Models;
 
 namespace EasySave.Core.Interfaces
 {
-    /// <summary>
-    /// Interface for the backup job configuration service.
-    /// </summary>
+    
+    // Interface for the backup job configuration service.
     public interface IJobConfigService
     {
         List<BackupJob> GetAllJobs();
@@ -13,9 +12,8 @@ namespace EasySave.Core.Interfaces
         (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type);
         bool RemoveJob(int index);
         
-        /// <summary>
-        /// Updates the configuration file path.
-        /// </summary>
+        
+        // Updates the configuration file path.
         void UpdateConfigPath(string newConfigPath);
     }
 }
