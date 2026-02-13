@@ -1,18 +1,12 @@
 namespace EasySave.Core.Models
 {
-    /// <summary>
-    /// Backup type
-    /// </summary>
+    // Defines the type of backup operation.
     public enum BackupType
     {
-        /// <summary>
-        /// Full backup (all files)
-        /// </summary>
+        // Full backup (all files)
         Complete,
 
-        /// <summary>
-        /// Differential backup (modified files only)
-        /// </summary>
+        // Differential backup (modified files only)
         Differential
     }
 }

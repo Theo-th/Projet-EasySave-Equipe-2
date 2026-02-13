@@ -3,9 +3,8 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Full backup strategy.
-    /// </summary>
+    
+    // Full backup strategy.
     public class FullBackupStrategy : BackupStrategy
     {
         public FullBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
@@ -13,12 +12,11 @@ namespace EasySave.Core.Services.Strategies
         {
         }
 
-        /// <summary>
-        /// Executes a full backup:
-        /// 1. Validates source/destination directories
-        /// 2. Lists all files to copy
-        /// 3. Copies files from the list
-        /// </summary>
+        
+        // Executes a full backup:
+        // 1. Validates source/destination directories
+        // 2. Lists all files to copy
+        // 3. Copies files from the list
         public override (bool Success, string? ErrorMessage) Execute()
         {
             // Step 1: Directory validation
@@ -63,9 +61,8 @@ namespace EasySave.Core.Services.Strategies
             }
         }
 
-        /// <summary>
-        /// Recursively lists all files in the source directory as relative paths.
-        /// </summary>
+        
+        // Recursively lists all files in the source directory as relative paths.
         private List<string> ListAllFilesInSource()
         {
             var files = new List<string>();

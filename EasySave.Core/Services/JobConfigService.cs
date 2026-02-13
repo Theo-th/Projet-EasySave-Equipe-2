@@ -6,9 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace EasySave.Core.Services
 {
-    /// <summary>
-    /// Service for managing backup job configurations.
-    /// </summary>
+    // Service for managing backup job configurations.
     public class JobConfigService : IJobConfigService
     {
         private string _configFilePath;
@@ -23,7 +21,7 @@ namespace EasySave.Core.Services
 
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
-            // Si c'est un chemin absolu, l'utiliser tel quel, sinon le combiner avec BaseDirectory
+            // If it is an absolute path, use it as is, otherwise combine it with BaseDirectory
             _configFilePath = Path.IsPathRooted(configFilePath) 
                 ? configFilePath 
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
@@ -65,10 +63,7 @@ namespace EasySave.Core.Services
             }
         }
 
-        /// <summary>
-        /// Creates and saves a new backup job.
-        /// </summary>
-        /// <returns>Tuple indicating success and an optional error message</returns>
+        // Creates and saves a new backup job. Returns a tuple indicating success and an optional error message.
         public (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type)
         {
             lock (_lockObject)
@@ -155,9 +150,7 @@ namespace EasySave.Core.Services
             }
         }
 
-        /// <summary>
-        /// Updates the configuration file path without recreating the service.
-        /// </summary>
+        // Updates the configuration file path without recreating the service.
         public void UpdateConfigPath(string newConfigPath)
         {
             lock (_lockObject)

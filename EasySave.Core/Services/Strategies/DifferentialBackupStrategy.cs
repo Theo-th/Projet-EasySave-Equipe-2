@@ -3,9 +3,9 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    /// <summary>
-    /// Differential backup strategy (modified files only).
-    /// </summary>
+    
+    // Differential backup strategy (modified files only).
+
     public class DifferentialBackupStrategy : BackupStrategy
     {
         public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
@@ -13,12 +13,12 @@ namespace EasySave.Core.Services.Strategies
         {
         }
 
-        /// <summary>
+        
         /// Executes a differential backup:
         /// 1. Validates source/destination directories
         /// 2. If no full backup exists, performs one
         /// 3. Otherwise, clears the previous differential folder, lists modified files, reports deleted files, then copies
-        /// </summary>
+
         public override (bool Success, string? ErrorMessage) Execute()
         {
             // Step 1: Directory validation
@@ -76,10 +76,7 @@ namespace EasySave.Core.Services.Strategies
                 return (false, $"Error during differential backup: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// Performs an initial full backup when none exists.
-        /// </summary>
+    // Performs an initial full backup when none exists.
         private (bool Success, string? ErrorMessage) ExecuteFullBackup(string fullBackupFolder)
         {
             var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
@@ -102,10 +99,7 @@ namespace EasySave.Core.Services.Strategies
 
             return (true, null);
         }
-
-        /// <summary>
-        /// Lists all files in the source directory as relative paths.
-        /// </summary>
+    // Lists all files in the source directory as relative paths.
         private List<string> ListAllFilesInSource()
         {
             var files = new List<string>();
@@ -122,10 +116,7 @@ namespace EasySave.Core.Services.Strategies
 
             return files;
         }
-
-        /// <summary>
-        /// Lists modified files in the source compared to the full backup.
-        /// </summary>
+    // Lists modified files in the source compared to the full backup.
         private List<string> ListModifiedFilesInSource(string fullBackupDir)
         {
             var modifiedFiles = new List<string>();
@@ -147,11 +138,8 @@ namespace EasySave.Core.Services.Strategies
 
             return modifiedFiles;
         }
-
-        /// <summary>
-        /// Detects deleted files (present in the full backup but missing from the source)
-        /// and generates a report in the destination folder.
-        /// </summary>
+    // Detects deleted files (present in the full backup but missing from the source)
+    // and generates a report in the destination folder.
         private (bool Success, string? ErrorMessage) CreateDeletedFilesReport(
             string sourceDir, string fullBackupDir, string targetDir)
         {
