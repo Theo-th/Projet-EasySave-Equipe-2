@@ -10,11 +10,15 @@ namespace EasySave.Core.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
         private readonly IBackupStateRepository _backupState;
+        private readonly ProcessDetector _processDetector;
         private LogType _currentLogType;
 
         // Event triggered on each backup job progress change.
         // The view can subscribe to it to display a loading bar.
         public event Action<BackupJobState>? OnProgressChanged;
+
+        // Event triggered when a watched business process is detected during backup.
+        public event Action<string>? OnBusinessProcessDetected;
 
         public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
         {
@@ -25,10 +29,16 @@ namespace EasySave.Core.ViewModels
                 _backupState.SetStatePath(statePath);
             }
             _currentLogType = logType;
-            _backupService = new BackupService(_configService, _backupState, logType, logsPath);
+
+            // Create the shared ProcessDetector instance
+            _processDetector = new ProcessDetector();
+            _processDetector.StartContinuousMonitoring();
+
+            _backupService = new BackupService(_configService, _backupState, _processDetector, logType, logsPath);
 
             // Relay the event from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
+            _backupService.OnBusinessProcessDetected += (processName) => OnBusinessProcessDetected?.Invoke(processName);
         }
 
         // Creates a new backup job.
@@ -53,6 +63,30 @@ namespace EasySave.Core.ViewModels
             string? message = _backupService.ExecuteBackup(jobIndices);
             
             return message;
+        }
+
+        /// <summary>
+        /// Pauses the currently active backup.
+        /// </summary>
+        public void PauseBackup()
+        {
+            _backupService.PauseBackup();
+        }
+
+        /// <summary>
+        /// Resumes the currently paused backup.
+        /// </summary>
+        public void ResumeBackup()
+        {
+            _backupService.ResumeBackup();
+        }
+
+        /// <summary>
+        /// Stops (cancels) the currently active backup.
+        /// </summary>
+        public void StopBackup()
+        {
+            _backupService.StopBackup();
         }
 
         // Deletes a backup job by its index.
@@ -149,6 +183,32 @@ namespace EasySave.Core.ViewModels
         public void RemoveEncryptionExtension(string extension)
         {
             EncryptionService.Instance.RemoveExtension(extension);
+        }
+
+        // ==================== Process Detector ====================
+
+        /// <summary>
+        /// Adds a business process to the watch list.
+        /// </summary>
+        public void AddWatchedProcess(string processName)
+        {
+            _processDetector.AddWatchedProcess(processName);
+        }
+
+        /// <summary>
+        /// Removes a business process from the watch list.
+        /// </summary>
+        public void RemoveWatchedProcess(string processName)
+        {
+            _processDetector.RemoveWatchedProcess(processName);
+        }
+
+        /// <summary>
+        /// Gets the list of currently watched business processes.
+        /// </summary>
+        public List<string> GetWatchedProcesses()
+        {
+            return _processDetector.GetWatchedProcesses();
         }
     }
 }

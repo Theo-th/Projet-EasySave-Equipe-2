@@ -12,17 +12,24 @@ namespace EasySave.Core.Services
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupStateRepository _stateRepository;
+        private readonly ProcessDetector _processDetector;
         private BaseLog _logger;
         private string _logDirectory;
 
+        // Currently active strategy (to allow cancellation, pause, resume)
+        private BackupStrategy? _activeStrategy;
         
         // Event triggered on each backup job progress change.
         public event Action<BackupJobState>? OnProgressChanged;
 
-        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, LogType logType, string? logDirectory = null)
+        // Event triggered when a watched business process is detected during backup.
+        public event Action<string>? OnBusinessProcessDetected;
+
+        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, ProcessDetector processDetector, LogType logType, string? logDirectory = null)
         {
             _configService = configService;
             _stateRepository = stateRepository;
+            _processDetector = processDetector;
 
             _logDirectory = logDirectory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
 
@@ -32,6 +39,42 @@ namespace EasySave.Core.Services
                 LogType.XML => new XmlLog(_logDirectory),
                 _ => new JsonLog(_logDirectory)
             };
+
+            // Subscribe to process detection events to cancel active backup
+            _processDetector.ProcessStatusChanged += OnWatchedProcessStatusChanged;
+        }
+
+        private void OnWatchedProcessStatusChanged(object? sender, ProcessStatusChangedEventArgs e)
+        {
+            if (e.IsRunning && _activeStrategy != null)
+            {
+                _activeStrategy.Cancel();
+                OnBusinessProcessDetected?.Invoke(e.Process.ProcessName);
+            }
+        }
+
+        /// <summary>
+        /// Pauses the currently active backup.
+        /// </summary>
+        public void PauseBackup()
+        {
+            _activeStrategy?.Pause();
+        }
+
+        /// <summary>
+        /// Resumes the currently paused backup.
+        /// </summary>
+        public void ResumeBackup()
+        {
+            _activeStrategy?.Resume();
+        }
+
+        /// <summary>
+        /// Stops (cancels) the currently active backup.
+        /// </summary>
+        public void StopBackup()
+        {
+            _activeStrategy?.Cancel();
         }
 
         
@@ -44,6 +87,14 @@ namespace EasySave.Core.Services
                 return "No backup job specified.";
             }
 
+            // Check if any watched business process is running before starting
+            var runningProcess = _processDetector.IsAnyWatchedProcessRunning();
+            if (runningProcess != null)
+            {
+                OnBusinessProcessDetected?.Invoke(runningProcess);
+                return $"Backup aborted: business process '{runningProcess}' is currently running.";
+            }
+
             var allJobs = _configService.GetAllJobs();
             var results = new List<string>();
             var states = new List<BackupJobState>();
@@ -54,6 +105,15 @@ namespace EasySave.Core.Services
                 {
                     results.Add($"Error: Index {index} is invalid.");
                     continue;
+                }
+
+                // Re-check before each job in case a process started between jobs
+                runningProcess = _processDetector.IsAnyWatchedProcessRunning();
+                if (runningProcess != null)
+                {
+                    OnBusinessProcessDetected?.Invoke(runningProcess);
+                    results.Add($"Backup aborted: business process '{runningProcess}' detected.");
+                    break;
                 }
 
                 BackupJob job = allJobs[index];
@@ -79,6 +139,16 @@ namespace EasySave.Core.Services
                 {
                     // Create the appropriate strategy based on the backup type
                     BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
+                    _activeStrategy = strategy;
+
+                    // Subscribe to pause state changes
+                    strategy.OnPauseStateChanged += (isPaused) =>
+                    {
+                        jobState.State = isPaused ? BackupState.Paused : BackupState.Active;
+                        jobState.LastActionTimestamp = DateTime.Now;
+                        _stateRepository.UpdateState(states);
+                        OnProgressChanged?.Invoke(jobState);
+                    };
 
                     // Subscribe to the initialization event (total file count + size)
                     strategy.OnBackupInitialized += (totalFiles, totalSize) =>
@@ -134,6 +204,10 @@ namespace EasySave.Core.Services
                     _stateRepository.UpdateState(states);
                     OnProgressChanged?.Invoke(jobState);
                     results.Add($"Exception during backup '{job.Name}': {ex.Message}");
+                }
+                finally
+                {
+                    _activeStrategy = null;
                 }
             }
 

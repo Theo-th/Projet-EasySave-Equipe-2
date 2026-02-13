@@ -10,6 +10,9 @@ namespace EasySave.Core.Models
         Active,
 
 
+        Paused,
+
+
         Completed,
 
         Error

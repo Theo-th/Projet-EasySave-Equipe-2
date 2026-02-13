@@ -18,11 +18,20 @@ namespace EasySave.Core.Services.Strategies
         protected string JobName { get; set; }
         protected BaseLog Logger { get; set; }
 
+        // Cancellation token to stop the backup in progress
+        private CancellationTokenSource _cancellationTokenSource = new();
+
+        // Pause mechanism: starts in signaled state (not paused)
+        private readonly ManualResetEventSlim _pauseEvent = new(true);
+
         // Event triggered before file copy, with the total file count and total size.
         public event Action<int, long>? OnBackupInitialized;
 
         // Event triggered after each file transfer (sourceFile, targetFile, fileSize).
         public event Action<string, string, long>? OnFileTransferred;
+
+        // Event triggered when the backup is paused or resumed.
+        public event Action<bool>? OnPauseStateChanged;
 
         public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
         {
@@ -35,6 +44,65 @@ namespace EasySave.Core.Services.Strategies
 
         // Executes the backup strategy.
         public abstract (bool Success, string? ErrorMessage) Execute();
+
+        /// <summary>
+        /// Requests cancellation of the current backup operation.
+        /// </summary>
+        public void Cancel()
+        {
+            _cancellationTokenSource.Cancel();
+            // Unblock if paused so the cancellation can be processed
+            _pauseEvent.Set();
+        }
+
+        /// <summary>
+        /// Pauses the current backup operation. The next file copy will block until resumed.
+        /// </summary>
+        public void Pause()
+        {
+            _pauseEvent.Reset();
+            OnPauseStateChanged?.Invoke(true);
+        }
+
+        /// <summary>
+        /// Resumes a paused backup operation.
+        /// </summary>
+        public void Resume()
+        {
+            _pauseEvent.Set();
+            OnPauseStateChanged?.Invoke(false);
+        }
+
+        /// <summary>
+        /// Returns true if the backup is currently paused.
+        /// </summary>
+        public bool IsPaused => !_pauseEvent.IsSet;
+
+        /// <summary>
+        /// Checks whether cancellation has been requested and throws if so.
+        /// Call this before each file copy to allow interruption.
+        /// </summary>
+        protected void ThrowIfCancellationRequested()
+        {
+            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+        }
+
+        /// <summary>
+        /// Waits if the backup is paused, then checks for cancellation.
+        /// Call this before each file copy to support pause and stop.
+        /// </summary>
+        protected void WaitIfPausedAndThrowIfCancelled()
+        {
+            // Block here if paused
+            _pauseEvent.Wait(_cancellationTokenSource.Token);
+            // After unblocking, check if we should cancel
+            ThrowIfCancellationRequested();
+        }
+
+        /// <summary>
+        /// Returns true if cancellation has been requested.
+        /// </summary>
+        protected bool IsCancellationRequested => _cancellationTokenSource.Token.IsCancellationRequested;
 
         // Validates and prepares the source and destination directories.
         protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
@@ -133,6 +201,9 @@ namespace EasySave.Core.Services.Strategies
         {
             try
             {
+                // Wait if paused, then check cancellation before each file copy
+                WaitIfPausedAndThrowIfCancelled();
+
                 string sourceFilePath = Path.Combine(sourceDir, relativePath);
                 string targetFilePath = Path.Combine(targetDir, relativePath);
 
@@ -170,6 +241,10 @@ namespace EasySave.Core.Services.Strategies
 
                 return (true, null);
             }
+            catch (OperationCanceledException)
+            {
+                return (false, $"Backup cancelled: a watched business process was detected.");
+            }
             catch (Exception ex)
             {
                 return (false, $"Error copying file '{relativePath}': {ex.Message}");
@@ -199,17 +274,12 @@ namespace EasySave.Core.Services.Strategies
                 }
                 else
                 {
-                    // If the folder does not exist, create it
                     Directory.CreateDirectory(backupFolder);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // On error, ensure the folder exists
-                if (!Directory.Exists(backupFolder))
-                {
-                    Directory.CreateDirectory(backupFolder);
-                }
+                throw new IOException($"Error clearing the backup folder: {ex.Message}", ex);
             }
         }
     }

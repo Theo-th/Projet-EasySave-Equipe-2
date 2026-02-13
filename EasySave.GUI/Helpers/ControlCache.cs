@@ -35,6 +35,17 @@ public class ControlCache
     public Button? AddExtensionButton { get; set; }
     public Button? RemoveExtensionButton { get; set; }
 
+    // Process Detector controls
+    public ListBox? WatchedProcessesListBox { get; set; }
+    public TextBox? AddProcessTextBox { get; set; }
+    public Button? AddProcessButton { get; set; }
+    public Button? RemoveProcessButton { get; set; }
+
+    // Backup control buttons (Pause / Resume / Stop)
+    public Button? PauseButton { get; set; }
+    public Button? ResumeButton { get; set; }
+    public Button? StopButton { get; set; }
+
     public void InitializeFrom(Window window)
     {
         JobListBox = window.FindControl<ListBox>("JobListBox");
@@ -66,5 +77,16 @@ public class ControlCache
         AddExtensionTextBox = window.FindControl<TextBox>("AddExtensionTextBox");
         AddExtensionButton = window.FindControl<Button>("AddExtensionButton");
         RemoveExtensionButton = window.FindControl<Button>("RemoveExtensionButton");
+
+        // Process Detector controls
+        WatchedProcessesListBox = window.FindControl<ListBox>("WatchedProcessesListBox");
+        AddProcessTextBox = window.FindControl<TextBox>("AddProcessTextBox");
+        AddProcessButton = window.FindControl<Button>("AddProcessButton");
+        RemoveProcessButton = window.FindControl<Button>("RemoveProcessButton");
+
+        // Backup control buttons
+        PauseButton = window.FindControl<Button>("PauseButton");
+        ResumeButton = window.FindControl<Button>("ResumeButton");
+        StopButton = window.FindControl<Button>("StopButton");
     }
 }

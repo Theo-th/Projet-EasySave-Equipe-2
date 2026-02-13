@@ -55,6 +55,8 @@ public partial class MainWindow : Window
         
         // Subscribe to events
         _viewModel.OnProgressChanged += _jobHandler.OnBackupProgressChanged;
+        _viewModel.OnProgressChanged += OnBackupStateChanged;
+        _viewModel.OnBusinessProcessDetected += OnBusinessProcessDetected;
         
         // Initialize interface
         SetupEventHandlers();
@@ -65,6 +67,9 @@ public partial class MainWindow : Window
         // Initialisation des contrôles de chiffrement
         UpdateEncryptionKeyUI();
         UpdateEncryptionExtensionsUI();
+
+        // Initialisation des processus surveillés
+        UpdateWatchedProcessesUI();
     }
 
     private void SetupEventHandlers()
@@ -108,6 +113,65 @@ public partial class MainWindow : Window
             _controls.AddExtensionButton.Click += AddExtensionButton_Click;
         if (_controls.RemoveExtensionButton != null)
             _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
+
+        // Gestion processus métier
+        if (_controls.AddProcessButton != null)
+            _controls.AddProcessButton.Click += AddProcessButton_Click;
+        if (_controls.RemoveProcessButton != null)
+            _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
+
+        // Backup control buttons: Pause / Resume / Stop
+        if (_controls.PauseButton != null)
+            _controls.PauseButton.Click += PauseButton_Click;
+        if (_controls.ResumeButton != null)
+            _controls.ResumeButton.Click += ResumeButton_Click;
+        if (_controls.StopButton != null)
+            _controls.StopButton.Click += StopButton_Click;
+    }
+
+    // Handler pour mettre en pause la sauvegarde en cours
+    private void PauseButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.PauseBackup();
+        _uiService.UpdateStatus("Sauvegarde en pause...", true);
+    }
+
+    // Handler pour reprendre la sauvegarde en pause
+    private void ResumeButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.ResumeBackup();
+        _uiService.UpdateStatus("Sauvegarde reprise...", true);
+    }
+
+    // Handler pour arrêter la sauvegarde en cours
+    private void StopButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.StopBackup();
+        _uiService.UpdateStatus("Sauvegarde arrêtée.", false);
+    }
+
+    // Met à jour l'affichage des boutons Pause/Reprendre selon l'état de la backup
+    private void OnBackupStateChanged(BackupJobState state)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (state.State == BackupState.Paused)
+            {
+                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = false;
+                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = true;
+            }
+            else if (state.State == BackupState.Active)
+            {
+                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = true;
+                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = false;
+            }
+            else if (state.State == BackupState.Completed || state.State == BackupState.Error)
+            {
+                // Réinitialiser les boutons
+                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = true;
+                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = false;
+            }
+        });
     }
 
     // Met à jour la clé de cryptage affichée
@@ -123,6 +187,48 @@ public partial class MainWindow : Window
         if (_controls.EncryptionExtensionsListBox != null)
         {
             _controls.EncryptionExtensionsListBox.ItemsSource = new ObservableCollection<string>(_viewModel.GetEncryptionExtensions());
+        }
+    }
+
+    // Met à jour la liste des processus surveillés
+    private void UpdateWatchedProcessesUI()
+    {
+        if (_controls.WatchedProcessesListBox != null)
+        {
+            _controls.WatchedProcessesListBox.ItemsSource = new ObservableCollection<string>(_viewModel.GetWatchedProcesses());
+        }
+    }
+
+    // Handler appelé quand un processus métier est détecté pendant une sauvegarde
+    private void OnBusinessProcessDetected(string processName)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _uiService.UpdateStatus($"Sauvegarde interrompue : processus métier '{processName}' détecté !", false);
+        });
+    }
+
+    // Handler pour ajouter un processus à surveiller
+    private void AddProcessButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_controls.AddProcessTextBox == null || string.IsNullOrWhiteSpace(_controls.AddProcessTextBox.Text))
+            return;
+        var processName = _controls.AddProcessTextBox.Text.Trim();
+        _viewModel.AddWatchedProcess(processName);
+        UpdateWatchedProcessesUI();
+        _controls.AddProcessTextBox.Text = string.Empty;
+    }
+
+    // Handler pour supprimer un processus sélectionné
+    private void RemoveProcessButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_controls.WatchedProcessesListBox == null || _controls.WatchedProcessesListBox.SelectedItem == null)
+            return;
+        var processName = _controls.WatchedProcessesListBox.SelectedItem as string;
+        if (!string.IsNullOrEmpty(processName))
+        {
+            _viewModel.RemoveWatchedProcess(processName);
+            UpdateWatchedProcessesUI();
         }
     }
 
