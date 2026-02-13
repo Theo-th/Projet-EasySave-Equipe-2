@@ -12,6 +12,7 @@ namespace EasySave.Core.ViewModels
         private readonly IJobConfigService _configService;
         private readonly IBackupService _backupService;
         private readonly IBackupStateRepository _backupState;
+        private readonly ProcessDetector _processDetector;
         private LogType _currentLogType;
 
         /// <summary>
@@ -19,6 +20,11 @@ namespace EasySave.Core.ViewModels
         /// The view can subscribe to it to display a loading bar.
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
+
+        /// <summary>
+        /// Event triggered when a backup is interrupted because a watched process was detected.
+        /// </summary>
+        public event Action<string>? OnBackupInterrupted;
 
         public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
         {
@@ -29,10 +35,16 @@ namespace EasySave.Core.ViewModels
                 _backupState.SetStatePath(statePath);
             }
             _currentLogType = logType;
-            _backupService = new BackupService(_configService, _backupState, logType, logsPath);
 
-            // Relay the event from the service to the view
+            // Shared ProcessDetector instance between ViewModel and BackupService
+            _processDetector = new ProcessDetector();
+            _processDetector.StartContinuousMonitoring();
+
+            _backupService = new BackupService(_configService, _backupState, _processDetector, logType, logsPath);
+
+            // Relay the events from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
+            _backupService.OnBackupInterrupted += (processName) => OnBackupInterrupted?.Invoke(processName);
         }
 
         /// <summary>
@@ -125,6 +137,30 @@ namespace EasySave.Core.ViewModels
         public void UpdateStatePath(string statePath)
         {
             _backupState.SetStatePath(statePath);
+        }
+
+        /// <summary>
+        /// Adds a process name to the watch list.
+        /// </summary>
+        public void AddWatchedProcess(string processName)
+        {
+            _processDetector.AddWatchedProcess(processName);
+        }
+
+        /// <summary>
+        /// Removes a process name from the watch list.
+        /// </summary>
+        public void RemoveWatchedProcess(string processName)
+        {
+            _processDetector.RemoveWatchedProcess(processName);
+        }
+
+        /// <summary>
+        /// Gets the list of currently watched process names.
+        /// </summary>
+        public List<string> GetWatchedProcesses()
+        {
+            return _processDetector.GetWatchedProcesses();
         }
     }
 }

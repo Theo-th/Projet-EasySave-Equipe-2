@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using EasyLog;
-using EasySave.Core.Models;
 using EasySave.Core.Interfaces;
+using EasySave.Core.Models;
 using EasySave.Core.Services.Strategies;
-
 
 namespace EasySave.Core.Services
 {
@@ -13,18 +13,27 @@ namespace EasySave.Core.Services
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupStateRepository _stateRepository;
+        private readonly ProcessDetector _processDetector;
         private BaseLog _logger;
         private string _logDirectory;
+        private string? _detectedProcessName;
+        private BackupStrategy? _currentStrategy;
 
         /// <summary>
         /// Event triggered on each backup job progress change.
         /// </summary>
         public event Action<BackupJobState>? OnProgressChanged;
 
-        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, LogType logType, string? logDirectory = null)
+        /// <summary>
+        /// Event triggered when a backup is interrupted because a watched process was detected.
+        /// </summary>
+        public event Action<string>? OnBackupInterrupted;
+
+        public BackupService(IJobConfigService configService, IBackupStateRepository stateRepository, ProcessDetector processDetector, LogType logType, string? logDirectory = null)
         {
             _configService = configService;
             _stateRepository = stateRepository;
+            _processDetector = processDetector;
 
             _logDirectory = logDirectory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
 
@@ -34,6 +43,19 @@ namespace EasySave.Core.Services
                 LogType.XML => new XmlLog(_logDirectory),
                 _ => new JsonLog(_logDirectory)
             };
+
+            // Subscribe to process detection events to stop ongoing backups
+            _processDetector.ProcessStatusChanged += OnWatchedProcessDetected;
+        }
+
+        private void OnWatchedProcessDetected(object? sender, ProcessStatusChangedEventArgs e)
+        {
+            if (e.IsRunning && _currentStrategy != null)
+            {
+                _detectedProcessName = e.Process.ProcessName;
+                _currentStrategy.Stop();
+                OnBackupInterrupted?.Invoke(e.Process.ProcessName);
+            }
         }
 
         /// <summary>
@@ -46,6 +68,15 @@ namespace EasySave.Core.Services
             {
                 return "No backup job specified.";
             }
+
+            // Pre-check: verify no watched process is running before starting
+            var runningProcess = _processDetector.IsAnyWatchedProcessRunning();
+            if (runningProcess != null)
+            {
+                return $"Backup aborted: watched process '{runningProcess}' is currently running.";
+            }
+
+            _detectedProcessName = null;
 
             var allJobs = _configService.GetAllJobs();
             var results = new List<string>();
@@ -81,10 +112,10 @@ namespace EasySave.Core.Services
                 try
                 {
                     // Create the appropriate strategy based on the backup type
-                    BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
+                    _currentStrategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
 
                     // Subscribe to the initialization event (total file count + size)
-                    strategy.OnBackupInitialized += (totalFiles, totalSize) =>
+                    _currentStrategy.OnBackupInitialized += (totalFiles, totalSize) =>
                     {
                         jobState.TotalFiles = totalFiles;
                         jobState.TotalSize = totalSize;
@@ -96,7 +127,7 @@ namespace EasySave.Core.Services
                     };
 
                     // Subscribe to the file transfer event (file-by-file progress)
-                    strategy.OnFileTransferred += (sourceFile, targetFile, fileSize) =>
+                    _currentStrategy.OnFileTransferred += (sourceFile, targetFile, fileSize) =>
                     {
                         jobState.RemainingFiles--;
                         jobState.RemainingSize -= fileSize;
@@ -108,7 +139,7 @@ namespace EasySave.Core.Services
                     };
 
                     // Execute the backup
-                    var (success, errorMessage) = strategy.Execute();
+                    var (success, errorMessage) = _currentStrategy.Execute();
 
                     // Update the final state
                     jobState.State = success ? BackupState.Completed : BackupState.Error;
@@ -126,7 +157,15 @@ namespace EasySave.Core.Services
                     }
                     else
                     {
-                        results.Add($"Error during backup '{job.Name}': {errorMessage}");
+                        if (!string.IsNullOrEmpty(_detectedProcessName))
+                        {
+                            results.Add($"Backup '{job.Name}' interrupted: watched process '{_detectedProcessName}' was detected.");
+                            break;
+                        }
+                        else
+                        {
+                            results.Add($"Error during backup '{job.Name}': {errorMessage}");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -136,6 +175,10 @@ namespace EasySave.Core.Services
                     _stateRepository.UpdateState(states);
                     OnProgressChanged?.Invoke(jobState);
                     results.Add($"Exception during backup '{job.Name}': {ex.Message}");
+                }
+                finally
+                {
+                    _currentStrategy = null;
                 }
             }
 

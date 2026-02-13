@@ -80,6 +80,20 @@ namespace EasySave.Core.Services
         public List<string> GetWatchedProcesses() => new(_watchedProcessNames);
 
         /// <summary>
+        /// Checks if any watched process is currently running.
+        /// Returns the name of the first detected running process, or null if none.
+        /// </summary>
+        public string? IsAnyWatchedProcessRunning()
+        {
+            foreach (var processName in _watchedProcessNames)
+            {
+                if (IsProcessRunning(processName))
+                    return processName;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Checks the current status of all watched processes
         /// </summary>
         public void CheckProcessesNow()
