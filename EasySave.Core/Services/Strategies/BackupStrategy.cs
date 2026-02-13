@@ -92,6 +92,7 @@ namespace EasySave.Core.Services.Strategies
                 File.WriteAllText(markerFilePath, markerContent);
                 stopwatch.Stop();
 
+
                 var record = new Record
                 {
                     Name = JobName,
@@ -169,6 +170,8 @@ namespace EasySave.Core.Services.Strategies
                 File.Copy(sourceFilePath, targetFilePath, overwrite: true);
                 stopwatch.Stop();
 
+                long encryptionTime = EncryptionService.Instance.EncryptFile(targetFilePath);
+
                 var record = new Record
                 {
                     Name = JobName,
@@ -176,7 +179,8 @@ namespace EasySave.Core.Services.Strategies
                     Target = targetFilePath,
                     Size = fileSize,
                     Time = stopwatch.Elapsed.TotalMilliseconds,
-                    Timestamp = DateTime.Now
+                    Timestamp = DateTime.Now,
+                    EncryptionTime = encryptionTime,
                 };
 
                 Logger.WriteLog(record);

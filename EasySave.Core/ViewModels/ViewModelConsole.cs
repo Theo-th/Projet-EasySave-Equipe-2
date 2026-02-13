@@ -126,5 +126,49 @@ namespace EasySave.Core.ViewModels
         {
             _backupState.SetStatePath(statePath);
         }
+
+        /// <summary>
+        /// Retrieves the current encryption key.
+        /// </summary>
+        public string GetEncryptionKey()
+        {
+            return EncryptionService.Instance.GetKey();
+        }
+
+        /// <summary>
+        /// Updates the encryption key.
+        /// </summary>
+        /// <param name="key">The new key to set.</param>
+        public void SetEncryptionKey(string key)
+        {
+            EncryptionService.Instance.SetKey(key);
+        }
+
+        /// <summary>
+        /// Retrieves the list of file extensions configured for encryption.
+        /// </summary>
+        /// <returns>A list of extensions (e.g., ".txt", ".json").</returns>
+        public List<string> GetEncryptionExtensions()
+        {
+            return EncryptionService.Instance.GetExtensions();
+        }
+
+        /// <summary>
+        /// Adds a file extension to the encryption list.
+        /// </summary>
+        /// <param name="extension">The extension to add (e.g., ".txt").</param>
+        public void AddEncryptionExtension(string extension)
+        {
+            EncryptionService.Instance.AddExtension(extension);
+        }
+
+        /// <summary>
+        /// Removes a file extension from the encryption list.
+        /// </summary>
+        /// <param name="extension">The extension to remove.</param>
+        public void RemoveEncryptionExtension(string extension)
+        {
+            EncryptionService.Instance.RemoveExtension(extension);
+        }
     }
 }
