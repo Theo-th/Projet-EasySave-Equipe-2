@@ -298,13 +298,26 @@ public class JobEventHandler
                 long processedSize = state.TotalSize - state.RemainingSize;
                 progress = (double)processedSize / state.TotalSize * 100.0;
             }
-            
+
             if (_controls.ProgressBar != null)
                 _controls.ProgressBar.Value = Math.Min(100, Math.Max(0, progress));
-                
+
+            // Calcul du temps restant estimé
+            string timeLeftText = "";
+            int filesDone = state.TotalFiles - state.RemainingFiles;
+            if (filesDone > 0 && state.RemainingFiles > 0)
+            {
+                var elapsed = (DateTime.Now - state.LastActionTimestamp).TotalSeconds;
+                double avgPerFile = elapsed / filesDone;
+                int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
+                int min = secondsLeft / 60;
+                int sec = secondsLeft % 60;
+                timeLeftText = $" | Temps restant : {min:D2}:{sec:D2}";
+            }
+
             if (_controls.ProgressText != null)
-                _controls.ProgressText.Text = $"{(int)progress}%";
-                
+                _controls.ProgressText.Text = $"{(int)progress}%{timeLeftText}";
+
             if (_controls.CurrentFileText != null && !string.IsNullOrEmpty(state.CurrentSourceFile))
             {
                 string fileName = Path.GetFileName(state.CurrentSourceFile);
