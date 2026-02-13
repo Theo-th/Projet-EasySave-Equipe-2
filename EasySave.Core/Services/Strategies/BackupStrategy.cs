@@ -78,6 +78,7 @@ namespace EasySave.Core.Services.Strategies
                 File.WriteAllText(markerFilePath, markerContent);
                 stopwatch.Stop();
 
+
                 var record = new Record
                 {
                     Name = JobName,
@@ -123,53 +124,55 @@ namespace EasySave.Core.Services.Strategies
             OnFileTransferred?.Invoke(sourceFile, targetFile, fileSize);
         }
 
-        // Copies a list of files (relative paths) from a source directory to a target directory.
-        // Each transfer is logged via Logger.WriteLog() and triggers a progress event.
-        protected (bool Success, string? ErrorMessage) CopyFilesFromList(
-            List<string> relativeFilePaths, string sourceDir, string targetDir)
+        /// <summary>
+        /// Copies a single file (relative path) from a source directory to a target directory.
+        /// The transfer is logged via Logger.WriteLog() and triggers a progress event.
+        /// </summary>
+        protected (bool Success, string? ErrorMessage) CopyFile(
+            string relativePath, string sourceDir, string targetDir)
         {
             try
             {
-                foreach (string relativePath in relativeFilePaths)
+                string sourceFilePath = Path.Combine(sourceDir, relativePath);
+                string targetFilePath = Path.Combine(targetDir, relativePath);
+
+                // Create necessary subdirectories
+                string? targetFileDir = Path.GetDirectoryName(targetFilePath);
+                if (targetFileDir != null && !Directory.Exists(targetFileDir))
                 {
-                    string sourceFilePath = Path.Combine(sourceDir, relativePath);
-                    string targetFilePath = Path.Combine(targetDir, relativePath);
-
-                    // Create necessary subdirectories
-                    string? targetFileDir = Path.GetDirectoryName(targetFilePath);
-                    if (targetFileDir != null && !Directory.Exists(targetFileDir))
-                    {
-                        Directory.CreateDirectory(targetFileDir);
-                    }
-
-                    var fileInfo = new FileInfo(sourceFilePath);
-                    long fileSize = fileInfo.Length;
-
-                    var stopwatch = Stopwatch.StartNew();
-                    File.Copy(sourceFilePath, targetFilePath, overwrite: true);
-                    stopwatch.Stop();
-
-                    var record = new Record
-                    {
-                        Name = JobName,
-                        Source = sourceFilePath,
-                        Target = targetFilePath,
-                        Size = fileSize,
-                        Time = stopwatch.Elapsed.TotalMilliseconds,
-                        Timestamp = DateTime.Now
-                    };
-
-                    Logger.WriteLog(record);
-
-                    // Notify progress after each file copied
-                    RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
+                    Directory.CreateDirectory(targetFileDir);
                 }
+
+                var fileInfo = new FileInfo(sourceFilePath);
+                long fileSize = fileInfo.Length;
+
+                var stopwatch = Stopwatch.StartNew();
+                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+                stopwatch.Stop();
+
+                long encryptionTime = EncryptionService.Instance.EncryptFile(targetFilePath);
+
+                var record = new Record
+                {
+                    Name = JobName,
+                    Source = sourceFilePath,
+                    Target = targetFilePath,
+                    Size = fileSize,
+                    Time = stopwatch.Elapsed.TotalMilliseconds,
+                    Timestamp = DateTime.Now,
+                    EncryptionTime = encryptionTime,
+                };
+
+                Logger.WriteLog(record);
+
+                // Notify progress after file copied
+                RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
 
                 return (true, null);
             }
             catch (Exception ex)
             {
-                return (false, $"Error copying files: {ex.Message}");
+                return (false, $"Error copying file '{relativePath}': {ex.Message}");
             }
         }
 
