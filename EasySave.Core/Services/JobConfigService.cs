@@ -70,10 +70,10 @@ namespace EasySave.Core.Services
             {
                 var jobs = GetAllJobs();
 
-                if (jobs.Count >= MaxJobs)
-                {
-                    return (false, string.Format(Lang.MaxJobsReached, MaxJobs));
-                }
+                // if (jobs.Count >= MaxJobs)
+                // {
+                //     return (false, string.Format(Lang.MaxJobsReached, MaxJobs));
+                // }
 
                 if (string.IsNullOrWhiteSpace(name))
                 {
