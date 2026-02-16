@@ -122,7 +122,7 @@ public class JobEventHandler
             return;
         }
         
-        _uiService.UpdateStatus($"Exécution de {selectedIndices.Count} sauvegarde(s)...", true);
+            _uiService.UpdateStatus(string.Format(EasySave.Core.Properties.Lang.StatusExecutingBackups, selectedIndices.Count), true);
         _uiService.ShowProgress(true);
         
         await Task.Run(() =>
@@ -141,7 +141,10 @@ public class JobEventHandler
         });
         
         _uiService.ShowProgress(false);
-        _uiService.UpdateStatus($"{selectedIndices.Count} sauvegarde(s) terminée(s) !", true);
+        if (selectedIndices.Count == 1)
+            _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupCompleted, true);
+        else
+            _uiService.UpdateStatus(string.Format(EasySave.Core.Properties.Lang.StatusBackupsCompleted, selectedIndices.Count), true);
     }
 
     /// <summary>

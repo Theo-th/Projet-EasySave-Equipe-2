@@ -25,6 +25,51 @@ namespace EasySave.Core.Properties {
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Lang {
 
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde terminée !.
+        /// </summary>
+        public static string StatusBackupCompleted {
+            get {
+                return ResourceManager.GetString("StatusBackupCompleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à {0} sauvegarde(s) terminée(s) !.
+        /// </summary>
+        public static string StatusBackupsCompleted {
+            get {
+                return ResourceManager.GetString("StatusBackupsCompleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde en pause....
+        /// </summary>
+        public static string StatusBackupPaused {
+            get {
+                return ResourceManager.GetString("StatusBackupPaused", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde reprise....
+        /// </summary>
+        public static string StatusBackupResumed {
+            get {
+                return ResourceManager.GetString("StatusBackupResumed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Sauvegarde arrêtée..
+        /// </summary>
+        public static string StatusBackupStopped {
+            get {
+                return ResourceManager.GetString("StatusBackupStopped", resourceCulture);
+            }
+        }
+
                 /// <summary>
                 ///   Recherche une chaîne localisée semblable à Temps restant : {0}.
                 /// </summary>
@@ -454,6 +499,19 @@ namespace EasySave.Core.Properties {
         public static string TypeSave {
             get {
                 return ResourceManager.GetString("TypeSave", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Exécution de {0} sauvegarde(s)...
+        /// </summary>
+
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à Exécution de {0} sauvegarde(s)...
+        /// </summary>
+        public static string StatusExecutingBackups {
+            get {
+                return ResourceManager.GetString("StatusExecutingBackups", resourceCulture);
             }
         }
     }

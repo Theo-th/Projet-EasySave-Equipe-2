@@ -323,4 +323,22 @@
   <data name="Paused" xml:space="preserve">
     <value>Backup paused...</value>
   </data>
+  <data name="StatusBackupCompleted" xml:space="preserve">
+    <value>Backup completed!</value>
+  </data>
+  <data name="StatusBackupsCompleted" xml:space="preserve">
+    <value>{0} backup(s) completed!</value>
+  </data>
+  <data name="StatusBackupPaused" xml:space="preserve">
+    <value>Backup paused...</value>
+  </data>
+  <data name="StatusBackupResumed" xml:space="preserve">
+    <value>Backup resumed...</value>
+  </data>
+  <data name="StatusBackupStopped" xml:space="preserve">
+    <value>Backup stopped.</value>
+  </data>
+  <data name="StatusExecutingBackups" xml:space="preserve">
+    <value>Executing {0} backup(s)...</value>
+  </data>
 </root>
