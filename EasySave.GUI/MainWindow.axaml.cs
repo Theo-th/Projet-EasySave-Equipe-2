@@ -16,8 +16,10 @@ using Avalonia;
 
 namespace EasySave.GUI;
 
-// Main window of the EasySave application
-// Refactored architecture with separation of concerns
+/// <summary>
+/// Main window of the EasySave application.
+/// Refactored architecture with separation of concerns.
+/// </summary>
 public partial class MainWindow : Window
 {
     private readonly ViewModelConsole _viewModel;
@@ -28,6 +30,9 @@ public partial class MainWindow : Window
     private readonly JobEventHandler _jobHandler;
     private readonly FileSystemHandler _fileSystemHandler;
 
+    /// <summary>
+    /// Initializes the main window, services, controls, and event handlers.
+    /// </summary>
     public MainWindow()
     {
         InitializeComponent();
@@ -72,6 +77,9 @@ public partial class MainWindow : Window
         UpdateWatchedProcessesUI();
     }
 
+    /// <summary>
+    /// Sets up event handlers for UI controls and backup actions.
+    /// </summary>
     private void SetupEventHandlers()
     {
         var executeButton = this.FindControl<Button>("ExecuteButton");
@@ -129,28 +137,43 @@ public partial class MainWindow : Window
             _controls.StopButton.Click += StopButton_Click;
     }
 
-    // Handler pour mettre en pause la sauvegarde en cours
+    /// <summary>
+    /// Handler for pausing the current backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void PauseButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.PauseBackup();
         _uiService.UpdateStatus("Sauvegarde en pause...", true);
     }
 
-    // Handler pour reprendre la sauvegarde en pause
+    /// <summary>
+    /// Handler for resuming a paused backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void ResumeButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.ResumeBackup();
         _uiService.UpdateStatus("Sauvegarde reprise...", true);
     }
 
-    // Handler pour arrêter la sauvegarde en cours
+    /// <summary>
+    /// Handler for stopping the current backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void StopButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.StopBackup();
         _uiService.UpdateStatus("Sauvegarde arrêtée.", false);
     }
 
-    // Met à jour l'affichage des boutons Pause/Reprendre selon l'état de la backup
+    /// <summary>
+    /// Updates Pause/Resume button visibility according to backup state.
+    /// </summary>
+    /// <param name="state">Current backup job state.</param>
     private void OnBackupStateChanged(BackupJobState state)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -174,14 +197,18 @@ public partial class MainWindow : Window
         });
     }
 
-    // Met à jour la clé de cryptage affichée
+    /// <summary>
+    /// Updates the displayed encryption key in the UI.
+    /// </summary>
     private void UpdateEncryptionKeyUI()
     {
         if (_controls.EncryptionKeyTextBox != null)
             _controls.EncryptionKeyTextBox.Text = _viewModel.GetEncryptionKey();
     }
 
-    // Met à jour la liste des extensions à chiffrer
+    /// <summary>
+    /// Updates the list of encryption extensions in the UI.
+    /// </summary>
     private void UpdateEncryptionExtensionsUI()
     {
         if (_controls.EncryptionExtensionsListBox != null)
@@ -190,7 +217,9 @@ public partial class MainWindow : Window
         }
     }
 
-    // Met à jour la liste des processus surveillés
+    /// <summary>
+    /// Updates the list of watched business processes in the UI.
+    /// </summary>
     private void UpdateWatchedProcessesUI()
     {
         if (_controls.WatchedProcessesListBox != null)
@@ -199,7 +228,10 @@ public partial class MainWindow : Window
         }
     }
 
-    // Handler appelé quand un processus métier est détecté pendant une sauvegarde
+    /// <summary>
+    /// Handler called when a business process is detected during backup.
+    /// </summary>
+    /// <param name="processName">Name of the detected process.</param>
     private void OnBusinessProcessDetected(string processName)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -208,7 +240,11 @@ public partial class MainWindow : Window
         });
     }
 
-    // Handler pour ajouter un processus à surveiller
+    /// <summary>
+    /// Handler for adding a business process to watch.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void AddProcessButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.AddProcessTextBox == null || string.IsNullOrWhiteSpace(_controls.AddProcessTextBox.Text))
@@ -219,7 +255,11 @@ public partial class MainWindow : Window
         _controls.AddProcessTextBox.Text = string.Empty;
     }
 
-    // Handler pour supprimer un processus sélectionné
+    /// <summary>
+    /// Handler for removing a selected watched business process.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void RemoveProcessButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.WatchedProcessesListBox == null || _controls.WatchedProcessesListBox.SelectedItem == null)
@@ -232,7 +272,11 @@ public partial class MainWindow : Window
         }
     }
 
-    // Handler pour modifier la clé de cryptage
+    /// <summary>
+    /// Handler for editing the encryption key.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private async void EditEncryptionKeyButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.EncryptionKeyTextBox == null)
@@ -266,7 +310,11 @@ public partial class MainWindow : Window
         await dialog.ShowDialog(this);
     }
 
-    // Handler pour ajouter une extension
+    /// <summary>
+    /// Handler for adding an encryption extension.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void AddExtensionButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.AddExtensionTextBox == null || string.IsNullOrWhiteSpace(_controls.AddExtensionTextBox.Text))
@@ -277,7 +325,11 @@ public partial class MainWindow : Window
         _controls.AddExtensionTextBox.Text = string.Empty;
     }
 
-    // Handler pour supprimer une extension sélectionnée
+    /// <summary>
+    /// Handler for removing a selected encryption extension.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
     private void RemoveExtensionButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.EncryptionExtensionsListBox == null || _controls.EncryptionExtensionsListBox.SelectedItem == null)
@@ -290,6 +342,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Handler for changing the application language via ComboBox.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Selection changed event arguments.</param>
     private void LanguageComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)

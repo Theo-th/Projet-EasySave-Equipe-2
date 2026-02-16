@@ -8,7 +8,10 @@ namespace EasySave.Core.Services
 {
     
     // Service for executing and managing backup operations.
-    public class BackupService : IBackupService
+        /// <summary>
+        /// Manages backup operations and job execution.
+        /// </summary>
+        public class BackupService : IBackupService
     {
         private readonly IJobConfigService _configService;
         private readonly IBackupStateRepository _stateRepository;

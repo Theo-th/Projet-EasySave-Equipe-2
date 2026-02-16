@@ -29,6 +29,9 @@ namespace EasySave.Core.Services
         public override int GetHashCode() => HashCode.Combine(ProcessId, ProcessName);
     }
 
+    /// <summary>
+    /// Detects and monitors business processes during backup operations.
+    /// </summary>
     public class ProcessDetector : IDisposable
     {
         private readonly string _jsonFilePath;

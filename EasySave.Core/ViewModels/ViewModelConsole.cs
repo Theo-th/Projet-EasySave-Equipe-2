@@ -4,7 +4,9 @@ using EasySave.Core.Models;
 
 namespace EasySave.Core.ViewModels
 {
-    // Manages console interactions and coordinates communication between backup jobs and the console view.
+    /// <summary>
+    /// Manages console interactions and coordinates communication between backup jobs and the console view.
+    /// </summary>
     public class ViewModelConsole
     {
         private readonly IJobConfigService _configService;
@@ -20,6 +22,13 @@ namespace EasySave.Core.ViewModels
         // Event triggered when a watched business process is detected during backup.
         public event Action<string>? OnBusinessProcessDetected;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ViewModelConsole"/> class.
+        /// </summary>
+        /// <param name="logType">The log format type.</param>
+        /// <param name="configPath">The path to the config file.</param>
+        /// <param name="statePath">The path to the state file.</param>
+        /// <param name="logsPath">The path to the logs directory.</param>
         public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
         {
             _configService = new JobConfigService(configPath ?? "jobs_config.json");
@@ -41,8 +50,14 @@ namespace EasySave.Core.ViewModels
             _backupService.OnBusinessProcessDetected += (processName) => OnBusinessProcessDetected?.Invoke(processName);
         }
 
-        // Creates a new backup job.
-        // Returns: Tuple indicating success and an optional error message
+        /// <summary>
+        /// Creates a new backup job.
+        /// </summary>
+        /// <param name="name">The job name.</param>
+        /// <param name="source">The source directory.</param>
+        /// <param name="destination">The destination directory.</param>
+        /// <param name="type">The backup type.</param>
+        /// <returns>Tuple indicating success and an optional error message.</returns>
         public (bool Success, string? ErrorMessage) CreateJob(string? name, string? source, string? destination, BackupType type)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -57,7 +72,11 @@ namespace EasySave.Core.ViewModels
             return _configService.CreateJob(name.Trim(), source.Trim(), destination.Trim(), type);
         }
 
-        // Executes multiple backup jobs.
+        /// <summary>
+        /// Executes multiple backup jobs.
+        /// </summary>
+        /// <param name="jobIndices">The indices of jobs to execute.</param>
+        /// <returns>Execution result message.</returns>
         public string? ExecuteJobs(List<int> jobIndices)
         {
             string? message = _backupService.ExecuteBackup(jobIndices);
@@ -89,31 +108,50 @@ namespace EasySave.Core.ViewModels
             _backupService.StopBackup();
         }
 
-        // Deletes a backup job by its index.
+        /// <summary>
+        /// Deletes a backup job by its index.
+        /// </summary>
+        /// <param name="jobIndex">The index of the job to delete.</param>
+        /// <returns>True if deleted, false otherwise.</returns>
         public bool DeleteJob(int jobIndex)
         {
             return _configService.RemoveJob(jobIndex);
         }
 
-        // Gets all configured backup job names.
+        /// <summary>
+        /// Gets all configured backup job names.
+        /// </summary>
+        /// <returns>List of job names.</returns>
         public List<string> GetAllJobs()
         {
             var jobs = _configService.GetAllJobs();
             return jobs.ConvertAll(job => job.Name);
         }
 
-        // Gets job name and type by index.
+        /// <summary>
+        /// Gets job name and type by index.
+        /// </summary>
+        /// <param name="jobIndex">The index of the job.</param>
+        /// <returns>Job info string or null.</returns>
         public string? GetJob(int jobIndex)
         {
             var job = _configService.GetJob(jobIndex);
             return job != null ? $"{job.Name} -- {job.Type} -- {job.SourceDirectory} -- {job.TargetDirectory}" : null;
         }
 
+        /// <summary>
+        /// Gets the current log format as a string.
+        /// </summary>
+        /// <returns>The log format.</returns>
         public string CurrentLogFormat() 
         {
             return _currentLogType.ToString();
         }
 
+        /// <summary>
+        /// Changes the log format.
+        /// </summary>
+        /// <param name="format">The new log format.</param>
         public void ChangeLogFormat(string format)
         {
             if (Enum.TryParse<LogType>(format, ignoreCase: true, out var logType))
@@ -123,19 +161,28 @@ namespace EasySave.Core.ViewModels
             }
         }
 
-        // Updates the logs directory path without recreating the entire ViewModel.
+        /// <summary>
+        /// Updates the logs directory path without recreating the entire ViewModel.
+        /// </summary>
+        /// <param name="logsPath">The new logs directory path.</param>
         public void UpdateLogsPath(string logsPath)
         {
             _backupService.UpdateLogsDirectory(logsPath);
         }
 
-        // Updates the config file path without recreating the entire ViewModel.
+        /// <summary>
+        /// Updates the config file path without recreating the entire ViewModel.
+        /// </summary>
+        /// <param name="configPath">The new config file path.</param>
         public void UpdateConfigPath(string configPath)
         {
             _configService.UpdateConfigPath(configPath);
         }
 
-        // Updates the state file path without recreating the entire ViewModel.
+        /// <summary>
+        /// Updates the state file path without recreating the entire ViewModel.
+        /// </summary>
+        /// <param name="statePath">The new state file path.</param>
         public void UpdateStatePath(string statePath)
         {
             _backupState.SetStatePath(statePath);

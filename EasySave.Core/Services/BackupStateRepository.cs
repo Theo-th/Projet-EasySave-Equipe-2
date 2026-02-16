@@ -9,12 +9,18 @@ using System.Text.Json.Serialization;
 namespace EasySave.Core.Services
 {
     
-    // Repository for managing the persistence of the real-time backup state (state.json)
+    /// <summary>
+    /// Repository for managing the persistence of the real-time backup state (state.json).
+    /// </summary>
     public class BackupStateRepository : IBackupStateRepository
     {
         private string _statePath = "./state.json";
         private readonly object _lockObject = new();
 
+        /// <summary>
+        /// Sets the path to the state file.
+        /// </summary>
+        /// <param name="path">The path to the state file.</param>
         public void SetStatePath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -23,6 +29,10 @@ namespace EasySave.Core.Services
             _statePath = path;
         }
 
+        /// <summary>
+        /// Updates the state file with the current list of backup jobs.
+        /// </summary>
+        /// <param name="jobs">The list of backup job states.</param>
         public void UpdateState(List<BackupJobState> jobs)
         {
             lock (_lockObject)

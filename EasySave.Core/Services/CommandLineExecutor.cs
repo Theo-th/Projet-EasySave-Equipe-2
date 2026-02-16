@@ -6,18 +6,25 @@ using System.Collections.Generic;
 namespace EasySave.Core.Services
 {
     
-    // Handles execution of backup jobs launched from the command line.
+    /// <summary>
+    /// Handles execution of backup jobs launched from the command line.
+    /// </summary>
     public class CommandLineExecutor
     {
         private readonly ViewModelConsole _viewModel;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandLineExecutor"/> class.
+        /// </summary>
         public CommandLineExecutor(ViewModelConsole viewModel)
         {
             _viewModel = viewModel;
         }
 
         
-        // Executes the specified jobs and displays the results.
+        /// <summary>
+        /// Executes the specified jobs and displays the results.
+        /// </summary>
         public void Execute(List<int> jobIndices)
         {
             Console.WriteLine("EasySave - Command line execution mode");

@@ -7,18 +7,26 @@ using System.Threading;
 
 namespace EasySave.GUI.Services;
 
-// Service for managing UI updates
+/// <summary>
+/// Service for managing UI updates in the EasySave GUI.
+/// </summary>
 public class UIUpdateService
 {
     private readonly ControlCache _controls;
     private readonly Window _window;
 
+    /// <summary>
+    /// Initializes a new instance of UIUpdateService.
+    /// </summary>
     public UIUpdateService(Window window, ControlCache controls)
     {
         _window = window;
         _controls = controls;
     }
 
+    /// <summary>
+    /// Updates the status message and footer color.
+    /// </summary>
     public void UpdateStatus(string message, bool isSuccess)
     {
         if (_controls.StatusText != null)
@@ -31,6 +39,9 @@ public class UIUpdateService
             _controls.FooterText.Text = message;
     }
     
+    /// <summary>
+    /// Updates the jobs count display.
+    /// </summary>
     public void UpdateJobsCount(int count)
     {
         var text = count == 0 ? "Aucune sauvegarde" : count == 1 ? "1 sauvegarde" : $"{count} sauvegardes";
@@ -39,6 +50,9 @@ public class UIUpdateService
             _controls.ItemsCountText.Text = text;
     }
     
+    /// <summary>
+    /// Shows or hides the progress area and resets progress if hidden.
+    /// </summary>
     public void ShowProgress(bool show)
     {
         if (_controls.ProgressArea != null)
@@ -55,6 +69,9 @@ public class UIUpdateService
         }
     }
 
+    /// <summary>
+    /// Updates all UI texts.
+    /// </summary>
     public void UpdateAllTexts()
     {
         UpdateTabHeaders();
@@ -63,6 +80,7 @@ public class UIUpdateService
         UpdateComboBoxes();
         UpdateHeaderAndFooter();
     }
+
 
     private void UpdateTabHeaders()
     {
@@ -79,6 +97,7 @@ public class UIUpdateService
             }
         }
     }
+
 
     private void UpdateLabels()
     {
@@ -102,6 +121,7 @@ public class UIUpdateService
         UpdateTextBlock("TypeLabel", "BackupType");
     }
 
+
     private void UpdateButtons()
     {
         UpdateButton("ExecuteButton", "BtnExecute");
@@ -114,6 +134,7 @@ public class UIUpdateService
         UpdateButton("BrowseConfigButton", "BtnModify");
         UpdateButton("BrowseStateButton", "BtnModify");
     }
+
 
     private void UpdateComboBoxes()
     {
@@ -140,6 +161,7 @@ public class UIUpdateService
         }
     }
 
+
     private void UpdateHeaderAndFooter()
     {
         if (_controls.HeaderDescription != null)
@@ -149,16 +171,21 @@ public class UIUpdateService
             _controls.FooterText.Text = LocalizationManager.GetString("StatusReady");
     }
 
+
     private void UpdateTextBlock(string name, string key)
     {
         _window.FindControl<TextBlock>(name)?.SetValue(TextBlock.TextProperty, LocalizationManager.GetString(key));
     }
         
+
     private void UpdateButton(string name, string key)
     {
         _window.FindControl<Button>(name)?.SetValue(Button.ContentProperty, LocalizationManager.GetString(key));
     }
 
+    /// <summary>
+    /// Updates the displayed paths for logs, config, and state files.
+    /// </summary>
     public void UpdatePaths(string logsPath, string configPath, string statePath)
     {
         if (_controls.LogsPathValueText != null)

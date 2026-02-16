@@ -6,7 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace EasySave.Core.Services
 {
-    // Service for managing backup job configurations.
+    /// <summary>
+    /// Service for managing backup job configurations.
+    /// </summary>
     public class JobConfigService : IJobConfigService
     {
         private string _configFilePath;

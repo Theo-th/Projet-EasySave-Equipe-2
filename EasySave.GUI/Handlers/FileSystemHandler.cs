@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 
 namespace EasySave.GUI.Handlers;
 
-// Handles file and folder interactions
+/// <summary>
+/// Handles file and folder interactions for path selection and configuration in the EasySave GUI.
+/// </summary>
 public class FileSystemHandler
 {
     private readonly Window _window;
@@ -27,6 +29,17 @@ public class FileSystemHandler
     public string ConfigPath => _currentConfigPath;
     public string StatePath => _currentStatePath;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileSystemHandler"/> class.
+    /// </summary>
+    /// <param name="window">The main application window.</param>
+    /// <param name="controls">The cached UI controls.</param>
+    /// <param name="viewModel">The view model for job operations.</param>
+    /// <param name="uiService">The UI update service.</param>
+    /// <param name="settingsService">The settings service.</param>
+    /// <param name="logsPath">The initial logs directory path.</param>
+    /// <param name="configPath">The initial config file path.</param>
+    /// <param name="statePath">The initial state file path.</param>
     public FileSystemHandler(Window window, ControlCache controls, ViewModelConsole viewModel, 
         UIUpdateService uiService, SettingsService settingsService,
         string logsPath, string configPath, string statePath)
@@ -41,6 +54,10 @@ public class FileSystemHandler
         _currentStatePath = statePath;
     }
 
+    /// <summary>
+    /// Opens a folder picker dialog and sets the selected path in the specified TextBox.
+    /// </summary>
+    /// <param name="textBoxName">The name of the TextBox to update.</param>
     public async Task BrowseFolder(string textBoxName)
     {
         var storageProvider = _window.StorageProvider;
@@ -61,6 +78,9 @@ public class FileSystemHandler
         }
     }
 
+    /// <summary>
+    /// Opens a folder picker dialog to select the logs directory and updates the configuration.
+    /// </summary>
     public async Task BrowseLogsFolder()
     {
         var storageProvider = _window.StorageProvider;
@@ -95,6 +115,9 @@ public class FileSystemHandler
         }
     }
     
+    /// <summary>
+    /// Opens a file picker dialog to select the configuration file and updates the configuration.
+    /// </summary>
     public async Task BrowseConfigFile()
     {
         var storageProvider = _window.StorageProvider;
@@ -120,6 +143,9 @@ public class FileSystemHandler
         }
     }
     
+    /// <summary>
+    /// Opens a file picker dialog to select the state file and updates the configuration.
+    /// </summary>
     public async Task BrowseStateFile()
     {
         var storageProvider = _window.StorageProvider;

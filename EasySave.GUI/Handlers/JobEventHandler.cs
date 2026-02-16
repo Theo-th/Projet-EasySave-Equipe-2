@@ -17,7 +17,9 @@ using System.Threading.Tasks;
 
 namespace EasySave.GUI.Handlers;
 
-// Handles backup job-related events
+/// <summary>
+/// Handles backup job-related events and actions in the EasySave GUI.
+/// </summary>
 public class JobEventHandler
 {
     private readonly Window _window;
@@ -26,6 +28,14 @@ public class JobEventHandler
     private readonly UIUpdateService _uiService;
     private readonly ObservableCollection<JobItem> _jobs;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JobEventHandler"/> class.
+    /// </summary>
+    /// <param name="window">The main application window.</param>
+    /// <param name="controls">The cached UI controls.</param>
+    /// <param name="viewModel">The view model for job operations.</param>
+    /// <param name="uiService">The UI update service.</param>
+    /// <param name="jobs">The observable collection of jobs.</param>
     public JobEventHandler(Window window, ControlCache controls, ViewModelConsole viewModel, 
         UIUpdateService uiService, ObservableCollection<JobItem> jobs)
     {
@@ -36,6 +46,9 @@ public class JobEventHandler
         _jobs = jobs;
     }
 
+    /// <summary>
+    /// Loads all jobs from the view model and updates the UI lists.
+    /// </summary>
     public void LoadJobs()
     {
         _jobs.Clear();
@@ -71,6 +84,11 @@ public class JobEventHandler
         _uiService.UpdateJobsCount(_jobs.Count);
     }
 
+    /// <summary>
+    /// Handles the execution of selected backup jobs when the execute button is clicked.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
     public async void ExecuteButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.JobListBox?.SelectedItems == null || _controls.JobListBox.SelectedItems.Count == 0)
@@ -125,6 +143,11 @@ public class JobEventHandler
         _uiService.UpdateStatus($"{selectedIndices.Count} sauvegarde(s) terminée(s) !", true);
     }
 
+    /// <summary>
+    /// Handles the creation of a new backup job when the create button is clicked.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
     public void CreateJobButton_Click(object? sender, RoutedEventArgs e)
     {
         var nameBox = _window.FindControl<TextBox>("JobNameTextBox");
@@ -164,6 +187,11 @@ public class JobEventHandler
         _uiService.UpdateStatus($"Plan '{name}' créé avec succès", true);
     }
 
+    /// <summary>
+    /// Handles the deletion of a selected backup job when the delete button is clicked.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
     public void DeleteJobButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.ManageJobListBox?.SelectedIndex >= 0 && _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
@@ -188,6 +216,11 @@ public class JobEventHandler
         }
     }
 
+    /// <summary>
+    /// Displays the details of the selected backup job in a dialog.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="e">The event arguments.</param>
     public async void ViewDetailsButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.ManageJobListBox?.SelectedItem != null && 
@@ -288,6 +321,10 @@ public class JobEventHandler
         return block;
     }
 
+    /// <summary>
+    /// Updates the UI to reflect the progress of a running backup job.
+    /// </summary>
+    /// <param name="state">The current state of the backup job.</param>
     public void OnBackupProgressChanged(BackupJobState state)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>

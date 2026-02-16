@@ -2,7 +2,9 @@ using Avalonia.Controls;
 
 namespace EasySave.GUI.Helpers;
 
-// Manages UI control cache for performance optimization
+/// <summary>
+/// Manages a cache of UI controls for performance optimization in the EasySave GUI.
+/// </summary>
 public class ControlCache
 {
     public ListBox? JobListBox { get; set; }
@@ -46,6 +48,10 @@ public class ControlCache
     public Button? ResumeButton { get; set; }
     public Button? StopButton { get; set; }
 
+    /// <summary>
+    /// Initializes all cached controls by finding them in the specified window.
+    /// </summary>
+    /// <param name="window">The main application window containing the controls.</param>
     public void InitializeFrom(Window window)
     {
         JobListBox = window.FindControl<ListBox>("JobListBox");

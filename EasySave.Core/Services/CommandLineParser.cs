@@ -6,14 +6,14 @@ namespace EasySave.Core.Services
 {
     public static class CommandLineParser
     {
-        public static List<int>? ParseJobIndices(string[] args, int maxJobs)
+        public static List<int>? ParseJobIndices(string[]? args, int maxJobs)
         {
-            if (args?.Length == 0)
+            if (args == null || args.Length == 0)
                 return null;
 
             var indices = new HashSet<int>();
 
-            foreach (var arg in args)
+            foreach (var arg in args ?? Array.Empty<string>())
             {
                 if (arg.Contains("-") && arg.Split('-') is [var start, var end] &&
                     int.TryParse(start, out int s) && int.TryParse(end, out int e))
