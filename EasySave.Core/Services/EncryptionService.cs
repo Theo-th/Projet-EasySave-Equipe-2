@@ -27,7 +27,7 @@ namespace EasySave.Core.Services
     /// </summary>
     public class EncryptionService
     {
-        private static EncryptionService _instance;
+        private static EncryptionService _instance = new EncryptionService();
 
         /// <summary>
         /// Gets the singleton instance of the EncryptionService.
@@ -42,7 +42,7 @@ namespace EasySave.Core.Services
             }
         }
 
-        private EncryptionConfig _config;
+        private EncryptionConfig _config = new EncryptionConfig();
         private readonly string _configFilePath;
         private readonly string _cryptoSoftPath;
 
