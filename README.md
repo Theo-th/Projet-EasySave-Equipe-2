@@ -38,9 +38,25 @@ Le logiciel permet de créer jusqu'à **5 travaux de sauvegarde**.
 
 ## 🛠️ Utilisation et Commandes
 
+### GUI
+
+L'exécutable (.exe) peut être lancé via le terminal.
+
+#### Exemples d'exécution :
+* **Lancement mode GUI** : `EasySave.exe` 
+
+### Console
+
+L'exécutable peut être lancé dans powershell avec interface console.
+
+#### Exemples d'exécution :
+* **Lancement mode console** : `EasySave.exe -console` 
+
+### Terminal
+
 L'exécutable peut être lancé directement via le terminal.
 
-### Exemples d'exécution :
+#### Exemples d'exécution :
 * **Plage de sauvegardes** : `EasySave.exe 1-3` (exécute les travaux 1 à 3).
 * **Sélection spécifique** : `EasySave.exe 1;3` (exécute les travaux 1 et 3).
 
@@ -86,5 +102,13 @@ git clone https://github.com/Theo-th/Projet-EasySave-Equipe-2.git
 2. **Compilation et Lancement** : Ouvrez la solution avec Visual Studio ou utilisez le CLI .NET :
 ```bash
 dotnet build
-dotnet run
+
+dotnet run --project EasySave.GUI
+
+dotnet run --project EasySave.GUI -- -console
+
+dotnet run --project EasySave.GUI -- 1;2
+
+dotnet run --project EasySave.GUI -- 1-2
+
 ```
