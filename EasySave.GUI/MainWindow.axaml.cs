@@ -145,7 +145,7 @@ public partial class MainWindow : Window
     private void PauseButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.PauseBackup();
-        _uiService.UpdateStatus("Sauvegarde en pause...", true);
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupPaused, true);
     }
 
     /// <summary>
@@ -156,7 +156,7 @@ public partial class MainWindow : Window
     private void ResumeButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.ResumeBackup();
-        _uiService.UpdateStatus("Sauvegarde reprise...", true);
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupResumed, true);
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public partial class MainWindow : Window
     private void StopButton_Click(object? sender, RoutedEventArgs e)
     {
         _viewModel.StopBackup();
-        _uiService.UpdateStatus("Sauvegarde arrêtée.", false);
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupStopped, false);
     }
 
     /// <summary>
