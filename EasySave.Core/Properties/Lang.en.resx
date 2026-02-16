@@ -144,7 +144,7 @@
     <value>Backups started! Press to continue.</value>
   </data>
   <data name="MsgWelcome" xml:space="preserve">
-    <value>Welcome to EasySave 1.0</value>
+    <value>Welcome to EasySave 1.1</value>
   </data>
   <data name="NameSave" xml:space="preserve">
     <value>Backup name:</value>

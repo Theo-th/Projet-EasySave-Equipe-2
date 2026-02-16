@@ -144,7 +144,7 @@
     <value>Sauvegardes lancées ! Appuyer pour continuer.</value>
   </data>
   <data name="MsgWelcome" xml:space="preserve">
-    <value>Bienvenue dans EasySave 1.0</value>
+    <value>Bienvenue dans EasySave 1.1</value>
   </data>
   <data name="NameSave" xml:space="preserve">
     <value>Nom de la sauvegarde :</value>
