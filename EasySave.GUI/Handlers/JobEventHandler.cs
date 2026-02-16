@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using EasySave.Core.Properties;
 
 namespace EasySave.GUI.Handlers;
 
@@ -339,8 +340,8 @@ public class JobEventHandler
             if (_controls.ProgressBar != null)
                 _controls.ProgressBar.Value = Math.Min(100, Math.Max(0, progress));
 
-            // Calcul du temps restant estimé
-            string timeLeftText = "";
+            // Calcul du temps restant estimé (multilingue)
+            string timeLeftText = string.Empty;
             int filesDone = state.TotalFiles - state.RemainingFiles;
             if (filesDone > 0 && state.RemainingFiles > 0)
             {
@@ -349,7 +350,8 @@ public class JobEventHandler
                 int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
                 int min = secondsLeft / 60;
                 int sec = secondsLeft % 60;
-                timeLeftText = $" | Temps restant : {min:D2}:{sec:D2}";
+                string timeValue = $"{min:D2}:{sec:D2}";
+                timeLeftText = $" | {Lang.TimeLeft.Replace("{0}", timeValue)}";
             }
 
             if (_controls.ProgressText != null)
@@ -358,7 +360,8 @@ public class JobEventHandler
             if (_controls.CurrentFileText != null && !string.IsNullOrEmpty(state.CurrentSourceFile))
             {
                 string fileName = Path.GetFileName(state.CurrentSourceFile);
-                _controls.CurrentFileText.Text = $"Fichier en cours : {fileName}";
+                _controls.CurrentFileText.Text = string.Format(Lang.CurrentFile, fileName);
+                _uiService.SetCurrentFileName(fileName);
             }
         });
     }

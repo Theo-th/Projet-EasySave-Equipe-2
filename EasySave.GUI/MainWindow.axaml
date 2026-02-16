@@ -204,7 +204,7 @@
                                 Padding="20" Margin="0,0,0,0" IsVisible="False" 
                                 BorderBrush="#E5E7EB" BorderThickness="1">
                                 <StackPanel Spacing="16">
-                                    <!-- Barre de progression -->
+                                    <!-- Progress bar -->
                                     <StackPanel Spacing="8">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
                                             <TextBlock Grid.Column="0" Text="Progression" FontSize="13" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
@@ -215,17 +215,17 @@
                                                   TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     
-                                    <!-- Boutons de contrôle -->
+                                    <!-- Control buttons -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                                         <Button Name="PauseButton" Content="⏸  Pause" Padding="20,10"
                                                 Background="#F59E0B" Foreground="White" FontSize="13" FontWeight="SemiBold"
                                                 CornerRadius="6" MinWidth="130" Cursor="Hand"/>
-                                        <Button Name="ResumeButton" Content="▶  Reprendre" Padding="20,10"
-                                                Background="#10B981" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand" IsVisible="False"/>
-                                        <Button Name="StopButton" Content="⏹  Arrêter" Padding="20,10"
-                                                Background="#EF4444" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand"/>
+                                        <Button Name="ResumeButton" Content="▶  " Padding="20,10"
+                                            Background="#10B981" Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                            CornerRadius="6" MinWidth="130" Cursor="Hand" IsVisible="False"/>
+                                        <Button Name="StopButton" Content="⏹  " Padding="20,10"
+                                            Background="#EF4444" Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                            CornerRadius="6" MinWidth="130" Cursor="Hand"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -320,7 +320,7 @@
                             <TextBlock Name="SettingsTitleText" Text="Paramètres" FontSize="16" 
                                        FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
                             <StackPanel Spacing="16">
-                                <!-- Chemins -->
+                                <!-- Paths -->
                                 <StackPanel>
                                     <TextBlock Text="Dossier logs" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
                                     <Grid ColumnDefinitions="*,Auto">
@@ -342,12 +342,12 @@
                                         <Button Name="BrowseStateButton" Grid.Column="1" Width="120" Padding="12,10"/>
                                     </Grid>
                                 </StackPanel>
-                                <!-- Langue -->
+                                <!-- Language -->
                                 <StackPanel>
                                     <TextBlock Name="LanguageInterfaceText" Text="Langue de l'interface" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
                                     <ComboBox Name="LanguageComboBox" SelectedIndex="0"/>
                                 </StackPanel>
-                                <!-- Clé de cryptage -->
+                                <!-- Encryption key -->
                                 <StackPanel>
                                     <TextBlock Text="Clé de cryptage" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
@@ -355,7 +355,7 @@
                                         <Button Name="EditEncryptionKeyButton" Content="Modifier" Width="120" Padding="12,10" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
-                                <!-- Extensions à chiffrer -->
+                                <!-- Extensions to encrypt -->
                                 <StackPanel>
                                     <TextBlock Text="Extensions à chiffrer" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
                                     <ListBox Name="EncryptionExtensionsListBox" Height="80"/>
@@ -365,7 +365,7 @@
                                         <Button Name="RemoveExtensionButton" Content="Supprimer sélection" Padding="18,10"/>
                                     </StackPanel>
                                 </StackPanel>
-                                <!-- Processus métier à surveiller -->
+                                <!-- Business processes to monitor -->
                                 <StackPanel>
                                     <TextBlock Text="Processus métier à surveiller" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
                                     <TextBlock Text="Si un de ces processus est lancé, la sauvegarde sera bloquée ou interrompue." FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>

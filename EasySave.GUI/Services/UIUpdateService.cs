@@ -1,9 +1,11 @@
-using Avalonia.Controls;
-using Avalonia.Media;
-using EasySave.Core.Properties;
-using EasySave.GUI.Helpers;
-using System.Linq;
-using System.Threading;
+
+
+    using Avalonia.Controls;
+    using Avalonia.Media;
+    using EasySave.Core.Properties;
+    using EasySave.GUI.Helpers;
+    using System.Linq;
+    using System.Threading;
 
 namespace EasySave.GUI.Services;
 
@@ -14,6 +16,7 @@ public class UIUpdateService
 {
     private readonly ControlCache _controls;
     private readonly Window _window;
+    private string? _lastCurrentFileName = null;
 
     /// <summary>
     /// Initializes a new instance of UIUpdateService.
@@ -79,6 +82,26 @@ public class UIUpdateService
         UpdateButtons();
         UpdateComboBoxes();
         UpdateHeaderAndFooter();
+        UpdateCurrentFileText();
+    }
+
+    /// <summary>
+    /// Updates the current file text with the last known file, in the current language.
+    /// </summary>
+    public void UpdateCurrentFileText()
+    {
+        if (_controls.CurrentFileText != null && !string.IsNullOrEmpty(_lastCurrentFileName))
+        {
+            _controls.CurrentFileText.Text = string.Format(EasySave.Core.Properties.Lang.CurrentFile, _lastCurrentFileName);
+        }
+    }
+
+    /// <summary>
+    /// Stores the last file name for dynamic language refresh.
+    /// </summary>
+    public void SetCurrentFileName(string? fileName)
+    {
+        _lastCurrentFileName = fileName;
     }
 
 
@@ -133,6 +156,10 @@ public class UIUpdateService
         UpdateButton("BrowseLogsButton", "BtnModify");
         UpdateButton("BrowseConfigButton", "BtnModify");
         UpdateButton("BrowseStateButton", "BtnModify");
+        var resumeBtn = _window.FindControl<Button>("ResumeButton");
+        if (resumeBtn != null) resumeBtn.Content = $"▶  {LocalizationManager.GetString("BtnResume")}";
+        var stopBtn = _window.FindControl<Button>("StopButton");
+        if (stopBtn != null) stopBtn.Content = $"⏹  {LocalizationManager.GetString("BtnStop")}";
     }
 
 
