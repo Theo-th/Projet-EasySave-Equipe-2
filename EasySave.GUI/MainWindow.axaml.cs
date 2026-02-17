@@ -53,6 +53,7 @@ namespace EasySave.GUI
         private void SetupEventHandlers()
         {
             // --- Backup Actions ---
+            if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
             if (_controls.PlayButton != null) _controls.PlayButton.Click += PlayButton_Click;
             if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
             if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
@@ -97,6 +98,8 @@ namespace EasySave.GUI
             // Load Encryption Data
             if (_controls.EncryptionKeyTextBox != null) _controls.EncryptionKeyTextBox.Text = _viewModel.GetEncryptionKey();
             RefreshExtensionsList();
+
+            if (_controls.ServerIpTextBox != null) _controls.ServerIpTextBox.Text = _viewModel.GetServerIp();
 
             // Load Processes
             RefreshProcessesList();
@@ -229,7 +232,6 @@ namespace EasySave.GUI
             }
         }
 
-        // NEW: Log Target Handler (Docker)
         private void LogTargetComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (_controls.LogTargetComboBox != null && _controls.LogTargetComboBox.SelectedIndex >= 0)
@@ -292,6 +294,15 @@ namespace EasySave.GUI
             {
                 _viewModel.RemoveWatchedProcess(_controls.WatchedProcessesListBox.SelectedItem.ToString() ?? "");
                 RefreshProcessesList();
+            }
+        }
+
+        private void SaveIpButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
+            {
+                _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
+                _uiService.UpdateStatus($"IP Server Update : {_controls.ServerIpTextBox.Text}", true);
             }
         }
     }

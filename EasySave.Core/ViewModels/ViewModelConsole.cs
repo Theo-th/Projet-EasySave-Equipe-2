@@ -85,5 +85,8 @@ namespace EasySave.Core.ViewModels
         public void AddWatchedProcess(string processName) => _processDetector.AddWatchedProcess(processName);
         public void RemoveWatchedProcess(string processName) => _processDetector.RemoveWatchedProcess(processName);
         public List<string> GetWatchedProcesses() => _processDetector.GetWatchedProcesses();
+
+        public string GetServerIp() => NetworkService.Instance.GetServerIp();
+        public void SetServerIp(string ip) => NetworkService.Instance.SetServerIp(ip);
     }
 }

@@ -41,6 +41,9 @@ public class ControlCache
     public Button? AddProcessButton { get; set; }
     public Button? RemoveProcessButton { get; set; }
 
+    public TextBox? ServerIpTextBox { get; set; }
+    public Button? SaveIpButton { get; set; }
+
     public Button? PlayButton { get; set; }
     public Button? PauseButton { get; set; }
     public Button? ResumeButton { get; set; }
@@ -84,6 +87,9 @@ public class ControlCache
         AddProcessTextBox = window.FindControl<TextBox>("AddProcessTextBox");
         AddProcessButton = window.FindControl<Button>("AddProcessButton");
         RemoveProcessButton = window.FindControl<Button>("RemoveProcessButton");
+
+        ServerIpTextBox = window.FindControl<TextBox>("ServerIpTextBox");
+        SaveIpButton = window.FindControl<Button>("SaveIpButton");
 
         PlayButton = window.FindControl<Button>("PlayButton");
         PauseButton = window.FindControl<Button>("PauseButton");

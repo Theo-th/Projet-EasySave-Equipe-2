@@ -13,7 +13,7 @@ namespace EasySave.Core.Services
         private BaseLog _logger;
         private string _logDirectory;
         private BackupStrategy? _activeStrategy;
-        private LogTarget _currentLogTarget = LogTarget.Both; // Par défaut
+        private LogTarget _currentLogTarget = LogTarget.Both;
 
         public event Action<BackupJobState>? OnProgressChanged;
         public event Action<string>? OnBusinessProcessDetected;

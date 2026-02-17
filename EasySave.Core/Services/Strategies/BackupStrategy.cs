@@ -1,7 +1,7 @@
 using EasySave.Core.Models;
 using EasyLog;
 using System.Diagnostics;
-using EasySave.Core.Services; // IMPORTANT pour voir RemoteLogService
+using EasySave.Core.Services;
 
 namespace EasySave.Core.Services.Strategies
 {
@@ -16,7 +16,7 @@ namespace EasySave.Core.Services.Strategies
         protected BackupType BackupType { get; set; }
         protected string JobName { get; set; }
         protected BaseLog Logger { get; set; }
-        protected LogTarget _logTarget; // AJOUT
+        protected LogTarget _logTarget;
 
         private CancellationTokenSource _cancellationTokenSource = new();
         private readonly ManualResetEventSlim _pauseEvent = new(true);
@@ -87,7 +87,6 @@ namespace EasySave.Core.Services.Strategies
                     Timestamp = DateTime.Now
                 };
 
-                // GESTION DU LOG TARGET
                 if (_logTarget == LogTarget.Local || _logTarget == LogTarget.Both)
                     Logger.WriteLog(record);
 

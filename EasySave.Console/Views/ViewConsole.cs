@@ -226,6 +226,7 @@ namespace EasySave.ConsoleUI
                     "Changer la Langue",
                     Lang.TitleLog,
                     "Cible des logs (Docker)",
+                    "Configurer IP Serveur",
                     Lang.MenuQuit
                 };
 
@@ -248,11 +249,40 @@ namespace EasySave.ConsoleUI
                         case 0: LangSettings(); break;
                         case 1: MenuLogFormat(); break;
                         case 2: MenuLogTarget(); break;
-                        case 3: quit = true; break;
+                        case 3: ConfigureIpMenu(); break;
+                        case 4: quit = true; break;
                     }
                 }
             }
         }
+
+
+
+        private void ConfigureIpMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("=== CONFIGURATION IP SERVEUR ===");
+            Console.WriteLine($"IP Actuelle : {_viewModel.GetServerIp()}");
+            Console.WriteLine("-------------------------------------");
+            Console.Write("Nouvelle IP (laisser vide pour annuler) : ");
+
+            string? input = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                _viewModel.SetServerIp(input);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("IP enregistrée avec succès !");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.WriteLine("Modification annulée.");
+            }
+            Thread.Sleep(1000);
+        }
+
+
 
         private void MenuLogTarget()
         {
