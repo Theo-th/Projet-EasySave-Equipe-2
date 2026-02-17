@@ -1,398 +1,275 @@
-
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="EasySave.GUI.MainWindow"
-        Title="EasySave 2.0 - Gestionnaire de sauvegardes"
-        Width="1100" Height="700"
-        MinWidth="900" MinHeight="600"
-        Background="White">
-    
-    <!--
-        <summary>
-            Global styles for controls (Button, TextBox, ComboBox, etc.)
-        </summary>
-    -->
-    <Window.Styles>
-        <Style Selector="Button">
-            <Setter Property="Background" Value="#374151"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="18,10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-        <Style Selector="Button:pointerover">
-            <Setter Property="Background" Value="#4B5563"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#4B5563"/>
-            <Setter Property="TextElement.Foreground" Value="White"/>
-        </Style>
-        
-        <Style Selector="TextBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="BorderBrush" Value="#D1D5DB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="SelectionBrush" Value="Transparent"/>
-            <Setter Property="SelectionForegroundBrush" Value="#1F2937"/>
-        </Style>
-        
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="BorderBrush" Value="#D1D5DB"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-        
-        <Style Selector="ListBox">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-        </Style>
-        
-        <Style Selector="ListBoxItem">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#E5E7EB"/>
-        </Style>
-        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-            <Setter Property="Background" Value="#374151"/>
-        </Style>
-        <Style Selector="ListBoxItem:selected">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-        <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#4B5563"/>
-        </Style>
-        <Style Selector="ListBoxItem:selected:focus /template/ ContentPresenter">
-            <Setter Property="Background" Value="#374151"/>
-        </Style>
-        
-        <Style Selector="TabItem">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="#9CA3AF"/>
-            <Setter Property="Padding" Value="16,10"/>
-        </Style>
-        <Style Selector="TabItem:pointerover">
-            <Setter Property="Foreground" Value="#4B5563"/>
-        </Style>
-        <Style Selector="TabItem:selected">
-            <Setter Property="Foreground" Value="#111827"/>
-        </Style>
-        <Style Selector="TabItem:selected:pointerover">
-            <Setter Property="Foreground" Value="#1F2937"/>
-        </Style>
-        <Style Selector="TabItem:pointerover /template/ ContentPresenter">
-            <Setter Property="TextElement.Foreground" Value="#4B5563"/>
-        </Style>
-        <Style Selector="TabItem:selected:pointerover /template/ ContentPresenter">
-            <Setter Property="TextElement.Foreground" Value="#1F2937"/>
-        </Style>
-        
-        <Style Selector="TextBlock">
-            <Setter Property="TextElement.FontSize" Value="13"/>
-        </Style>
-    </Window.Styles>
-    
-    <!--
-        <summary>
-            Main layout grid for the window.
-        </summary>
-    -->
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        
-        <!--
-            <summary>
-                Header section with logo and application title.
-            </summary>
-        -->
-        <Border Grid.Row="0" Background="White" Padding="20" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Image Source="avares://EasySave.GUI/Assets/logo.png" Width="60" Height="60" Margin="0,0,16,0"/>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="EasySave 2.0" FontSize="20" FontWeight="SemiBold" Foreground="#111827"/>
-                    <TextBlock Name="HeaderDescriptionText" FontSize="11" Foreground="#6B7280"/>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-        
-        <!--
-            <summary>
-                Main content area with TabControl for navigation.
-            </summary>
-        -->
-        <TabControl Name="MainTabControl" Grid.Row="1" Margin="24,20,24,20" Background="Transparent">
-            
-            <!--
-                <summary>
-                    Tab: Execute backups
-                </summary>
-            -->
-            <TabItem Header="Exécuter">
-                <Border Background="#FAFAFA" Padding="24" BorderBrush="#E5E7EB" BorderThickness="1">
-                    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
-                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-                            <TextBlock Name="ExecuteTitleText" Grid.Column="0" Text="Lancer des sauvegardes" 
-                                       FontSize="16" FontWeight="SemiBold" Foreground="#111827" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Name="PageInfoText" Text="Page 1 / 1" 
-                                       FontSize="12" Foreground="#6B7280" VerticalAlignment="Center"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Background="White" CornerRadius="4" Padding="12,8" Margin="0,0,0,12">
-                            <Grid ColumnDefinitions="*,Auto,Auto">
-                                <TextBlock Grid.Column="0" Name="ItemsCountText" Text="0 sauvegarde(s)" 
-                                          FontSize="11" Foreground="#6B7280" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="Par page:" FontSize="11" Foreground="#6B7280" 
-                                          VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <ComboBox Grid.Column="2" Name="ItemsPerPageComboBox" SelectedIndex="1" 
-                                         MinWidth="80" Height="28">
-                                    <ComboBoxItem Content="5"/>
-                                    <ComboBoxItem Content="10"/>
-                                    <ComboBoxItem Content="20"/>
-                                    <ComboBoxItem Content="50"/>
-                                </ComboBox>
-                            </Grid>
-                        </Border>
-                        
-                        <Border Grid.Row="2" Background="White" CornerRadius="4" Padding="12">
-                            <ListBox Name="JobListBox" SelectionMode="Multiple" BorderThickness="0" Background="Transparent"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" Background="White" CornerRadius="4" Padding="12" Margin="0,12,0,0">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <Button Name="PreviousPageButton" Grid.Column="0" Content="◀ Précédent" 
-                                       Padding="12,6" MinWidth="100" IsEnabled="False"/>
-                                <TextBlock Grid.Column="1" Name="CurrentPageText" Text="Page 1" 
-                                          FontSize="12" Foreground="#374151" FontWeight="Medium"
-                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Button Name="NextPageButton" Grid.Column="2" Content="Suivant ▶" 
-                                       Padding="12,6" MinWidth="100" IsEnabled="False"/>
-                            </Grid>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="4" Margin="0,16,0,0" Spacing="12">
-                            <Button Name="ExecuteButton" Content="Lancer les sauvegardes sélectionnées" 
-                                    HorizontalAlignment="Center" Padding="28,14"/>
-                            
-                            <Border Name="ProgressArea" Background="White" CornerRadius="6" 
-                                Padding="20" Margin="0,0,0,0" IsVisible="False" 
-                                BorderBrush="#E5E7EB" BorderThickness="1">
-                                <StackPanel Spacing="16">
-                                    <!-- Barre de progression -->
-                                    <StackPanel Spacing="8">
-                                        <Grid ColumnDefinitions="Auto,*,Auto">
-                                            <TextBlock Grid.Column="0" Text="Progression" FontSize="13" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
-                                            <ProgressBar Grid.Column="1" Name="ProgressBar" Height="8" Minimum="0" Maximum="100" Value="0" Margin="12,0,12,0" CornerRadius="4" VerticalAlignment="Center" Background="#E5E7EB"/>
-                                            <TextBlock Grid.Column="2" Name="ProgressText" Text="0%" FontSize="15" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" MinWidth="45" TextAlignment="Right"/>
-                                        </Grid>
-                                        <TextBlock Name="CurrentFileText" Text="" FontSize="12" Foreground="#6B7280" 
-                                                  TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
-                                    
-                                    <!-- Boutons de contrôle -->
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                                        <Button Name="PauseButton" Content="⏸  Pause" Padding="20,10"
-                                                Background="#F59E0B" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand"/>
-                                        <Button Name="ResumeButton" Content="▶  Reprendre" Padding="20,10"
-                                                Background="#10B981" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand" IsVisible="False"/>
-                                        <Button Name="StopButton" Content="⏹  Arrêter" Padding="20,10"
-                                                Background="#EF4444" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                            
-                            <TextBlock Name="StatusText" Text="" FontSize="12" 
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </TabItem>
-            
-            <!--
-                <summary>
-                    Tab: Create new backup job
-                </summary>
-            -->
-            <TabItem Header="Créer">
-                <Border Background="#FAFAFA" Padding="24" BorderBrush="#E5E7EB" BorderThickness="1">
-                    <ScrollViewer>
-                        <StackPanel MaxWidth="600">
-                            <TextBlock Name="CreateTitleText" Text="Nouveau plan" FontSize="16" 
-                                       FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-                            
-                            <StackPanel Spacing="12">
-                                <StackPanel>
-                                    <TextBlock Name="JobNameLabel" Text="Nom" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
-                                    <TextBox Name="JobNameTextBox" Watermark="Ex: Sauvegarde Documents"/>
-                                </StackPanel>
-                                
-                                <StackPanel>
-                                    <TextBlock Name="SourceLabel" Text="Source" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBox Name="SourcePathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseSourceButton" Grid.Column="1" Width="95" Padding="12,10"/>
-                                    </Grid>
-                                </StackPanel>
-                                
-                                <StackPanel>
-                                    <TextBlock Name="TargetLabel" Text="Destination" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBox Name="TargetPathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseTargetButton" Grid.Column="1" Width="95" Padding="12,10"/>
-                                    </Grid>
-                                </StackPanel>
-                                
-                                <StackPanel>
-                                    <TextBlock Name="TypeLabel" Text="Type" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
-                                    <ComboBox Name="TypeComboBox" SelectedIndex="0"/>
-                                </StackPanel>
-                            </StackPanel>
-                            
-                            <Button Name="CreateJobButton" Content="Créer" 
-                                    HorizontalAlignment="Center" Margin="0,24,0,0" Padding="32,12"/>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Border>
-            </TabItem>
-            
-            <!--
-                <summary>
-                    Tab: Manage backup jobs
-                </summary>
-            -->
-            <TabItem Header="Gérer">
-                <Border Background="#FAFAFA" Padding="24" BorderBrush="#E5E7EB" BorderThickness="1">
-                    <Grid RowDefinitions="Auto,*,Auto">
-                        <TextBlock Name="ManageTitleText" Grid.Row="0" Text="Gérer les plans" 
-                                   FontSize="16" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-                        
-                        <Border Grid.Row="1" Background="White" CornerRadius="4" Padding="12">
-                            <ListBox Name="ManageJobListBox" BorderThickness="0" Background="Transparent"/>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" 
-                                    Spacing="12" Margin="0,16,0,0">
-                            <Button Name="ViewDetailsButton" Content="Détails"/>
-                            <Button Name="DeleteJobButton" Content="Supprimer"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </TabItem>
-            
-            <!--
-                <summary>
-                    Tab: Application settings
-                </summary>
-            -->
-            <TabItem Header="Paramètres">
-                <Border Background="#FAFAFA" Padding="24" BorderBrush="#E5E7EB" BorderThickness="1">
-                    <ScrollViewer>
-                        <StackPanel MaxWidth="600">
-                            <TextBlock Name="SettingsTitleText" Text="Paramètres" FontSize="16" 
-                                       FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-                            <StackPanel Spacing="16">
-                                <!-- Chemins -->
-                                <StackPanel>
-                                    <TextBlock Text="Dossier logs" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBox Name="LogsPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseLogsButton" Grid.Column="1" Width="120" Padding="12,10"/>
-                                    </Grid>
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Text="Fichier config" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBox Name="ConfigPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseConfigButton" Grid.Column="1" Width="120" Padding="12,10"/>
-                                    </Grid>
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Text="Fichier état" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBox Name="StatePathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-                                        <Button Name="BrowseStateButton" Grid.Column="1" Width="120" Padding="12,10"/>
-                                    </Grid>
-                                </StackPanel>
-                                <!-- Langue -->
-                                <StackPanel>
-                                    <TextBlock Name="LanguageInterfaceText" Text="Langue de l'interface" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <ComboBox Name="LanguageComboBox" SelectedIndex="0"/>
-                                </StackPanel>
-                                <!-- Clé de cryptage -->
-                                <StackPanel>
-                                    <TextBlock Text="Clé de cryptage" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                                        <TextBox Name="EncryptionKeyTextBox" Width="180" IsReadOnly="True" VerticalAlignment="Center"/>
-                                        <Button Name="EditEncryptionKeyButton" Content="Modifier" Width="120" Padding="12,10" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </StackPanel>
-                                <!-- Extensions à chiffrer -->
-                                <StackPanel>
-                                    <TextBlock Text="Extensions à chiffrer" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <ListBox Name="EncryptionExtensionsListBox" Height="80"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                        <TextBox Name="AddExtensionTextBox" Width="100" Watermark=".ext"/>
-                                        <Button Name="AddExtensionButton" Content="Ajouter" Padding="18,10"/>
-                                        <Button Name="RemoveExtensionButton" Content="Supprimer sélection" Padding="18,10"/>
-                                    </StackPanel>
-                                </StackPanel>
-                                <!-- Processus métier à surveiller -->
-                                <StackPanel>
-                                    <TextBlock Text="Processus métier à surveiller" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Si un de ces processus est lancé, la sauvegarde sera bloquée ou interrompue." FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
-                                    <ListBox Name="WatchedProcessesListBox" Height="100"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                        <TextBox Name="AddProcessTextBox" Width="180" Watermark="Ex: notepad"/>
-                                        <Button Name="AddProcessButton" Content="Ajouter" Padding="18,10"/>
-                                        <Button Name="RemoveProcessButton" Content="Supprimer sélection" Padding="18,10"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Border>
-            </TabItem>
-        </TabControl>
-        
-        <!--
-            <summary>
-                Footer section with version and copyright.
-            </summary>
-        -->
-        <Border Grid.Row="2" Background="#F9FAFB" Padding="16,12" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-            <Grid>
-                <TextBlock Name="FooterText" Foreground="#6B7280" FontSize="11" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Text="EasySave v2.0 © 2026" Foreground="#9CA3AF" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-    </Grid>
+        Title="EasySave 3.0 - ProSoft"
+        Icon="/Assets/logo.ico"
+        Width="1000" Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F4F6">
+	<Window.Styles>
+		<Style Selector="TabItem">
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Padding" Value="12 8"/>
+			<Setter Property="Margin" Value="0 0 8 0"/>
+		</Style>
+		<Style Selector="Button">
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+	</Window.Styles>
+
+	<Grid RowDefinitions="Auto, *">
+		<Border Grid.Row="0" Background="#111827" Padding="20">
+			<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+				<TextBlock Text="EasySave" Foreground="White" FontSize="24" FontWeight="Bold" Margin="0,0,10,0"/>
+				<Border Background="#3B82F6" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+					<TextBlock Text="v3.0" Foreground="White" FontSize="12" FontWeight="Bold"/>
+				</Border>
+				<TextBlock x:Name="HeaderDescriptionText" Text="Gestionnaire de sauvegardes" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="20,0,0,0"/>
+			</StackPanel>
+		</Border>
+
+		<TabControl Grid.Row="1" Margin="20" Background="White" CornerRadius="8" Padding="0" x:Name="MainTabControl">
+
+			<TabItem Header="Tableau de bord">
+				<Grid ColumnDefinitions="*, 300" Margin="20">
+					<Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" Margin="0,0,20,0">
+						<TextBlock x:Name="ExecuteTitleText" Text="Travaux de sauvegarde" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+						<TextBlock x:Name="ExecuteDescText" Text="Sélectionnez les travaux à exécuter" FontSize="12" Foreground="#6B7280" Margin="0,0,0,10" IsVisible="False"/>
+
+						<ListBox x:Name="JobListBox" Grid.Row="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="4">
+							<ListBox.ItemTemplate>
+								<DataTemplate>
+									<Border Padding="10" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+										<TextBlock Text="{Binding}" FontWeight="Medium"/>
+									</Border>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+
+						<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+							<Button x:Name="PlayButton" Content="Exécuter" Background="#10B981" Foreground="White" Padding="15,8"/>
+							<Button x:Name="PauseButton" Content="Pause" Background="#F59E0B" Foreground="White" Padding="15,8"/>
+							<Button x:Name="ResumeButton" Content="Reprendre" Background="#3B82F6" Foreground="White" Padding="15,8"/>
+							<Button x:Name="StopButton" Content="Stop" Background="#EF4444" Foreground="White" Padding="15,8"/>
+						</StackPanel>
+					</Grid>
+
+					<Border Grid.Column="1" Background="#F3F4F6" CornerRadius="8" Padding="15">
+						<StackPanel Spacing="15">
+							<TextBlock Text="État en temps réel" FontSize="16" FontWeight="Bold" Foreground="#1F2937"/>
+
+							<Border x:Name="ProgressArea" Background="White" CornerRadius="6" Padding="10" BorderBrush="#E5E7EB" BorderThickness="1">
+								<StackPanel Spacing="8">
+									<TextBlock x:Name="StatusText" Text="Prêt" FontWeight="Bold" Foreground="#4B5563"/>
+									<ProgressBar x:Name="ProgressBar" Minimum="0" Maximum="100" Height="10" Foreground="#3B82F6"/>
+									<TextBlock x:Name="ProgressText" Text="0%" HorizontalAlignment="Right" FontSize="12"/>
+
+									<Separator Background="#E5E7EB" Height="1"/>
+
+									<TextBlock Text="Fichier en cours :" FontSize="12" Foreground="#6B7280"/>
+									<TextBlock x:Name="CurrentFileText" Text="-" TextTrimming="CharacterEllipsis" FontSize="12"/>
+
+									<Grid ColumnDefinitions="*,*">
+										<StackPanel Grid.Column="0">
+											<TextBlock Text="Fichiers restants" FontSize="10" Foreground="#9CA3AF"/>
+											<TextBlock x:Name="ItemsCountText" Text="0" FontWeight="Bold"/>
+										</StackPanel>
+									</Grid>
+								</StackPanel>
+							</Border>
+
+							<TextBlock x:Name="FooterText" Text="Aucune activité" FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap"/>
+						</StackPanel>
+					</Border>
+				</Grid>
+			</TabItem>
+
+			<TabItem Header="Gestion des travaux">
+				<Grid ColumnDefinitions="*, *" Margin="20">
+					<Grid Grid.Column="0" RowDefinitions="Auto, *" Margin="0,0,20,0">
+						<TextBlock x:Name="ManageTitleText" Text="Travaux existants" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+						<TextBlock x:Name="ManageDescText" Text="Liste des travaux configurés" FontSize="12" Foreground="#6B7280" Margin="0,0,0,10" IsVisible="False"/>
+
+						<ListBox x:Name="ManageJobListBox" Grid.Row="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="4"/>
+
+						<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
+							<Button x:Name="ViewDetailsButton" Content="Voir détails" Background="#6B7280" Foreground="White"/>
+							<Button x:Name="DeleteJobButton" Content="Supprimer la sélection" Background="#EF4444" Foreground="White"/>
+						</StackPanel>
+					</Grid>
+
+					<Border Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="20">
+						<StackPanel Spacing="12">
+							<TextBlock x:Name="CreateTitleText" Text="Créer un nouveau travail" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+							<StackPanel>
+								<TextBlock x:Name="JobNameLabel" Text="Nom du travail" FontWeight="SemiBold" Margin="0,0,0,4"/>
+								<TextBox x:Name="JobNameTextBox" Watermark="Ex: Sauvegarde Documents"/>
+							</StackPanel>
+
+							<StackPanel>
+								<TextBlock x:Name="SourceLabel" Text="Dossier Source" FontWeight="SemiBold" Margin="0,0,0,4"/>
+								<Grid ColumnDefinitions="*, Auto">
+									<TextBox x:Name="SourcePathTextBox" Watermark="C:\Users\Documents" Margin="0,0,5,0"/>
+									<Button x:Name="BrowseSourceButton" Grid.Column="1" Content="..." Width="30"/>
+								</Grid>
+							</StackPanel>
+
+							<StackPanel>
+								<TextBlock x:Name="TargetLabel" Text="Dossier Cible" FontWeight="SemiBold" Margin="0,0,0,4"/>
+								<Grid ColumnDefinitions="*, Auto">
+									<TextBox x:Name="DestPathTextBox" Watermark="D:\Backups" Margin="0,0,5,0"/>
+									<Button x:Name="BrowseTargetButton" Grid.Column="1" Content="..." Width="30"/>
+								</Grid>
+							</StackPanel>
+
+							<StackPanel>
+								<TextBlock x:Name="TypeLabel" Text="Type de sauvegarde" FontWeight="SemiBold" Margin="0,0,0,4"/>
+								<ComboBox x:Name="TypeComboBox" HorizontalAlignment="Stretch">
+									<ComboBoxItem Content="Complète (Full)"/>
+									<ComboBoxItem Content="Différentielle"/>
+								</ComboBox>
+							</StackPanel>
+
+							<Button x:Name="CreateJobButton" Content="Créer le travail" Background="#3B82F6" Foreground="White" HorizontalAlignment="Stretch" Margin="0,10,0,0"/>
+						</StackPanel>
+					</Border>
+				</Grid>
+			</TabItem>
+
+			<TabItem Header="Paramètres">
+				<ScrollViewer>
+					<StackPanel Margin="20" Spacing="20">
+						<TextBlock x:Name="SettingsTitleText" Text="Configuration Générale" FontSize="18" FontWeight="Bold" Foreground="#111827"/>
+
+						<Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
+
+							<StackPanel Grid.Column="0" Spacing="15">
+								<Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="15">
+									<StackPanel Spacing="10">
+										<TextBlock x:Name="LanguageSectionText" Text="Application" FontSize="14" FontWeight="Bold" Foreground="#374151"/>
+
+										<StackPanel>
+											<TextBlock x:Name="LanguageInterfaceText" Text="Langue" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+											<TextBlock x:Name="LanguageDescText" Text="Langue" FontSize="10" Foreground="#6B7280" Margin="0,0,0,4" IsVisible="False"/>
+											<ComboBox x:Name="LanguageComboBox" HorizontalAlignment="Stretch">
+												<ComboBoxItem Content="Français"/>
+												<ComboBoxItem Content="English"/>
+											</ComboBox>
+										</StackPanel>
+
+										<StackPanel>
+											<TextBlock Text="Format des logs locaux" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+											<ComboBox x:Name="LogFormatComboBox" HorizontalAlignment="Stretch">
+												<ComboBoxItem Content="JSON"/>
+												<ComboBoxItem Content="XML"/>
+											</ComboBox>
+										</StackPanel>
+
+										<StackPanel>
+											<TextBlock Text="Cible des logs (Centralisation)" FontSize="12" FontWeight="Bold" Foreground="#111827" Margin="0,4,0,4"/>
+											<TextBlock Text="Où souhaitez-vous enregistrer les journaux ?" FontSize="10" Foreground="#6B7280" Margin="0,0,0,4"/>
+											<ComboBox Name="LogTargetComboBox" SelectedIndex="2" HorizontalAlignment="Stretch">
+												<ComboBoxItem Content="Local uniquement"/>
+												<ComboBoxItem Content="Serveur (Docker) uniquement"/>
+												<ComboBoxItem Content="Les deux (Local + Serveur)"/>
+											</ComboBox>
+										</StackPanel>
+									</StackPanel>
+								</Border>
+
+								<Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="15">
+									<StackPanel Spacing="10">
+										<TextBlock Text="Logiciel Métier (Interdiction)" FontSize="14" FontWeight="Bold" Foreground="#374151"/>
+										<TextBlock Text="Si détecté, la sauvegarde se met en pause." FontSize="11" Foreground="#6B7280"/>
+
+										<Grid ColumnDefinitions="*, Auto">
+											<TextBox x:Name="AddProcessTextBox" Watermark="Ex: notepad" Margin="0,0,10,0"/>
+											<Button x:Name="AddProcessButton" Grid.Column="1" Content="Ajouter"/>
+										</Grid>
+
+										<ListBox x:Name="WatchedProcessesListBox" Height="80" Background="White"/>
+										<Button x:Name="RemoveProcessButton" Content="Retirer sélection" Background="#EF4444" Foreground="White" HorizontalAlignment="Right"/>
+									</StackPanel>
+								</Border>
+							</StackPanel>
+
+							<StackPanel Grid.Column="2" Spacing="15">
+								<Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="15">
+									<StackPanel Spacing="10">
+										<TextBlock Text="Chiffrement (CryptoSoft)" FontSize="14" FontWeight="Bold" Foreground="#374151"/>
+
+										<StackPanel>
+											<TextBlock Text="Clé de chiffrement" FontSize="12" Foreground="#6B7280"/>
+											<Grid ColumnDefinitions="*, Auto">
+												<TextBox x:Name="EncryptionKeyTextBox" PasswordChar="*" Margin="0,0,10,0"/>
+												<Button x:Name="EditEncryptionKeyButton" Grid.Column="1" Content="Modifier"/>
+											</Grid>
+										</StackPanel>
+
+										<TextBlock Text="Extensions à chiffrer" FontSize="12" Foreground="#6B7280" Margin="0,5,0,0"/>
+										<Grid ColumnDefinitions="*, Auto">
+											<TextBox x:Name="AddExtensionTextBox" Watermark=".txt" Margin="0,0,10,0"/>
+											<Button x:Name="AddExtensionButton" Grid.Column="1" Content="+"/>
+										</Grid>
+
+										<ListBox x:Name="EncryptionExtensionsListBox" Height="80" Background="White"/>
+										<Button x:Name="RemoveExtensionButton" Content="Retirer sélection" Background="#EF4444" Foreground="White" HorizontalAlignment="Right"/>
+									</StackPanel>
+								</Border>
+
+								<Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="15">
+									<StackPanel Spacing="10">
+										<TextBlock Text="Chemins des fichiers" FontSize="14" FontWeight="Bold" Foreground="#374151"/>
+
+										<StackPanel>
+											<TextBlock x:Name="LogsPathLabelText" Text="Dossier Logs" FontSize="11" Foreground="#6B7280"/>
+											<Grid ColumnDefinitions="*, Auto">
+												<TextBox x:Name="LogsPathTextBox" IsReadOnly="True" Background="#E5E7EB" Margin="0,0,5,0"/>
+												<Button x:Name="BrowseLogsButton" Grid.Column="1" Content="..." Width="30"/>
+											</Grid>
+											<TextBlock x:Name="LogsPathValueText" IsVisible="False"/>
+										</StackPanel>
+
+										<StackPanel>
+											<TextBlock x:Name="ConfigLabelText" Text="Fichier Config" FontSize="11" Foreground="#6B7280"/>
+											<Grid ColumnDefinitions="*, Auto">
+												<TextBox x:Name="ConfigPathTextBox" IsReadOnly="True" Background="#E5E7EB" Margin="0,0,5,0"/>
+												<Button x:Name="BrowseConfigButton" Grid.Column="1" Content="..." Width="30"/>
+											</Grid>
+											<TextBlock x:Name="ConfigPathValueText" IsVisible="False"/>
+										</StackPanel>
+
+										<StackPanel>
+											<TextBlock x:Name="StateLabelText" Text="Fichier État" FontSize="11" Foreground="#6B7280"/>
+											<Grid ColumnDefinitions="*, Auto">
+												<TextBox x:Name="StatePathTextBox" IsReadOnly="True" Background="#E5E7EB" Margin="0,0,5,0"/>
+												<Button x:Name="BrowseStateButton" Grid.Column="1" Content="..." Width="30"/>
+											</Grid>
+											<TextBlock x:Name="StatePathValueText" IsVisible="False"/>
+										</StackPanel>
+									</StackPanel>
+								</Border>
+
+								<Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="15">
+									<StackPanel Spacing="10">
+										<TextBlock x:Name="AboutSectionText" Text="À propos" FontSize="14" FontWeight="Bold" Foreground="#374151"/>
+										<StackPanel Orientation="Horizontal" Spacing="5">
+											<TextBlock x:Name="VersionLabelText" Text="Version :" FontWeight="SemiBold"/>
+											<TextBlock Text="3.0"/>
+										</StackPanel>
+										<TextBlock Text="© 2026 ProSoft" FontSize="11" Foreground="#9CA3AF"/>
+									</StackPanel>
+								</Border>
+							</StackPanel>
+						</Grid>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+		</TabControl>
+	</Grid>
 </Window>

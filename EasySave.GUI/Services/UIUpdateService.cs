@@ -1,7 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Media;
+using EasySave.Core.Models;
 using EasySave.Core.Properties;
 using EasySave.GUI.Helpers;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -34,22 +37,22 @@ public class UIUpdateService
             _controls.StatusText.Text = message;
             _controls.StatusText.Foreground = isSuccess ? Brushes.Green : Brushes.Red;
         }
-        
+
         if (_controls.FooterText != null)
             _controls.FooterText.Text = message;
     }
-    
+
     /// <summary>
     /// Updates the jobs count display.
     /// </summary>
     public void UpdateJobsCount(int count)
     {
         var text = count == 0 ? "Aucune sauvegarde" : count == 1 ? "1 sauvegarde" : $"{count} sauvegardes";
-        
+
         if (_controls.ItemsCountText != null)
             _controls.ItemsCountText.Text = text;
     }
-    
+
     /// <summary>
     /// Shows or hides the progress area and resets progress if hidden.
     /// </summary>
@@ -57,7 +60,7 @@ public class UIUpdateService
     {
         if (_controls.ProgressArea != null)
             _controls.ProgressArea.IsVisible = show;
-            
+
         if (!show)
         {
             if (_controls.ProgressBar != null)
@@ -79,6 +82,47 @@ public class UIUpdateService
         UpdateButtons();
         UpdateComboBoxes();
         UpdateHeaderAndFooter();
+    }
+
+    /// <summary>
+    /// Updates the list of posted jobs.
+    /// </summary>
+    public void UpdateJobList(List<string> jobs)
+    {
+        if (_controls.JobListBox != null)
+            _controls.JobListBox.ItemsSource = jobs;
+
+        if (_controls.ManageJobListBox != null)
+            _controls.ManageJobListBox.ItemsSource = jobs;
+
+        UpdateJobsCount(jobs.Count);
+    }
+
+    /// <summary>
+    /// Updates the progress bar with the current status.
+    /// </summary>
+    public void UpdateProgress(BackupJobState state)
+    {
+        ShowProgress(true);
+
+        if (_controls.ProgressBar != null)
+            _controls.ProgressBar.Value = state.ProgressPercentage;
+
+        if (_controls.ProgressText != null)
+            _controls.ProgressText.Text = $"{state.ProgressPercentage}%";
+
+        if (_controls.CurrentFileText != null)
+            _controls.CurrentFileText.Text = string.IsNullOrEmpty(state.CurrentSourceFile)
+                ? "..."
+                : $"Fichier : {Path.GetFileName(state.CurrentSourceFile)}";
+    }
+
+    /// <summary>
+    /// Displays an alert for the business software.
+    /// </summary>
+    public void ShowBusinessProcessAlert(string processName)
+    {
+        UpdateStatus($" ALERTE : Logiciel métier '{processName}' détecté ! Sauvegarde en pause.", false);
     }
 
 
@@ -141,7 +185,7 @@ public class UIUpdateService
         if (_controls.TypeComboBox != null)
         {
             var currentIndex = _controls.TypeComboBox.SelectedIndex;
-            _controls.TypeComboBox.ItemsSource = new[] 
+            _controls.TypeComboBox.ItemsSource = new[]
             {
                 LocalizationManager.GetString("BackupTypeFull"),
                 LocalizationManager.GetString("BackupTypeDifferential")
@@ -152,7 +196,7 @@ public class UIUpdateService
         if (_controls.LanguageComboBox != null)
         {
             var currentIndex = _controls.LanguageComboBox.SelectedIndex;
-            _controls.LanguageComboBox.ItemsSource = new[] 
+            _controls.LanguageComboBox.ItemsSource = new[]
             {
                 LocalizationManager.GetString("LangFrench"),
                 LocalizationManager.GetString("LangEnglish")
@@ -166,7 +210,7 @@ public class UIUpdateService
     {
         if (_controls.HeaderDescription != null)
             _controls.HeaderDescription.Text = LocalizationManager.GetString("AppDescription");
-        
+
         if (_controls.FooterText != null)
             _controls.FooterText.Text = LocalizationManager.GetString("StatusReady");
     }
@@ -176,7 +220,7 @@ public class UIUpdateService
     {
         _window.FindControl<TextBlock>(name)?.SetValue(TextBlock.TextProperty, LocalizationManager.GetString(key));
     }
-        
+
 
     private void UpdateButton(string name, string key)
     {
@@ -192,12 +236,12 @@ public class UIUpdateService
             _controls.LogsPathValueText.Text = logsPath;
         if (_controls.LogsPathTextBox != null)
             _controls.LogsPathTextBox.Text = logsPath;
-            
+
         if (_controls.ConfigPathValueText != null)
             _controls.ConfigPathValueText.Text = configPath;
         if (_controls.ConfigPathTextBox != null)
             _controls.ConfigPathTextBox.Text = configPath;
-            
+
         if (_controls.StatePathValueText != null)
             _controls.StatePathValueText.Text = statePath;
         if (_controls.StatePathTextBox != null)

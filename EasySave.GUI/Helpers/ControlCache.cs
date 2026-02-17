@@ -2,9 +2,6 @@ using Avalonia.Controls;
 
 namespace EasySave.GUI.Helpers;
 
-/// <summary>
-/// Manages a cache of UI controls for performance optimization in the EasySave GUI.
-/// </summary>
 public class ControlCache
 {
     public ListBox? JobListBox { get; set; }
@@ -15,6 +12,8 @@ public class ControlCache
     public Border? ProgressArea { get; set; }
     public ComboBox? TypeComboBox { get; set; }
     public ComboBox? LanguageComboBox { get; set; }
+    public ComboBox? LogTargetComboBox { get; set; }
+
     public TextBlock? LogsPathValueText { get; set; }
     public TextBox? LogsPathTextBox { get; set; }
     public TextBlock? ConfigPathValueText { get; set; }
@@ -37,21 +36,16 @@ public class ControlCache
     public Button? AddExtensionButton { get; set; }
     public Button? RemoveExtensionButton { get; set; }
 
-    // Process Detector controls
     public ListBox? WatchedProcessesListBox { get; set; }
     public TextBox? AddProcessTextBox { get; set; }
     public Button? AddProcessButton { get; set; }
     public Button? RemoveProcessButton { get; set; }
 
-    // Backup control buttons (Pause / Resume / Stop)
+    public Button? PlayButton { get; set; }
     public Button? PauseButton { get; set; }
     public Button? ResumeButton { get; set; }
     public Button? StopButton { get; set; }
 
-    /// <summary>
-    /// Initializes all cached controls by finding them in the specified window.
-    /// </summary>
-    /// <param name="window">The main application window containing the controls.</param>
     public void InitializeFrom(Window window)
     {
         JobListBox = window.FindControl<ListBox>("JobListBox");
@@ -62,6 +56,8 @@ public class ControlCache
         ProgressArea = window.FindControl<Border>("ProgressArea");
         TypeComboBox = window.FindControl<ComboBox>("TypeComboBox");
         LanguageComboBox = window.FindControl<ComboBox>("LanguageComboBox");
+        LogTargetComboBox = window.FindControl<ComboBox>("LogTargetComboBox"); // AJOUT
+
         LogsPathValueText = window.FindControl<TextBlock>("LogsPathValueText");
         LogsPathTextBox = window.FindControl<TextBox>("LogsPathTextBox");
         ConfigPathValueText = window.FindControl<TextBlock>("ConfigPathValueText");
@@ -84,13 +80,12 @@ public class ControlCache
         AddExtensionButton = window.FindControl<Button>("AddExtensionButton");
         RemoveExtensionButton = window.FindControl<Button>("RemoveExtensionButton");
 
-        // Process Detector controls
         WatchedProcessesListBox = window.FindControl<ListBox>("WatchedProcessesListBox");
         AddProcessTextBox = window.FindControl<TextBox>("AddProcessTextBox");
         AddProcessButton = window.FindControl<Button>("AddProcessButton");
         RemoveProcessButton = window.FindControl<Button>("RemoveProcessButton");
 
-        // Backup control buttons
+        PlayButton = window.FindControl<Button>("PlayButton");
         PauseButton = window.FindControl<Button>("PauseButton");
         ResumeButton = window.FindControl<Button>("ResumeButton");
         StopButton = window.FindControl<Button>("StopButton");
