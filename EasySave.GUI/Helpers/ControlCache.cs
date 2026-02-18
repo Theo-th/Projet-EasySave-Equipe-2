@@ -2,6 +2,10 @@ using Avalonia.Controls;
 
 namespace EasySave.GUI.Helpers;
 
+/// <summary>
+/// Manages a cache of UI controls for performance optimization in the EasySave GUI.
+/// </summary>
+
 public class ControlCache
 {
     public ListBox? JobListBox { get; set; }
@@ -44,11 +48,18 @@ public class ControlCache
     public TextBox? ServerIpTextBox { get; set; }
     public Button? SaveIpButton { get; set; }
 
+
+    // Backup control buttons (Pause / Resume / Stop)
     public Button? PlayButton { get; set; }
     public Button? PauseButton { get; set; }
     public Button? ResumeButton { get; set; }
     public Button? StopButton { get; set; }
 
+
+    /// <summary>
+    /// Initializes all cached controls by finding them in the specified window.
+    /// </summary>
+    /// <param name="window">The main application window containing the controls.</param>
     public void InitializeFrom(Window window)
     {
         JobListBox = window.FindControl<ListBox>("JobListBox");
@@ -83,6 +94,8 @@ public class ControlCache
         AddExtensionButton = window.FindControl<Button>("AddExtensionButton");
         RemoveExtensionButton = window.FindControl<Button>("RemoveExtensionButton");
 
+
+        // Process Detector controls
         WatchedProcessesListBox = window.FindControl<ListBox>("WatchedProcessesListBox");
         AddProcessTextBox = window.FindControl<TextBox>("AddProcessTextBox");
         AddProcessButton = window.FindControl<Button>("AddProcessButton");
@@ -91,6 +104,8 @@ public class ControlCache
         ServerIpTextBox = window.FindControl<TextBox>("ServerIpTextBox");
         SaveIpButton = window.FindControl<Button>("SaveIpButton");
 
+
+        // Backup control buttons
         PlayButton = window.FindControl<Button>("PlayButton");
         PauseButton = window.FindControl<Button>("PauseButton");
         ResumeButton = window.FindControl<Button>("ResumeButton");

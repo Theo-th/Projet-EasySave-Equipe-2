@@ -5,6 +5,11 @@ using EasySave.Core.Services.Strategies;
 
 namespace EasySave.Core.Services
 {
+
+    // Service for executing and managing backup operations.
+    /// <summary>
+    /// Manages backup operations and job execution.
+    /// </summary>
     public class BackupService : IBackupService
     {
         private readonly IJobConfigService _configService;
@@ -12,9 +17,12 @@ namespace EasySave.Core.Services
         private readonly ProcessDetector _processDetector;
         private BaseLog _logger;
         private string _logDirectory;
+
+        // Currently active strategy (to allow cancellation, pause, resume)
         private BackupStrategy? _activeStrategy;
         private LogTarget _currentLogTarget = LogTarget.Both;
 
+        // Event triggered on each backup job progress change.
         public event Action<BackupJobState>? OnProgressChanged;
         public event Action<string>? OnBusinessProcessDetected;
 
@@ -24,11 +32,13 @@ namespace EasySave.Core.Services
             _stateRepository = stateRepository;
             _processDetector = processDetector;
             _logDirectory = logDirectory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+
+            // Subscribe to process detection events to cancel active backup
             ChangeLogFormat(logType);
             _processDetector.ProcessStatusChanged += OnWatchedProcessStatusChanged;
         }
 
-        // Méthode pour définir la cible
+        // Method for defining the target
         public void SetLogTarget(LogTarget target)
         {
             _currentLogTarget = target;
@@ -43,14 +53,28 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Pauses the currently active backup.
+        /// </summary>
         public void PauseBackup() => _activeStrategy?.Pause();
+
+        /// <summary>
+        /// Resumes the currently paused backup.
+        /// </summary>
         public void ResumeBackup() => _activeStrategy?.Resume();
+
+        /// <summary>
+        /// Stops (cancels) the currently active backup.
+        /// </summary>
         public void StopBackup() => _activeStrategy?.Cancel();
 
+        // Executes backup jobs by their indices.
+        // Returns a formatted backup status message or error message.
         public string? ExecuteBackup(List<int> jobIndices)
         {
             if (jobIndices == null || jobIndices.Count == 0) return "No backup job specified.";
 
+            // Check if any watched business process is running before starting
             var runningProcess = _processDetector.IsAnyWatchedProcessRunning();
             if (runningProcess != null)
             {
@@ -66,6 +90,7 @@ namespace EasySave.Core.Services
             {
                 if (index < 0 || index >= allJobs.Count) continue;
 
+                // Re-check before each job in case a process started between jobs
                 runningProcess = _processDetector.IsAnyWatchedProcessRunning();
                 if (runningProcess != null)
                 {
@@ -75,6 +100,8 @@ namespace EasySave.Core.Services
                 }
 
                 BackupJob job = allJobs[index];
+
+                // Initialize the job state
                 var jobState = new BackupJobState
                 {
                     Id = index,
@@ -86,15 +113,18 @@ namespace EasySave.Core.Services
                     LastActionTimestamp = DateTime.Now
                 };
 
+                // Add the state to the list BEFORE execution so the state.json file is up-to-date during copy
                 states.Add(jobState);
                 _stateRepository.UpdateState(states);
                 OnProgressChanged?.Invoke(jobState);
 
                 try
                 {
+                    // Create the appropriate strategy based on the backup type
                     BackupStrategy strategy = CreateBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Type, job.Name);
                     _activeStrategy = strategy;
 
+                    // Subscribe to pause state changes
                     strategy.OnPauseStateChanged += (isPaused) =>
                     {
                         jobState.State = isPaused ? BackupState.Paused : BackupState.Active;
@@ -111,6 +141,7 @@ namespace EasySave.Core.Services
                         _stateRepository.UpdateState(states); OnProgressChanged?.Invoke(jobState);
                     };
 
+                    // Subscribe to the file transfer event (file-by-file progress)
                     strategy.OnFileTransferred += (sourceFile, targetFile, fileSize) =>
                     {
                         jobState.RemainingFiles--; jobState.RemainingSize -= fileSize;
@@ -119,8 +150,10 @@ namespace EasySave.Core.Services
                         _stateRepository.UpdateState(states); OnProgressChanged?.Invoke(jobState);
                     };
 
+                    // Execute the backup
                     var (success, errorMessage) = strategy.Execute();
 
+                    // Update the final state
                     jobState.State = success ? BackupState.Completed : BackupState.Error;
                     jobState.CurrentSourceFile = ""; jobState.CurrentTargetFile = "";
                     jobState.RemainingFiles = 0; jobState.RemainingSize = 0;
@@ -141,6 +174,7 @@ namespace EasySave.Core.Services
             return string.Join("\n", results);
         }
 
+        // Creates the appropriate backup strategy based on the type.
         private BackupStrategy CreateBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName)
         {
             return backupType switch
@@ -156,9 +190,12 @@ namespace EasySave.Core.Services
             _logger = logType switch { LogType.JSON => new JsonLog(_logDirectory), LogType.XML => new XmlLog(_logDirectory), _ => new JsonLog(_logDirectory) };
         }
 
+        // Updates the logs directory and recreates the logger with the new path.
         public void UpdateLogsDirectory(string newLogsDirectory)
         {
             _logDirectory = newLogsDirectory;
+
+            // Recreate the logger with the current type and new directory
             if (_logger is JsonLog) _logger = new JsonLog(_logDirectory);
             else if (_logger is XmlLog) _logger = new XmlLog(_logDirectory);
         }

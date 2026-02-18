@@ -3,6 +3,7 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
+    // Differential backup strategy (modified files only).
     public class DifferentialBackupStrategy : BackupStrategy
     {
         public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger, LogTarget logTarget)
@@ -10,32 +11,46 @@ namespace EasySave.Core.Services.Strategies
         {
         }
 
+        /// Executes a differential backup:
+        /// 1. Validates source/destination directories
+        /// 2. If no full backup exists, performs one
+        /// 3. Otherwise, clears the previous differential folder, traverses source files,
+        ///    copies modified ones immediately, and reports deleted files
+        /// </summary>
         public override (bool Success, string? ErrorMessage) Execute()
         {
+            // Step 1: Directory validation
             var validation = ValidateAndPrepareDirectories();
             if (!validation.Success) return validation;
 
             try
             {
                 string fullBackupFolder = Path.Combine(TargetDirectory, FULL_MARKER);
+                // Step 2: Check if a full backup exists
                 if (!Directory.Exists(fullBackupFolder)) return ExecuteFullBackup(fullBackupFolder);
 
+                // Step 3: Clear the contents of the previous differential folder
                 string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_MARKER);
                 ClearBackupFolder(diffBackupFolder);
 
                 var diffFolderCreation = CreateBackupFolder(diffBackupFolder, DIFFERENTIAL_MARKER);
                 if (!diffFolderCreation.Success) return diffFolderCreation;
 
+                // 3a: Generate the deleted files report
                 var reportResult = CreateDeletedFilesReport(SourceDirectory, fullBackupFolder, diffBackupFolder);
                 if (!reportResult.Success) return reportResult;
 
+                // 3b: Traverse source files, compare with full backup, and copy modified ones immediately
                 var dirInfo = new DirectoryInfo(SourceDirectory);
                 if (!dirInfo.Exists) return (false, $"Source directory '{SourceDirectory}' does not exist.");
 
                 var sourceFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
 
+                // Pre-compute modified files count and size for initialization event
                 int modifiedCount = 0;
                 long totalSize = 0;
+
+                // Now traverse again and copy each modified file immediately
                 foreach (var sourceFile in sourceFiles)
                 {
                     string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
@@ -67,6 +82,7 @@ namespace EasySave.Core.Services.Strategies
             catch (Exception ex) { return (false, $"Error during differential backup: {ex.Message}"); }
         }
 
+        // Performs an initial full backup when none exists.
         private (bool Success, string? ErrorMessage) ExecuteFullBackup(string fullBackupFolder)
         {
             var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
@@ -76,6 +92,8 @@ namespace EasySave.Core.Services.Strategies
             if (!dirInfo.Exists) return (false, $"Source directory '{SourceDirectory}' does not exist.");
 
             var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
+
+            // Compute total size and notify initialization
             long totalSize = allFiles.Sum(f => f.Length);
             RaiseBackupInitialized(allFiles.Length, totalSize);
 
@@ -88,6 +106,8 @@ namespace EasySave.Core.Services.Strategies
             return (true, null);
         }
 
+        // Detects deleted files (present in the full backup but missing from the source)
+        // and generates a report in the destination folder.
         private (bool Success, string? ErrorMessage) CreateDeletedFilesReport(string sourceDir, string fullBackupDir, string targetDir)
         {
             try
