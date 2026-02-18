@@ -63,8 +63,6 @@ namespace EasySave.ConsoleUI
             }
         }
 
-
-
         private void ShowSettings(int index, string[] options)
         {
             Console.Clear();
@@ -217,7 +215,6 @@ namespace EasySave.ConsoleUI
             Console.ReadKey();
         }
 
-
         public void MenuSettings()
         {
             bool quit = false;
@@ -228,6 +225,8 @@ namespace EasySave.ConsoleUI
                 string[] options = {
                     "Changer la Langue",
                     Lang.TitleLog,
+                    "Cible des logs (Docker)",
+                    "Configurer IP Serveur",
                     Lang.MenuQuit
                 };
 
@@ -249,7 +248,9 @@ namespace EasySave.ConsoleUI
                     {
                         case 0: LangSettings(); break;
                         case 1: MenuLogFormat(); break;
-                        case 2: quit = true; break;
+                        case 2: MenuLogTarget(); break;
+                        case 3: ConfigureIpMenu(); break;
+                        case 4: quit = true; break;
                     }
                 }
             }
@@ -257,16 +258,76 @@ namespace EasySave.ConsoleUI
 
 
 
+        private void ConfigureIpMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("=== CONFIGURATION IP SERVEUR ===");
+            Console.WriteLine($"IP Actuelle : {_viewModel.GetServerIp()}");
+            Console.WriteLine("-------------------------------------");
+            Console.Write("Nouvelle IP (laisser vide pour annuler) : ");
+
+            string? input = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                _viewModel.SetServerIp(input);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("IP enregistrée avec succès !");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.WriteLine("Modification annulée.");
+            }
+            Thread.Sleep(1000);
+        }
 
 
 
+        private void MenuLogTarget()
+        {
+            int index = 0;
+            bool back = false;
+            string[] targets = { "Local", "Server", "Both" };
+            string[] displayNames = { "Local uniquement", "Serveur (Docker) uniquement", "Les deux (Local + Serveur)" };
 
+            while (!back)
+            {
+                Console.Clear();
+                Console.WriteLine("=== CIBLE DES LOGS ===");
+                Console.WriteLine("-------------------------------------");
 
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    if (i == index)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"> {displayNames[i]}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {displayNames[i]}");
+                    }
+                }
+                Console.WriteLine("-------------------------------------");
+                Console.WriteLine(Lang.BtnReturn + " (Escape)");
 
+                ConsoleKeyInfo key = Console.ReadKey(true);
 
-
-
-
+                if (key.Key == ConsoleKey.UpArrow) index = (index == 0) ? targets.Length - 1 : index - 1;
+                else if (key.Key == ConsoleKey.DownArrow) index = (index + 1) % targets.Length;
+                else if (key.Key == ConsoleKey.Escape) back = true;
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    _viewModel.SetLogTarget(targets[index]);
+                    Console.WriteLine($"\nCible modifiée : {displayNames[index]}");
+                    Thread.Sleep(1000);
+                    back = true;
+                }
+            }
+        }
 
         private void MenuLogFormat()
         {

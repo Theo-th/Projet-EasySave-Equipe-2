@@ -1,141 +1,27 @@
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
-using EasySave.Core.ViewModels;
+using Avalonia.Threading;
 using EasySave.Core.Models;
-using EasySave.Core.Properties;
+using EasySave.Core.ViewModels;
 using EasySave.GUI.Helpers;
 using EasySave.GUI.Services;
-using EasySave.GUI.Handlers;
-using EasySave.GUI.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Collections.ObjectModel;
-using System.Threading;
-using Avalonia;
+using System.Linq;
 
-namespace EasySave.GUI;
-
-/// <summary>
-/// Main window of the EasySave application.
-/// Refactored architecture with separation of concerns.
-/// </summary>
-public partial class MainWindow : Window
+namespace EasySave.GUI
 {
-    private readonly ViewModelConsole _viewModel;
-    private readonly ObservableCollection<JobItem> _jobs;
-    private readonly ControlCache _controls;
-    private readonly UIUpdateService _uiService;
-    private readonly SettingsService _settingsService;
-    private readonly JobEventHandler _jobHandler;
-    private readonly FileSystemHandler _fileSystemHandler;
-
-    /// <summary>
-    /// Initializes the main window, services, controls, and event handlers.
-    /// </summary>
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
-        
-        // Initialize services
-        _settingsService = new SettingsService();
-        var settings = _settingsService.LoadSettings();
-        
-        // Load paths
-        var logsPath = settings.ContainsKey("LogsPath") ? settings["LogsPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-        var configPath = settings.ContainsKey("ConfigPath") ? settings["ConfigPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
-        var statePath = settings.ContainsKey("StatePath") ? settings["StatePath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
-        
-        // Initialize ViewModel
-        _viewModel = new ViewModelConsole(LogType.JSON, configPath, statePath, logsPath);
-        _jobs = new ObservableCollection<JobItem>();
-        
-        // Initialize helpers and handlers
-        _controls = new ControlCache();
-        _controls.InitializeFrom(this);
-        
-        _uiService = new UIUpdateService(this, _controls);
-        _jobHandler = new JobEventHandler(this, _controls, _viewModel, _uiService, _jobs);
-        _fileSystemHandler = new FileSystemHandler(this, _controls, _viewModel, _uiService, _settingsService, logsPath, configPath, statePath);
-        
-        // Subscribe to events
-        _viewModel.OnProgressChanged += _jobHandler.OnBackupProgressChanged;
-        _viewModel.OnProgressChanged += OnBackupStateChanged;
-        _viewModel.OnBusinessProcessDetected += OnBusinessProcessDetected;
-        
-        // Initialize interface
-        SetupEventHandlers();
-        _jobHandler.LoadJobs();
-        _uiService.UpdateAllTexts();
-        _uiService.UpdatePaths(_fileSystemHandler.LogsPath, _fileSystemHandler.ConfigPath, _fileSystemHandler.StatePath);
+        private readonly ViewModelConsole _viewModel;
+        private readonly ControlCache _controls;
+        private readonly UIUpdateService _uiService;
+        private DispatcherTimer _timer;
 
-        // Initialisation des contrôles de chiffrement
-        UpdateEncryptionKeyUI();
-        UpdateEncryptionExtensionsUI();
-
-        // Initialisation des processus surveillés
-        UpdateWatchedProcessesUI();
-    }
-
-    /// <summary>
-    /// Sets up event handlers for UI controls and backup actions.
-    /// </summary>
-    private void SetupEventHandlers()
-    {
-        var executeButton = this.FindControl<Button>("ExecuteButton");
-        var createJobButton = this.FindControl<Button>("CreateJobButton");
-        var deleteJobButton = this.FindControl<Button>("DeleteJobButton");
-        var viewDetailsButton = this.FindControl<Button>("ViewDetailsButton");
-        var browseSourceButton = this.FindControl<Button>("BrowseSourceButton");
-        var browseTargetButton = this.FindControl<Button>("BrowseTargetButton");
-        var browseLogsButton = this.FindControl<Button>("BrowseLogsButton");
-        var browseConfigButton = this.FindControl<Button>("BrowseConfigButton");
-        var browseStateButton = this.FindControl<Button>("BrowseStateButton");
-
-        if (executeButton != null)
-            executeButton.Click += _jobHandler.ExecuteButton_Click;
-        if (createJobButton != null)
-            createJobButton.Click += _jobHandler.CreateJobButton_Click;
-        if (deleteJobButton != null)
-            deleteJobButton.Click += _jobHandler.DeleteJobButton_Click;
-        if (viewDetailsButton != null)
-            viewDetailsButton.Click += _jobHandler.ViewDetailsButton_Click;
-        if (browseSourceButton != null)
-            browseSourceButton.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("SourcePathTextBox");
-        if (browseTargetButton != null)
-            browseTargetButton.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("TargetPathTextBox");
-        if (browseLogsButton != null)
-            browseLogsButton.Click += async (s, e) => await _fileSystemHandler.BrowseLogsFolder();
-        if (browseConfigButton != null)
-            browseConfigButton.Click += async (s, e) => await _fileSystemHandler.BrowseConfigFile();
-        if (browseStateButton != null)
-            browseStateButton.Click += async (s, e) => await _fileSystemHandler.BrowseStateFile();
-        if (_controls.LanguageComboBox != null)
-            _controls.LanguageComboBox.SelectionChanged += LanguageComboBox_SelectionChanged;
-
-        // Gestion clé de cryptage
-        if (_controls.EditEncryptionKeyButton != null)
-            _controls.EditEncryptionKeyButton.Click += EditEncryptionKeyButton_Click;
-        // Gestion extensions à chiffrer
-        if (_controls.AddExtensionButton != null)
-            _controls.AddExtensionButton.Click += AddExtensionButton_Click;
-        if (_controls.RemoveExtensionButton != null)
-            _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
-
-        // Gestion processus métier
-        if (_controls.AddProcessButton != null)
-            _controls.AddProcessButton.Click += AddProcessButton_Click;
-        if (_controls.RemoveProcessButton != null)
-            _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
-
-        // Backup control buttons: Pause / Resume / Stop
-        if (_controls.PauseButton != null)
-            _controls.PauseButton.Click += PauseButton_Click;
-        if (_controls.ResumeButton != null)
-            _controls.ResumeButton.Click += ResumeButton_Click;
-        if (_controls.StopButton != null)
-            _controls.StopButton.Click += StopButton_Click;
-    }
+        public MainWindow()
+        {
+            InitializeComponent();
 
     /// <summary>
     /// Handler for pausing the current backup.
@@ -169,206 +55,287 @@ public partial class MainWindow : Window
         _viewModel.StopBackup();
         _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupStopped, false);
     }
+            // Initialize helpers
+            _controls = new ControlCache();
+            _controls.InitializeFrom(this);
 
-    /// <summary>
-    /// Updates Pause/Resume button visibility according to backup state.
-    /// </summary>
-    /// <param name="state">Current backup job state.</param>
-    private void OnBackupStateChanged(BackupJobState state)
-    {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            if (state.State == BackupState.Paused)
-            {
-                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = false;
-                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = true;
-            }
-            else if (state.State == BackupState.Active)
-            {
-                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = true;
-                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = false;
-            }
-            else if (state.State == BackupState.Completed || state.State == BackupState.Error)
-            {
-                // Réinitialiser les boutons
-                if (_controls.PauseButton != null) _controls.PauseButton.IsVisible = true;
-                if (_controls.ResumeButton != null) _controls.ResumeButton.IsVisible = false;
-            }
-        });
-    }
 
-    /// <summary>
-    /// Updates the displayed encryption key in the UI.
-    /// </summary>
-    private void UpdateEncryptionKeyUI()
-    {
-        if (_controls.EncryptionKeyTextBox != null)
-            _controls.EncryptionKeyTextBox.Text = _viewModel.GetEncryptionKey();
-    }
+            _uiService = new UIUpdateService(this, _controls);
 
-    /// <summary>
-    /// Updates the list of encryption extensions in the UI.
-    /// </summary>
-    private void UpdateEncryptionExtensionsUI()
-    {
-        if (_controls.EncryptionExtensionsListBox != null)
-        {
-            _controls.EncryptionExtensionsListBox.ItemsSource = new ObservableCollection<string>(_viewModel.GetEncryptionExtensions());
+            // Initialize ViewModel
+            _viewModel = new ViewModelConsole();
+
+            // Load initial data
+            RefreshJobList();
+            LoadSettings();
+
+            // Setup event handlers
+            SetupEventHandlers();
+
+            // Setup UI update timer (polling)
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _timer.Tick += (s, e) => UpdateUiState();
+            _timer.Start();
+
+            // Subscribe to ViewModel events
+            _viewModel.OnProgressChanged += (state) => Dispatcher.UIThread.InvokeAsync(() => _uiService.UpdateProgress(state));
+            _viewModel.OnBusinessProcessDetected += (processName) => Dispatcher.UIThread.InvokeAsync(() => _uiService.ShowBusinessProcessAlert(processName));
         }
-    }
 
-    /// <summary>
-    /// Updates the list of watched business processes in the UI.
-    /// </summary>
-    private void UpdateWatchedProcessesUI()
-    {
-        if (_controls.WatchedProcessesListBox != null)
+        private void SetupEventHandlers()
         {
-            _controls.WatchedProcessesListBox.ItemsSource = new ObservableCollection<string>(_viewModel.GetWatchedProcesses());
+            // --- Backup Actions ---
+            if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
+            if (_controls.PlayButton != null) _controls.PlayButton.Click += PlayButton_Click;
+            if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
+            if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
+            if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
+
+            // --- Job Management ---
+            var createJobBtn = this.FindControl<Button>("CreateJobButton");
+            if (createJobBtn != null) createJobBtn.Click += CreateJobButton_Click;
+
+            var deleteJobBtn = this.FindControl<Button>("DeleteJobButton");
+            if (deleteJobBtn != null) deleteJobBtn.Click += DeleteJobButton_Click;
+
+            // --- Settings: General ---
+            if (_controls.LanguageComboBox != null) _controls.LanguageComboBox.SelectionChanged += LanguageComboBox_SelectionChanged;
+
+            // Log Format (JSON/XML)
+            var logFormatCombo = this.FindControl<ComboBox>("LogFormatComboBox");
+            if (logFormatCombo != null) logFormatCombo.SelectionChanged += LogFormatComboBox_SelectionChanged;
+
+            // Log Target (Local/Docker) - NEW
+            if (_controls.LogTargetComboBox != null) _controls.LogTargetComboBox.SelectionChanged += LogTargetComboBox_SelectionChanged;
+
+            // --- Settings: Encryption ---
+            if (_controls.EditEncryptionKeyButton != null) _controls.EditEncryptionKeyButton.Click += EditEncryptionKeyButton_Click;
+            if (_controls.AddExtensionButton != null) _controls.AddExtensionButton.Click += AddExtensionButton_Click;
+            if (_controls.RemoveExtensionButton != null) _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
+
+            // --- Settings: Process Monitoring ---
+            if (_controls.AddProcessButton != null) _controls.AddProcessButton.Click += AddProcessButton_Click;
+            if (_controls.RemoveProcessButton != null) _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
         }
-    }
 
-    /// <summary>
-    /// Handler called when a business process is detected during backup.
-    /// </summary>
-    /// <param name="processName">Name of the detected process.</param>
-    private void OnBusinessProcessDetected(string processName)
-    {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        private void LoadSettings()
         {
-            _uiService.UpdateStatus($"Sauvegarde interrompue : processus métier '{processName}' détecté !", false);
-        });
-    }
+            // Load Job List
+            RefreshJobList();
 
-    /// <summary>
-    /// Handler for adding a business process to watch.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Event arguments.</param>
-    private void AddProcessButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.AddProcessTextBox == null || string.IsNullOrWhiteSpace(_controls.AddProcessTextBox.Text))
-            return;
-        var processName = _controls.AddProcessTextBox.Text.Trim();
-        _viewModel.AddWatchedProcess(processName);
-        UpdateWatchedProcessesUI();
-        _controls.AddProcessTextBox.Text = string.Empty;
-    }
+            // Load Paths
+            if (_controls.LogsPathTextBox != null) _controls.LogsPathTextBox.Text = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            if (_controls.ConfigPathTextBox != null) _controls.ConfigPathTextBox.Text = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
 
-    /// <summary>
-    /// Handler for removing a selected watched business process.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Event arguments.</param>
-    private void RemoveProcessButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.WatchedProcessesListBox == null || _controls.WatchedProcessesListBox.SelectedItem == null)
-            return;
-        var processName = _controls.WatchedProcessesListBox.SelectedItem as string;
-        if (!string.IsNullOrEmpty(processName))
-        {
-            _viewModel.RemoveWatchedProcess(processName);
-            UpdateWatchedProcessesUI();
-        }
-    }
+            // Load Encryption Data
+            if (_controls.EncryptionKeyTextBox != null) _controls.EncryptionKeyTextBox.Text = _viewModel.GetEncryptionKey();
+            RefreshExtensionsList();
 
-    /// <summary>
-    /// Handler for editing the encryption key.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Event arguments.</param>
-    private async void EditEncryptionKeyButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.EncryptionKeyTextBox == null)
-            return;
-        var dialog = new Window
-        {
-            Title = "Modifier la clé de cryptage",
-            Width = 350,
-            Height = 150,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = new StackPanel
+            if (_controls.ServerIpTextBox != null) _controls.ServerIpTextBox.Text = _viewModel.GetServerIp();
+
+            // Load Processes
+            RefreshProcessesList();
+
+            // Load Log Format
+            var logFormatCombo = this.FindControl<ComboBox>("LogFormatComboBox");
+            if (logFormatCombo != null)
             {
-                Margin = new Avalonia.Thickness(16),
-                Children =
+                var currentFormat = _viewModel.CurrentLogFormat();
+                logFormatCombo.SelectedIndex = currentFormat == "XML" ? 1 : 0;
+            }
+        }
+
+        private void RefreshJobList()
+        {
+            var jobs = _viewModel.GetAllJobs();
+            _uiService.UpdateJobList(jobs);
+        }
+
+        private void RefreshExtensionsList()
+        {
+            if (_controls.EncryptionExtensionsListBox != null)
+                _controls.EncryptionExtensionsListBox.ItemsSource = _viewModel.GetEncryptionExtensions();
+        }
+
+        private void RefreshProcessesList()
+        {
+            if (_controls.WatchedProcessesListBox != null)
+                _controls.WatchedProcessesListBox.ItemsSource = _viewModel.GetWatchedProcesses();
+        }
+
+        private void UpdateUiState()
+        {
+            // Optional: Periodic UI refresh if needed outside events
+        }
+
+        // ==================== EVENT HANDLERS ====================
+
+        // --- Backup Execution ---
+        private void PlayButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.JobListBox != null && _controls.JobListBox.SelectedItems != null && _controls.JobListBox.SelectedItems.Count > 0)
+            {
+                var selectedIndices = new List<int>();
+                var allJobs = _viewModel.GetAllJobs();
+
+                foreach (var item in _controls.JobListBox.SelectedItems)
                 {
-                    new TextBlock { Text = "Nouvelle clé :", Margin = new Avalonia.Thickness(0,0,0,8) },
-                    new TextBox { Name = "NewKeyTextBox", Width = 200 },
-                    new Button { Name = "ValidateKeyButton", Content = "Valider", Margin = new Avalonia.Thickness(0,12,0,0), Width = 80, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right }
+                    int index = allJobs.IndexOf(item.ToString() ?? "");
+                    if (index >= 0) selectedIndices.Add(index);
+                }
+
+                if (selectedIndices.Count > 0)
+                {
+                    _uiService.UpdateStatus("Démarrage de la sauvegarde...", false);
+                    // Running in a separate thread to avoid freezing UI
+                    System.Threading.Tasks.Task.Run(() => _viewModel.ExecuteJobs(selectedIndices));
                 }
             }
-        };
-        var sp = (StackPanel)dialog.Content!;
-        var newKeyBox = (TextBox)sp.Children[1];
-        var validateBtn = (Button)sp.Children[2];
-        validateBtn.Click += (s, ev) =>
-        {
-            _viewModel.SetEncryptionKey(newKeyBox.Text ?? "");
-            UpdateEncryptionKeyUI();
-            dialog.Close();
-        };
-        await dialog.ShowDialog(this);
-    }
-
-    /// <summary>
-    /// Handler for adding an encryption extension.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Event arguments.</param>
-    private void AddExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.AddExtensionTextBox == null || string.IsNullOrWhiteSpace(_controls.AddExtensionTextBox.Text))
-            return;
-        var ext = _controls.AddExtensionTextBox.Text.Trim();
-        _viewModel.AddEncryptionExtension(ext);
-        UpdateEncryptionExtensionsUI();
-        _controls.AddExtensionTextBox.Text = string.Empty;
-    }
-
-    /// <summary>
-    /// Handler for removing a selected encryption extension.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Event arguments.</param>
-    private void RemoveExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.EncryptionExtensionsListBox == null || _controls.EncryptionExtensionsListBox.SelectedItem == null)
-            return;
-        var ext = _controls.EncryptionExtensionsListBox.SelectedItem as string;
-        if (!string.IsNullOrEmpty(ext))
-        {
-            _viewModel.RemoveEncryptionExtension(ext);
-            UpdateEncryptionExtensionsUI();
-        }
-    }
-
-    /// <summary>
-    /// Handler for changing the application language via ComboBox.
-    /// </summary>
-    /// <param name="sender">Event sender.</param>
-    /// <param name="e">Selection changed event arguments.</param>
-    private void LanguageComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
-        {
-            string culture = comboBox.SelectedIndex switch
+            else
             {
-                0 => "fr-FR",
-                1 => "en-US",
-                _ => "fr-FR"
-            };
-            
-            if (Thread.CurrentThread.CurrentUICulture.Name == culture)
-                return;
-            
-            LocalizationManager.SetLanguage(culture);
-            _uiService.UpdateAllTexts();
-            _jobHandler.LoadJobs();
-            
-            string message = Thread.CurrentThread.CurrentUICulture.Name == "fr-FR" 
-                ? "Langue changée avec succès" 
-                : "Language changed successfully";
-            _uiService.UpdateStatus(message, true);
+                _uiService.UpdateStatus("Veuillez sélectionner un travail.", true);
+            }
+        }
+
+        private void PauseButton_Click(object? sender, RoutedEventArgs e) => _viewModel.PauseBackup();
+        private void ResumeButton_Click(object? sender, RoutedEventArgs e) => _viewModel.ResumeBackup();
+        private void StopButton_Click(object? sender, RoutedEventArgs e) => _viewModel.StopBackup();
+
+        // --- Job Creation / Deletion ---
+        private void CreateJobButton_Click(object? sender, RoutedEventArgs e)
+        {
+            var nameBox = this.FindControl<TextBox>("JobNameTextBox");
+            var sourceBox = this.FindControl<TextBox>("SourcePathTextBox");
+            var destBox = this.FindControl<TextBox>("DestPathTextBox");
+            var typeCombo = this.FindControl<ComboBox>("TypeComboBox");
+
+            if (nameBox == null || sourceBox == null || destBox == null || typeCombo == null) return;
+
+            string name = nameBox.Text ?? "";
+            string source = sourceBox.Text ?? "";
+            string dest = destBox.Text ?? "";
+            BackupType type = typeCombo.SelectedIndex == 1 ? BackupType.Differential : BackupType.Complete;
+
+            var result = _viewModel.CreateJob(name, source, dest, type);
+            if (result.Success)
+            {
+                _uiService.UpdateStatus($"Travail '{name}' créé avec succès.", false);
+                RefreshJobList();
+                // Clear fields
+                nameBox.Text = ""; sourceBox.Text = ""; destBox.Text = "";
+            }
+            else
+            {
+                _uiService.UpdateStatus($"Erreur : {result.ErrorMessage}", true);
+            }
+        }
+
+        private void DeleteJobButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.ManageJobListBox != null && _controls.ManageJobListBox.SelectedItem != null)
+            {
+                var selectedName = _controls.ManageJobListBox.SelectedItem.ToString();
+                var allJobs = _viewModel.GetAllJobs();
+                int index = allJobs.IndexOf(selectedName ?? "");
+
+                if (index >= 0)
+                {
+                    _viewModel.DeleteJob(index);
+                    RefreshJobList();
+                    _uiService.UpdateStatus("Travail supprimé.", false);
+                }
+            }
+        }
+
+        // --- Settings Handlers ---
+
+        private void LanguageComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            // TODO: Implement Language Service
+        }
+
+        private void LogFormatComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            var combo = sender as ComboBox;
+            if (combo != null && combo.SelectedItem is ComboBoxItem item)
+            {
+                string format = item.Content?.ToString() ?? "JSON";
+                _viewModel.ChangeLogFormat(format);
+            }
+        }
+
+        private void LogTargetComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (_controls.LogTargetComboBox != null && _controls.LogTargetComboBox.SelectedIndex >= 0)
+            {
+                var index = _controls.LogTargetComboBox.SelectedIndex;
+                string target = index switch
+                {
+                    0 => "Local",
+                    1 => "Server",
+                    2 => "Both",
+                    _ => "Both"
+                };
+
+                _viewModel.SetLogTarget(target);
+                _uiService.UpdateStatus($"Cible des logs : {target}", true);
+            }
+        }
+
+        private void EditEncryptionKeyButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.EncryptionKeyTextBox != null)
+            {
+                _viewModel.SetEncryptionKey(_controls.EncryptionKeyTextBox.Text ?? "");
+                _uiService.UpdateStatus("Clé de chiffrement mise à jour.", false);
+            }
+        }
+
+        private void AddExtensionButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.AddExtensionTextBox != null && !string.IsNullOrWhiteSpace(_controls.AddExtensionTextBox.Text))
+            {
+                _viewModel.AddEncryptionExtension(_controls.AddExtensionTextBox.Text);
+                _controls.AddExtensionTextBox.Text = "";
+                RefreshExtensionsList();
+            }
+        }
+
+        private void RemoveExtensionButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.EncryptionExtensionsListBox != null && _controls.EncryptionExtensionsListBox.SelectedItem != null)
+            {
+                _viewModel.RemoveEncryptionExtension(_controls.EncryptionExtensionsListBox.SelectedItem.ToString() ?? "");
+                RefreshExtensionsList();
+            }
+        }
+
+        private void AddProcessButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.AddProcessTextBox != null && !string.IsNullOrWhiteSpace(_controls.AddProcessTextBox.Text))
+            {
+                _viewModel.AddWatchedProcess(_controls.AddProcessTextBox.Text);
+                _controls.AddProcessTextBox.Text = "";
+                RefreshProcessesList();
+            }
+        }
+
+        private void RemoveProcessButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.WatchedProcessesListBox != null && _controls.WatchedProcessesListBox.SelectedItem != null)
+            {
+                _viewModel.RemoveWatchedProcess(_controls.WatchedProcessesListBox.SelectedItem.ToString() ?? "");
+                RefreshProcessesList();
+            }
+        }
+
+        private void SaveIpButton_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
+            {
+                _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
+                _uiService.UpdateStatus($"IP Server Update : {_controls.ServerIpTextBox.Text}", true);
+            }
         }
     }
 }
