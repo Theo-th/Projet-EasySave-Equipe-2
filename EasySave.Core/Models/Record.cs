@@ -2,9 +2,9 @@ namespace EasySave.Core.Models
 {
     public class Record
     {
-        public string Name { get; set; }
-        public string Source { get; set; }
-        public string Target { get; set; }
+        public required string Name { get; set; }
+        public required string Source { get; set; }
+        public required string Target { get; set; }
         public long Size { get; set; }
 
         // Transfer time (copy)

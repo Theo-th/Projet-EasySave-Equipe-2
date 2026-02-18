@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     /// </summary>
     public MainWindow()
     {
+<<<<<<< features/LogServer
         InitializeComponent();
 
         // Initialize services
@@ -76,6 +77,62 @@ public partial class MainWindow : Window
         // Initialisation des processus surveillés
         UpdateWatchedProcessesUI();
     }
+=======
+        private readonly ViewModelConsole _viewModel;
+        private readonly ControlCache _controls;
+        private readonly UIUpdateService _uiService;
+        private DispatcherTimer _timer;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+    /// <summary>
+    /// Handler for pausing the current backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
+    private void PauseButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.PauseBackup();
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupPaused, true);
+    }
+
+    /// <summary>
+    /// Handler for resuming a paused backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
+    private void ResumeButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.ResumeBackup();
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupResumed, true);
+    }
+
+    /// <summary>
+    /// Handler for stopping the current backup.
+    /// </summary>
+    /// <param name="sender">Event sender.</param>
+    /// <param name="e">Event arguments.</param>
+    private void StopButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.StopBackup();
+        _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupStopped, false);
+    }
+            // Initialize helpers
+            _controls = new ControlCache();
+            _controls.InitializeFrom(this);
+
+
+            _uiService = new UIUpdateService(this, _controls);
+
+            // Initialize ViewModel
+            _viewModel = new ViewModelConsole();
+
+            // Load initial data
+            RefreshJobList();
+            LoadSettings();
+>>>>>>> develop-v3
 
     /// <summary>
     /// Sets up event handlers for UI controls and backup actions.

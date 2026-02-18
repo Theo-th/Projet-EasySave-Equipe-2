@@ -178,131 +178,167 @@
   </data>
   <data name="TitleLog" xml:space="preserve">
     <value>Type de fichier de Log</value>
+    </data>
+    <data name="TitleLogFormat" xml:space="preserve">
+      <value>Format du fichier Log</value>
+    </data>
+    <data name="TypeSave" xml:space="preserve">
+      <value>Type (1: Complet, 2: Differentiel) :</value>
+    </data>
+    <data name="LanguageChanged" xml:space="preserve">
+      <value>Langue changée avec succès</value>
+    </data>
+    <data name="TabExecute" xml:space="preserve">
+      <value>Exécuter</value>
+    </data>
+    <data name="TabCreate" xml:space="preserve">
+      <value>Créer</value>
+    </data>
+    <data name="TabManage" xml:space="preserve">
+      <value>Gérer</value>
+    </data>
+    <data name="TabSettings" xml:space="preserve">
+      <value>Paramètres</value>
+    </data>
+    <data name="ExecuteTitle" xml:space="preserve">
+      <value>Exécuter les sauvegardes</value>
+    </data>
+    <data name="ExecuteDescription" xml:space="preserve">
+      <value>Sélectionnez les travaux à exécuter</value>
+    </data>
+    <data name="BtnExecute" xml:space="preserve">
+      <value>Exécuter les travaux sélectionnés</value>
+    </data>
+    <data name="CreateTitle" xml:space="preserve">
+      <value>Créer une nouvelle sauvegarde</value>
+    </data>
+    <data name="JobName" xml:space="preserve">
+      <value>Nom du travail</value>
+    </data>
+    <data name="SourceFolder" xml:space="preserve">
+      <value>Dossier source</value>
+    </data>
+    <data name="DestinationFolder" xml:space="preserve">
+      <value>Dossier de destination</value>
+    </data>
+    <data name="BackupType" xml:space="preserve">
+      <value>Type de sauvegarde</value>
+    </data>
+    <data name="BackupTypeFull" xml:space="preserve">
+      <value>Complète</value>
+    </data>
+    <data name="BackupTypeDifferential" xml:space="preserve">
+      <value>Différentielle</value>
+    </data>
+    <data name="BtnBrowse" xml:space="preserve">
+      <value>Parcourir</value>
+    </data>
+    <data name="BtnCreate" xml:space="preserve">
+      <value>Créer le travail</value>
+    </data>
+    <data name="ManageTitle" xml:space="preserve">
+      <value>Gérer les sauvegardes</value>
+    </data>
+    <data name="BtnViewDetails" xml:space="preserve">
+      <value>Voir les détails</value>
+    </data>
+    <data name="BtnDelete" xml:space="preserve">
+      <value>Supprimer</value>
+    </data>
+    <data name="LanguageLabel" xml:space="preserve">
+      <value>Langue</value>
+    </data>
+    <data name="AboutTitle" xml:space="preserve">
+      <value>À propos</value>
+    </data>
+    <data name="Version" xml:space="preserve">
+      <value>Version</value>
+    </data>
+    <data name="LogsPath" xml:space="preserve">
+      <value>Chemin des logs</value>
+    </data>
+    <data name="ConfigPath" xml:space="preserve">
+      <value>Chemin de configuration</value>
+    </data>
+    <data name="StateFile" xml:space="preserve">
+      <value>Fichier d'état</value>
+    </data>
+    <data name="ConfigFile" xml:space="preserve">
+      <value>Fichier de configuration</value>
+    </data>
+    <data name="SettingsAppTitle" xml:space="preserve">
+      <value>Paramètres de l'application</value>
+    </data>
+    <data name="LanguageSection" xml:space="preserve">
+      <value>Langue</value>
+    </data>
+    <data name="LanguageInterface" xml:space="preserve">
+      <value>Langue de l'interface</value>
+    </data>
+    <data name="LanguageChoose" xml:space="preserve">
+      <value>Choisir la langue d'affichage de l'application</value>
+    </data>
+    <data name="AboutSection" xml:space="preserve">
+      <value>À propos</value>
+    </data>
+    <data name="VersionLabel" xml:space="preserve">
+      <value>Version :</value>
+    </data>
+    <data name="LogsPathLabel" xml:space="preserve">
+      <value>Chemin des logs :</value>
+    </data>
+    <data name="ConfigLabel" xml:space="preserve">
+      <value>Configuration :</value>
+    </data>
+    <data name="StateLabel" xml:space="preserve">
+      <value>État :</value>
+    </data>
+    <data name="ManageDesc" xml:space="preserve">
+      <value>Plans configurés</value>
+    </data>
+    <data name="BtnModify" xml:space="preserve">
+      <value>Modifier</value>
+    </data>
+    <data name="AppDescription" xml:space="preserve">
+      <value>Logiciel de gestion de sauvegardes de fichiers</value>
+    </data>
+    <data name="StatusReady" xml:space="preserve">
+      <value>Prêt</value>
+    </data>
+    <data name="Progression" xml:space="preserve">
+      <value>Progression</value>
+    </data>
+    <data name="CurrentFile" xml:space="preserve">
+      <value>Fichier en cours : {0}</value>
+    </data>
+    <data name="TimeLeft" xml:space="preserve">
+      <value>Temps restant : {0}</value>
+    </data>
+    <data name="BtnResume" xml:space="preserve">
+      <value>Reprendre</value>
+    </data>
+    <data name="BtnStop" xml:space="preserve">
+      <value>Arrêter</value>
+    </data>
+    <data name="Paused" xml:space="preserve">
+      <value>Sauvegarde en pause...</value>
+    </data>
+    <data name="StatusBackupCompleted" xml:space="preserve">
+    <value>Sauvegarde terminée !</value>
   </data>
-  <data name="TitleLogFormat" xml:space="preserve">
-    <value>Format du fichier Log</value>
+  <data name="StatusBackupsCompleted" xml:space="preserve">
+    <value>{0} sauvegarde(s) terminée(s) !</value>
   </data>
-  <data name="TypeSave" xml:space="preserve">
-    <value>Type (1: Complet, 2: Differentiel) :</value>
+  <data name="StatusBackupPaused" xml:space="preserve">
+    <value>Sauvegarde en pause...</value>
   </data>
-  <data name="LanguageChanged" xml:space="preserve">
-    <value>Langue changée avec succès</value>
+  <data name="StatusBackupResumed" xml:space="preserve">
+    <value>Sauvegarde reprise...</value>
   </data>
-  <data name="TabExecute" xml:space="preserve">
-    <value>Exécuter</value>
+  <data name="StatusBackupStopped" xml:space="preserve">
+    <value>Sauvegarde arrêtée.</value>
   </data>
-  <data name="TabCreate" xml:space="preserve">
-    <value>Créer</value>
+  <data name="StatusExecutingBackups" xml:space="preserve">
+    <value>Exécution de {0} sauvegarde(s)...</value>
   </data>
-  <data name="TabManage" xml:space="preserve">
-    <value>Gérer</value>
-  </data>
-  <data name="TabSettings" xml:space="preserve">
-    <value>Paramètres</value>
-  </data>
-  <data name="ExecuteTitle" xml:space="preserve">
-    <value>Exécuter les sauvegardes</value>
-  </data>
-  <data name="ExecuteDescription" xml:space="preserve">
-    <value>Sélectionnez les travaux à exécuter</value>
-  </data>
-  <data name="BtnExecute" xml:space="preserve">
-    <value>Exécuter les travaux sélectionnés</value>
-  </data>
-  <data name="CreateTitle" xml:space="preserve">
-    <value>Créer une nouvelle sauvegarde</value>
-  </data>
-  <data name="JobName" xml:space="preserve">
-    <value>Nom du travail</value>
-  </data>
-  <data name="SourceFolder" xml:space="preserve">
-    <value>Dossier source</value>
-  </data>
-  <data name="DestinationFolder" xml:space="preserve">
-    <value>Dossier de destination</value>
-  </data>
-  <data name="BackupType" xml:space="preserve">
-    <value>Type de sauvegarde</value>
-  </data>
-  <data name="BackupTypeFull" xml:space="preserve">
-    <value>Complète</value>
-  </data>
-  <data name="BackupTypeDifferential" xml:space="preserve">
-    <value>Différentielle</value>
-  </data>
-  <data name="BtnBrowse" xml:space="preserve">
-    <value>Parcourir</value>
-  </data>
-  <data name="BtnCreate" xml:space="preserve">
-    <value>Créer le travail</value>
-  </data>
-  <data name="ManageTitle" xml:space="preserve">
-    <value>Gérer les sauvegardes</value>
-  </data>
-  <data name="BtnViewDetails" xml:space="preserve">
-    <value>Voir les détails</value>
-  </data>
-  <data name="BtnDelete" xml:space="preserve">
-    <value>Supprimer</value>
-  </data>
-  <data name="LanguageLabel" xml:space="preserve">
-    <value>Langue</value>
-  </data>
-  <data name="AboutTitle" xml:space="preserve">
-    <value>À propos</value>
-  </data>
-  <data name="Version" xml:space="preserve">
-    <value>Version</value>
-  </data>
-  <data name="LogsPath" xml:space="preserve">
-    <value>Chemin des logs</value>
-  </data>
-  <data name="ConfigPath" xml:space="preserve">
-    <value>Chemin de configuration</value>
-  </data>
-  <data name="StateFile" xml:space="preserve">
-    <value>Fichier d'état</value>
-  </data>
-  <data name="ConfigFile" xml:space="preserve">
-    <value>Fichier de configuration</value>
-  </data>
-  <data name="SettingsAppTitle" xml:space="preserve">
-    <value>Paramètres de l'application</value>
-  </data>
-  <data name="LanguageSection" xml:space="preserve">
-    <value>Langue</value>
-  </data>
-  <data name="LanguageInterface" xml:space="preserve">
-    <value>Langue de l'interface</value>
-  </data>
-  <data name="LanguageChoose" xml:space="preserve">
-    <value>Choisir la langue d'affichage de l'application</value>
-  </data>
-  <data name="AboutSection" xml:space="preserve">
-    <value>À propos</value>
-  </data>
-  <data name="VersionLabel" xml:space="preserve">
-    <value>Version :</value>
-  </data>
-  <data name="LogsPathLabel" xml:space="preserve">
-    <value>Chemin des logs :</value>
-  </data>
-  <data name="ConfigLabel" xml:space="preserve">
-    <value>Configuration :</value>
-  </data>
-  <data name="StateLabel" xml:space="preserve">
-    <value>État :</value>
-  </data>
-  <data name="ManageDesc" xml:space="preserve">
-    <value>Plans configurés</value>
-  </data>
-  <data name="BtnModify" xml:space="preserve">
-    <value>Modifier</value>
-  </data>
-  <data name="AppDescription" xml:space="preserve">
-    <value>Logiciel de gestion de sauvegardes de fichiers</value>
-  </data>
-  <data name="StatusReady" xml:space="preserve">
-    <value>Prêt</value>
-  </data>
-</root>
+  </root>

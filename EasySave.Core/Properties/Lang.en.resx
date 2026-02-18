@@ -305,4 +305,40 @@
   <data name="StatusReady" xml:space="preserve">
     <value>Ready</value>
   </data>
+  <data name="Progression" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="CurrentFile" xml:space="preserve">
+    <value>Current file: {0}</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>Time left: {0}</value>
+  </data>
+  <data name="BtnResume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="BtnStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Paused" xml:space="preserve">
+    <value>Backup paused...</value>
+  </data>
+  <data name="StatusBackupCompleted" xml:space="preserve">
+    <value>Backup completed!</value>
+  </data>
+  <data name="StatusBackupsCompleted" xml:space="preserve">
+    <value>{0} backup(s) completed!</value>
+  </data>
+  <data name="StatusBackupPaused" xml:space="preserve">
+    <value>Backup paused...</value>
+  </data>
+  <data name="StatusBackupResumed" xml:space="preserve">
+    <value>Backup resumed...</value>
+  </data>
+  <data name="StatusBackupStopped" xml:space="preserve">
+    <value>Backup stopped.</value>
+  </data>
+  <data name="StatusExecutingBackups" xml:space="preserve">
+    <value>Executing {0} backup(s)...</value>
+  </data>
 </root>

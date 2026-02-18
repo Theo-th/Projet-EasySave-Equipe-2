@@ -17,6 +17,7 @@ public class UIUpdateService
 {
     private readonly ControlCache _controls;
     private readonly Window _window;
+    private string? _lastCurrentFileName = null;
 
     /// <summary>
     /// Initializes a new instance of UIUpdateService.
@@ -82,6 +83,26 @@ public class UIUpdateService
         UpdateButtons();
         UpdateComboBoxes();
         UpdateHeaderAndFooter();
+        UpdateCurrentFileText();
+    }
+
+    /// <summary>
+    /// Updates the current file text with the last known file, in the current language.
+    /// </summary>
+    public void UpdateCurrentFileText()
+    {
+        if (_controls.CurrentFileText != null && !string.IsNullOrEmpty(_lastCurrentFileName))
+        {
+            _controls.CurrentFileText.Text = string.Format(EasySave.Core.Properties.Lang.CurrentFile, _lastCurrentFileName);
+        }
+    }
+
+    /// <summary>
+    /// Stores the last file name for dynamic language refresh.
+    /// </summary>
+    public void SetCurrentFileName(string? fileName)
+    {
+        _lastCurrentFileName = fileName;
     }
 
     /// <summary>
@@ -122,7 +143,7 @@ public class UIUpdateService
     /// </summary>
     public void ShowBusinessProcessAlert(string processName)
     {
-        UpdateStatus($" ALERTE : Logiciel m�tier '{processName}' d�tect� ! Sauvegarde en pause.", false);
+        UpdateStatus($" ALERTE : Logiciel métier '{processName}' détecté ! Sauvegarde en pause.", false);
     }
 
 
@@ -177,6 +198,10 @@ public class UIUpdateService
         UpdateButton("BrowseLogsButton", "BtnModify");
         UpdateButton("BrowseConfigButton", "BtnModify");
         UpdateButton("BrowseStateButton", "BtnModify");
+        var resumeBtn = _window.FindControl<Button>("ResumeButton");
+        if (resumeBtn != null) resumeBtn.Content = $"â¶  {LocalizationManager.GetString("BtnResume")}";
+        var stopBtn = _window.FindControl<Button>("StopButton");
+        if (stopBtn != null) stopBtn.Content = $"â¹  {LocalizationManager.GetString("BtnStop")}";
     }
 
 
