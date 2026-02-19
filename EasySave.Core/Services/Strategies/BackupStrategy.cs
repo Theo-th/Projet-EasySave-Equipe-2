@@ -2,6 +2,7 @@ using EasySave.Core.Models;
 using EasyLog;
 using System.Diagnostics;
 using EasySave.Core.Services;
+using System.Text.Json.Serialization;
 
 namespace EasySave.Core.Services.Strategies
 {
@@ -82,6 +83,26 @@ namespace EasySave.Core.Services.Strategies
         protected void ThrowIfCancellationRequested()
         {
             _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+        }
+
+        /// <summary>
+        /// Converts a local file system path to a UNC network path format.
+        /// If the path is already a UNC path or a network path, it is returned unchanged.
+        /// For local paths (e.g., "C:\..."), it converts them to the administrative share format
+        /// (e.g., "\\MachineName\C$\...").
+        /// </summary>
+        /// <param name="path">The original file system path.</param>
+        /// <returns>The UNC-formatted path if conversion is applicable; otherwise, the original path.</returns>
+        protected string GetUncPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return path;
+            if (path.StartsWith(@"\\")) return path;
+
+            if (path.Length >= 2 && path[1] == ':')
+            {
+                return $@"\\{Environment.MachineName}\{path[0]}${path.Substring(2)}";
+            }
+            return path;
         }
 
         /// <summary>
@@ -183,19 +204,20 @@ namespace EasySave.Core.Services.Strategies
         protected (bool Success, string? ErrorMessage) CopyFile(
             string relativePath, string sourceDir, string targetDir)
         {
+            string sourceFilePath = Path.Combine(sourceDir, relativePath);
+            string targetFilePath = Path.Combine(targetDir, relativePath);
+            long fileSize = 0;
+
             try
             {
                 // Wait if paused, then check cancellation before each file copy
                 WaitIfPausedAndThrowIfCancelled();
-                string sourceFilePath = Path.Combine(sourceDir, relativePath);
-                string targetFilePath = Path.Combine(targetDir, relativePath);
-
                 // Create necessary subdirectories
                 string? targetFileDir = Path.GetDirectoryName(targetFilePath);
                 if (targetFileDir != null && !Directory.Exists(targetFileDir)) Directory.CreateDirectory(targetFileDir);
 
                 var fileInfo = new FileInfo(sourceFilePath);
-                long fileSize = fileInfo.Length;
+                fileSize = fileInfo.Length;
                 var stopwatch = Stopwatch.StartNew();
                 File.Copy(sourceFilePath, targetFilePath, overwrite: true);
                 stopwatch.Stop();
@@ -205,8 +227,8 @@ namespace EasySave.Core.Services.Strategies
                 var record = new Record
                 {
                     Name = JobName,
-                    Source = sourceFilePath,
-                    Target = targetFilePath,
+                    Source = GetUncPath(sourceFilePath),
+                    Target = GetUncPath(targetFilePath),
                     Size = fileSize,
                     Time = stopwatch.Elapsed.TotalMilliseconds,
                     Timestamp = DateTime.Now,
@@ -224,7 +246,27 @@ namespace EasySave.Core.Services.Strategies
                 return (true, null);
             }
             catch (OperationCanceledException) { return (false, $"Backup cancelled."); }
-            catch (Exception ex) { return (false, $"Error copying file '{relativePath}': {ex.Message}"); }
+            catch (Exception ex)
+            {
+                var errorRecord = new Record
+                {
+                    Name = JobName,
+                    Source = GetUncPath(sourceFilePath),
+                    Target = GetUncPath(targetFilePath),
+                    Size = fileSize,
+                    Time = -1,
+                    Timestamp = DateTime.Now,
+                    EncryptionTime = 0,
+                };
+
+                if (_logTarget == LogTarget.Local || _logTarget == LogTarget.Both)
+                    Logger.WriteLog(errorRecord);
+
+                if (_logTarget == LogTarget.Server || _logTarget == LogTarget.Both)
+                    _ = RemoteLogService.SendLogAsync(errorRecord);
+
+                return (false, $"Error copying file '{relativePath}': {ex.Message}");
+            }
         }
 
         // Clears the contents of a backup folder without deleting the folder itself.

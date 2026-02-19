@@ -135,7 +135,7 @@
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 				<Image Source="avares://EasySave.GUI/Assets/logo.png" Width="60" Height="60" Margin="0,0,16,0"/>
 				<StackPanel VerticalAlignment="Center">
-					<TextBlock Text="EasySave 2.0" FontSize="20" FontWeight="SemiBold" Foreground="#111827"/>
+					<TextBlock Text="EasySave 3.0" FontSize="20" FontWeight="SemiBold" Foreground="#111827"/>
 					<TextBlock Name="HeaderDescriptionText" FontSize="11" Foreground="#6B7280"/>
 				</StackPanel>
 			</StackPanel>

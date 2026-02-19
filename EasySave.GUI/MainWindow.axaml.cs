@@ -16,8 +16,8 @@ using System.Threading;
 namespace EasySave.GUI;
 
 /// <summary>
-/// Fenêtre principale de l'application EasySave.
-/// Architecture refactorisée avec séparation des responsabilités.
+/// Main window of the EasySave application.
+/// Refactored architecture with separation of responsibilities.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -33,20 +33,20 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // 1. Initialisation des services
+        // 1. Initialization of services
         _settingsService = new SettingsService();
         var settings = _settingsService.LoadSettings();
 
-        // 2. Chargement des chemins de configuration
+        // 2. Loading configuration paths
         var logsPath = settings.ContainsKey("LogsPath") ? settings["LogsPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
         var configPath = settings.ContainsKey("ConfigPath") ? settings["ConfigPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
         var statePath = settings.ContainsKey("StatePath") ? settings["StatePath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
 
-        // 3. Initialisation du ViewModel et de la collection
+        // 3. Initializing the ViewModel and the collection
         _viewModel = new ViewModelConsole(LogType.JSON, configPath, statePath, logsPath);
         _jobs = new ObservableCollection<JobItem>();
 
-        // 4. Initialisation des Helpers et Handlers
+        // 4. Initializing Helpers and Handlers
         _controls = new ControlCache();
         _controls.InitializeFrom(this);
 
@@ -54,18 +54,18 @@ public partial class MainWindow : Window
         _jobHandler = new JobEventHandler(this, _controls, _viewModel, _uiService, _jobs);
         _fileSystemHandler = new FileSystemHandler(this, _controls, _viewModel, _uiService, _settingsService, logsPath, configPath, statePath);
 
-        // 5. Abonnements aux événements
+        // 5. Event subscriptions
         _viewModel.OnProgressChanged += _jobHandler.OnBackupProgressChanged;
         _viewModel.OnProgressChanged += OnBackupStateChanged;
         _viewModel.OnBusinessProcessDetected += OnBusinessProcessDetected;
 
-        // 6. Initialisation de l'interface
+        // 6. Initializing the interface
         SetupEventHandlers();
         _jobHandler.LoadJobs();
         _uiService.UpdateAllTexts();
         _uiService.UpdatePaths(_fileSystemHandler.LogsPath, _fileSystemHandler.ConfigPath, _fileSystemHandler.StatePath);
 
-        // 7. Initialisation des contrôles spécifiques (Chiffrement et Processus)
+        // 7. Initialization of specific controls (Encryption and Process)
         UpdateEncryptionKeyUI();
         UpdateEncryptionExtensionsUI();
         UpdateWatchedProcessesUI();
@@ -73,33 +73,33 @@ public partial class MainWindow : Window
 
     private void SetupEventHandlers()
     {
-        // Boutons de gestion des travaux
+        // Job management buttons
         if (this.FindControl<Button>("ExecuteButton") is Button execBtn) execBtn.Click += _jobHandler.ExecuteButton_Click;
         if (this.FindControl<Button>("CreateJobButton") is Button createBtn) createBtn.Click += _jobHandler.CreateJobButton_Click;
         if (this.FindControl<Button>("DeleteJobButton") is Button deleteBtn) deleteBtn.Click += _jobHandler.DeleteJobButton_Click;
         if (this.FindControl<Button>("ViewDetailsButton") is Button detailsBtn) detailsBtn.Click += _jobHandler.ViewDetailsButton_Click;
 
-        // Boutons de navigation système de fichiers
+        // File system navigation buttons
         if (this.FindControl<Button>("BrowseSourceButton") is Button bSrc) bSrc.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("SourcePathTextBox");
         if (this.FindControl<Button>("BrowseTargetButton") is Button bTrg) bTrg.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("TargetPathTextBox");
         if (this.FindControl<Button>("BrowseLogsButton") is Button bLog) bLog.Click += async (s, e) => await _fileSystemHandler.BrowseLogsFolder();
         if (this.FindControl<Button>("BrowseConfigButton") is Button bCfg) bCfg.Click += async (s, e) => await _fileSystemHandler.BrowseConfigFile();
         if (this.FindControl<Button>("BrowseStateButton") is Button bSt) bSt.Click += async (s, e) => await _fileSystemHandler.BrowseStateFile();
 
-        // Paramètres globaux
+        // Global settings
         if (_controls.LanguageComboBox != null) _controls.LanguageComboBox.SelectionChanged += LanguageComboBox_SelectionChanged;
         if (_controls.LogTargetComboBox != null) _controls.LogTargetComboBox.SelectionChanged += LogTargetComboBox_SelectionChanged;
 
-        // Chiffrement
+        // Encryption
         if (_controls.EditEncryptionKeyButton != null) _controls.EditEncryptionKeyButton.Click += EditEncryptionKeyButton_Click;
         if (_controls.AddExtensionButton != null) _controls.AddExtensionButton.Click += AddExtensionButton_Click;
         if (_controls.RemoveExtensionButton != null) _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
 
-        // Processus métier
+        // Business process
         if (_controls.AddProcessButton != null) _controls.AddProcessButton.Click += AddProcessButton_Click;
         if (_controls.RemoveProcessButton != null) _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
 
-        // Contrôles de flux de sauvegarde
+        // Backup flow controls
         if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
         if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
@@ -107,7 +107,7 @@ public partial class MainWindow : Window
         if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
     }
 
-    // --- Gestionnaires d'événements de contrôle de sauvegarde ---
+    // --- Backup Control Event Handlers ---
 
     private void PauseButton_Click(object? sender, RoutedEventArgs e)
     {
@@ -139,7 +139,7 @@ public partial class MainWindow : Window
         });
     }
 
-    // --- Gestion du Chiffrement et des Processus ---
+    // --- Encryption and Process Management ---
 
     private void UpdateEncryptionKeyUI() => _controls.EncryptionKeyTextBox!.Text = _viewModel.GetEncryptionKey();
 
@@ -174,7 +174,7 @@ public partial class MainWindow : Window
 
     private async void EditEncryptionKeyButton_Click(object? sender, RoutedEventArgs e)
     {
-        // Dialogue rapide pour la clé
+        // Quick dialog for the key
         var newKeyBox = new TextBox { Width = 200 };
         var validateBtn = new Button { Content = "Valider", Margin = new Thickness(0, 10, 0, 0) };
         var dialog = new Window
@@ -205,7 +205,7 @@ public partial class MainWindow : Window
         }
     }
 
-    // --- Paramètres de l'application ---
+    // --- Application settings ---
 
     private void LanguageComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
