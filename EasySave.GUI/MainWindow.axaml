@@ -386,6 +386,15 @@
 										<ComboBoxItem Content="Les deux (Local + Serveur)"/>
 									</ComboBox>
 								</StackPanel>
+
+								<StackPanel>
+									<TextBlock Text="Adresse IP du Serveur" FontSize="12" FontWeight="Bold" Foreground="#111827" Margin="0,4,0,4"/>
+									<TextBlock Text="Ex: 192.168.1.25 ou localhost" FontSize="10" Foreground="#6B7280" Margin="0,0,0,4"/>
+									<Grid ColumnDefinitions="*, Auto">
+										<TextBox x:Name="ServerIpTextBox" Watermark="localhost" Margin="0,0,5,0"/>
+										<Button x:Name="SaveIpButton" Grid.Column="1" Content="OK" Background="#3B82F6" Foreground="White"/>
+									</Grid>
+								</StackPanel>
 							</StackPanel>
 						</StackPanel>
 					</ScrollViewer>

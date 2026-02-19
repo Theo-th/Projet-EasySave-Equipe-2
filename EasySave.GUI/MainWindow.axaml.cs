@@ -103,6 +103,8 @@ public partial class MainWindow : Window
         if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
         if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
+
+        if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
     }
 
     // --- Gestionnaires d'événements de contrôle de sauvegarde ---
@@ -225,6 +227,15 @@ public partial class MainWindow : Window
             string target = idx switch { 0 => "Local", 1 => "Server", _ => "Both" };
             _viewModel.SetLogTarget(target);
             _uiService.UpdateStatus($"Cible des logs : {target}", true);
+        }
+    }
+
+    private void SaveIpButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
+        {
+            _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
+            _uiService.UpdateStatus($"IP Serveur mise à jour : {_controls.ServerIpTextBox.Text}", true);
         }
     }
 }
