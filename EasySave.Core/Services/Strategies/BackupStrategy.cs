@@ -156,7 +156,7 @@ namespace EasySave.Core.Services.Strategies
                 {
                     Name = JobName,
                     Source = "",
-                    Target = markerFilePath,
+                    Target = GetUncPath(markerFilePath),
                     Size = markerContent.Length,
                     Time = stopwatch.Elapsed.TotalMilliseconds,
                     Timestamp = DateTime.Now
