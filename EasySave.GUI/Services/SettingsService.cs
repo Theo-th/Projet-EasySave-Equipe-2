@@ -50,17 +50,25 @@ public class SettingsService
     /// <param name="logsPath">Path to logs directory.</param>
     /// <param name="configPath">Path to config file.</param>
     /// <param name="statePath">Path to state file.</param>
+    /// <param name="maxJobs">Maximum number of simultaneous jobs (default: 3).</param>
+    /// <param name="fileSizeThresholdMB">File size threshold in MB (default: 10).</param>
     /// <returns>True if save succeeded, false otherwise.</returns>
-    public bool SaveSettings(string logsPath, string configPath, string statePath)
+    public bool SaveSettings(string logsPath, string configPath, string statePath, int? maxJobs = null, int? fileSizeThresholdMB = null)
     {
         try
         {
-            var settings = new Dictionary<string, string>
-            {
-                ["LogsPath"] = logsPath,
-                ["ConfigPath"] = configPath,
-                ["StatePath"] = statePath
-            };
+            // Load existing settings to preserve other values
+            var settings = LoadSettings();
+            
+            // Update with new values
+            settings["LogsPath"] = logsPath;
+            settings["ConfigPath"] = configPath;
+            settings["StatePath"] = statePath;
+            
+            if (maxJobs.HasValue)
+                settings["MaxSimultaneousJobs"] = maxJobs.Value.ToString();
+            if (fileSizeThresholdMB.HasValue)
+                settings["FileSizeThresholdMB"] = fileSizeThresholdMB.Value.ToString();
             
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_settingsFilePath, json);

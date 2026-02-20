@@ -40,6 +40,11 @@ public class ControlCache
     public Button? AddExtensionButton { get; set; }
     public Button? RemoveExtensionButton { get; set; }
 
+    public ListBox? PriorityExtensionsListBox { get; set; }
+    public TextBox? AddPriorityExtensionTextBox { get; set; }
+    public Button? AddPriorityExtensionButton { get; set; }
+    public Button? RemovePriorityExtensionButton { get; set; }
+
     public ListBox? WatchedProcessesListBox { get; set; }
     public TextBox? AddProcessTextBox { get; set; }
     public Button? AddProcessButton { get; set; }
@@ -47,6 +52,11 @@ public class ControlCache
 
     public TextBox? ServerIpTextBox { get; set; }
     public Button? SaveIpButton { get; set; }
+
+    // Multi-threading settings
+    public TextBox? MaxJobsTextBox { get; set; }
+    public TextBox? FileSizeThresholdTextBox { get; set; }
+    public Button? SaveThreadingSettingsButton { get; set; }
 
 
     // Backup control buttons (Pause / Resume / Stop)
@@ -94,6 +104,12 @@ public class ControlCache
         AddExtensionButton = window.FindControl<Button>("AddExtensionButton");
         RemoveExtensionButton = window.FindControl<Button>("RemoveExtensionButton");
 
+        // Priority extensions
+        PriorityExtensionsListBox = window.FindControl<ListBox>("PriorityExtensionsListBox");
+        AddPriorityExtensionTextBox = window.FindControl<TextBox>("AddPriorityExtensionTextBox");
+        AddPriorityExtensionButton = window.FindControl<Button>("AddPriorityExtensionButton");
+        RemovePriorityExtensionButton = window.FindControl<Button>("RemovePriorityExtensionButton");
+
 
         // Process Detector controls
         WatchedProcessesListBox = window.FindControl<ListBox>("WatchedProcessesListBox");
@@ -103,6 +119,11 @@ public class ControlCache
 
         ServerIpTextBox = window.FindControl<TextBox>("ServerIpTextBox");
         SaveIpButton = window.FindControl<Button>("SaveIpButton");
+
+        // Multi-threading settings
+        MaxJobsTextBox = window.FindControl<TextBox>("MaxJobsTextBox");
+        FileSizeThresholdTextBox = window.FindControl<TextBox>("FileSizeThresholdTextBox");
+        SaveThreadingSettingsButton = window.FindControl<Button>("SaveThreadingSettingsButton");
 
 
         // Backup control buttons

@@ -29,7 +29,10 @@ namespace EasySave.Core.ViewModels
         /// <param name="configPath">The path to the config file.</param>
         /// <param name="statePath">The path to the state file.</param>
         /// <param name="logsPath">The path to the logs directory.</param>
-        public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null)
+        /// <param name="maxSimultaneousJobs">Maximum number of simultaneous jobs (default: 3).</param>
+        /// <param name="fileSizeThresholdMB">File size threshold in MB (default: 10).</param>
+        /// <param name="priorityExtensions">List of priority file extensions.</param>
+        public ViewModelConsole(LogType logType = LogType.JSON, string? configPath = null, string? statePath = null, string? logsPath = null, int maxSimultaneousJobs = 3, int fileSizeThresholdMB = 10, List<string>? priorityExtensions = null)
         {
             _configService = new JobConfigService(configPath ?? "jobs_config.json");
             _backupState = new BackupStateRepository();
@@ -43,7 +46,7 @@ namespace EasySave.Core.ViewModels
             _processDetector = new ProcessDetector();
             _processDetector.StartContinuousMonitoring();
 
-            _backupService = new BackupService(_configService, _backupState, _processDetector, logType, logsPath);
+            _backupService = new BackupService(_configService, _backupState, _processDetector, logType, logsPath, maxSimultaneousJobs, fileSizeThresholdMB, priorityExtensions);
 
             // Relay the event from the service to the view
             _backupService.OnProgressChanged += (state) => OnProgressChanged?.Invoke(state);
@@ -170,6 +173,33 @@ namespace EasySave.Core.ViewModels
                 _currentLogType = logType;
                 _backupService.ChangeLogFormat(logType);
             }
+        }
+
+        /// <summary>
+        /// Updates multi-threading parameters.
+        /// </summary>
+        /// <param name="maxSimultaneousJobs">Maximum number of simultaneous jobs.</param>
+        /// <param name="fileSizeThresholdMB">File size threshold in MB.</param>
+        public void UpdateThreadingSettings(int maxSimultaneousJobs, int fileSizeThresholdMB)
+        {
+            _backupService.UpdateThreadingSettings(maxSimultaneousJobs, fileSizeThresholdMB);
+        }
+
+        /// <summary>
+        /// Updates priority extensions list.
+        /// </summary>
+        /// <param name="extensions">List of priority extensions.</param>
+        public void UpdatePriorityExtensions(List<string> extensions)
+        {
+            _backupService.UpdatePriorityExtensions(extensions);
+        }
+
+        /// <summary>
+        /// Gets the current list of priority extensions.
+        /// </summary>
+        public List<string> GetPriorityExtensions()
+        {
+            return _backupService.GetPriorityExtensions();
         }
 
         /// <summary>

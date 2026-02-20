@@ -28,6 +28,8 @@ public class JobEventHandler
     private readonly ViewModelConsole _viewModel;
     private readonly UIUpdateService _uiService;
     private readonly ObservableCollection<JobItem> _jobs;
+    private readonly ObservableCollection<JobProgressItem> _jobProgressItems;
+    private readonly Dictionary<string, JobProgressItem> _progressByJobName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JobEventHandler"/> class.
@@ -45,6 +47,14 @@ public class JobEventHandler
         _viewModel = viewModel;
         _uiService = uiService;
         _jobs = jobs;
+        _jobProgressItems = new ObservableCollection<JobProgressItem>();
+        _progressByJobName = new Dictionary<string, JobProgressItem>();
+        
+        // Initialize ItemsControl binding
+        if (_window.FindControl<ItemsControl>("JobProgressList") is ItemsControl progressList)
+        {
+            progressList.ItemsSource = _jobProgressItems;
+        }
     }
 
     /// <summary>
@@ -101,6 +111,10 @@ public class JobEventHandler
         var selectedCount = _controls.JobListBox.SelectedItems.Count;
         var selectedIndices = new List<int>(selectedCount);
         
+        // Clear previous progress items
+        _jobProgressItems.Clear();
+        _progressByJobName.Clear();
+        
         var jobDict = new Dictionary<string, int>(_jobs.Count);
         for (int i = 0; i < _jobs.Count; i++)
         {
@@ -113,6 +127,18 @@ public class JobEventHandler
             if (name != null && jobDict.TryGetValue(name, out var index))
             {
                 selectedIndices.Add(index);
+                
+                // Initialize progress item for this job
+                var progressItem = new JobProgressItem
+                {
+                    JobName = name,
+                    Progress = 0,
+                    ProgressText = "0%",
+                    CurrentFile = "",
+                    IsCompleted = false
+                };
+                _jobProgressItems.Add(progressItem);
+                _progressByJobName[name] = progressItem;
             }
         }
         
@@ -333,38 +359,46 @@ public class JobEventHandler
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            double progress = 0;
-            if (state.TotalSize > 0)
+            // Find the progress item for this job using the Name property
+            if (_progressByJobName.TryGetValue(state.Name, out var progressItem))
             {
-                long processedSize = state.TotalSize - state.RemainingSize;
-                progress = (double)processedSize / state.TotalSize * 100.0;
-            }
+                double progress = 0;
+                if (state.TotalSize > 0)
+                {
+                    long processedSize = state.TotalSize - state.RemainingSize;
+                    progress = (double)processedSize / state.TotalSize * 100.0;
+                }
 
-            if (_controls.ProgressBar != null)
-                _controls.ProgressBar.Value = Math.Min(100, Math.Max(0, progress));
+                progressItem.Progress = Math.Min(100, Math.Max(0, progress));
 
-            // Calcul du temps restant estimé (multilingue)
-            string timeLeftText = string.Empty;
-            int filesDone = state.TotalFiles - state.RemainingFiles;
-            if (filesDone > 0 && state.RemainingFiles > 0)
-            {
-                var elapsed = (DateTime.Now - state.StartTimestamp).TotalSeconds;
-                double avgPerFile = elapsed / filesDone;
-                int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
-                int min = secondsLeft / 60;
-                int sec = secondsLeft % 60;
-                string timeValue = $"{min:D2}:{sec:D2}";
-                timeLeftText = $" | {Lang.TimeLeft.Replace("{0}", timeValue)}";
-            }
+                // Calcul du temps restant estimé (multilingue)
+                string timeLeftText = string.Empty;
+                int filesDone = state.TotalFiles - state.RemainingFiles;
+                if (filesDone > 0 && state.RemainingFiles > 0)
+                {
+                    var elapsed = (DateTime.Now - state.StartTimestamp).TotalSeconds;
+                    double avgPerFile = elapsed / filesDone;
+                    int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
+                    int min = secondsLeft / 60;
+                    int sec = secondsLeft % 60;
+                    string timeValue = $"{min:D2}:{sec:D2}";
+                    timeLeftText = $" | {Lang.TimeLeft.Replace("{0}", timeValue)}";
+                }
 
-            if (_controls.ProgressText != null)
-                _controls.ProgressText.Text = $"{(int)progress}%{timeLeftText}";
+                progressItem.ProgressText = $"{(int)progress}%{timeLeftText}";
 
-            if (_controls.CurrentFileText != null && !string.IsNullOrEmpty(state.CurrentSourceFile))
-            {
-                string fileName = Path.GetFileName(state.CurrentSourceFile);
-                _controls.CurrentFileText.Text = string.Format(Lang.CurrentFile, fileName);
-                _uiService.SetCurrentFileName(fileName);
+                if (!string.IsNullOrEmpty(state.CurrentSourceFile))
+                {
+                    string fileName = Path.GetFileName(state.CurrentSourceFile);
+                    progressItem.CurrentFile = string.Format(Lang.CurrentFile, fileName);
+                }
+
+                // Mark as completed if progress is 100%
+                if (progress >= 100)
+                {
+                    progressItem.IsCompleted = true;
+                    progressItem.ProgressText = "100% ✓";
+                }
             }
         });
     }
