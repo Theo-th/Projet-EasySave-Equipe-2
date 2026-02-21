@@ -46,6 +46,9 @@ namespace EasySave.Core.Services
         private readonly string _configFilePath;
         private readonly string _cryptoSoftPath;
 
+        // LOCK ADDED HERE: Static object acting as a queue for the external process
+        private static readonly object _cryptoLock = new object();
+
         /// <summary>
         /// Initializes a new instance of the EncryptionService class.
         /// Sets up paths for configuration and the CryptoSoft executable.
@@ -60,7 +63,7 @@ namespace EasySave.Core.Services
 
             LoadConfig();
 
-            AddExtension(".txt"); // a supprimer après les tests
+            AddExtension(".txt"); // to be removed after testing
         }
 
 
@@ -202,26 +205,30 @@ namespace EasySave.Core.Services
 
             try
             {
-                var processStartInfo = new ProcessStartInfo
+                // QUEUEING HERE: only one thread allowed to pass at a time
+                lock (_cryptoLock)
                 {
-                    FileName = _cryptoSoftPath,
+                    var processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = _cryptoSoftPath,
 
-                    Arguments = $"\"{filePath}\" \"{_config.Key}\"",
-                    RedirectStandardOutput = true,  
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true            
-                };
+                        Arguments = $"\"{filePath}\" \"{_config.Key}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
 
-                using (var process = Process.Start(processStartInfo))
-                {
-                    if (process == null) return -1;
+                    using (var process = Process.Start(processStartInfo))
+                    {
+                        if (process == null) return -1;
 
-                   
-                    process.WaitForExit();
 
-                    // CryptoSoft returns the time (in ms) via the exit code
-                    return process.ExitCode;
+                        process.WaitForExit();
+
+                        // CryptoSoft returns the time (in ms) via the exit code
+                        return process.ExitCode;
+                    }
                 }
             }
             catch
