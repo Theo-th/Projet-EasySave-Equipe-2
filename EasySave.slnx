@@ -2,4 +2,5 @@
   <Project Path="EasySave.Console/EasySave.Console.csproj" />
   <Project Path="EasySave.Core/EasySave.Core.csproj" />
   <Project Path="EasySave.GUI/EasySave.GUI.csproj" />
+  <Project Path="EasySave.Tests/EasySave.Tests.csproj" Id="0bffed03-ae10-48cd-bba7-a4635d505281" />
 </Solution>
