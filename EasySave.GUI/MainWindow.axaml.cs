@@ -85,11 +85,11 @@ public partial class MainWindow : Window
         UpdatePriorityExtensionsUI();
         UpdateWatchedProcessesUI();
         LoadThreadingSettings(settings);
+        LoadMiscSettings(settings);
     }
 
     private void LoadThreadingSettings(Dictionary<string, string> settings)
     {
-        // Charger les paramètres multi-threading depuis les settings
         if (_controls.MaxJobsTextBox != null)
         {
             _controls.MaxJobsTextBox.Text = settings.ContainsKey("MaxSimultaneousJobs") 
@@ -102,6 +102,30 @@ public partial class MainWindow : Window
             _controls.FileSizeThresholdTextBox.Text = settings.ContainsKey("FileSizeThresholdMB") 
                 ? settings["FileSizeThresholdMB"] 
                 : "10";
+        }
+    }
+
+    private void LoadMiscSettings(Dictionary<string, string> settings)
+    {
+        // Langue : appliquer avant de changer l'index pour éviter le double-déclenchement
+        if (settings.TryGetValue("Language", out string? lang) && _controls.LanguageComboBox != null)
+        {
+            LocalizationManager.SetLanguage(lang);
+            _controls.LanguageComboBox.SelectedIndex = lang == "en-US" ? 1 : 0;
+        }
+
+        // Cible des logs
+        if (settings.TryGetValue("LogTarget", out string? logTarget) && _controls.LogTargetComboBox != null)
+        {
+            _viewModel.SetLogTarget(logTarget);
+            _controls.LogTargetComboBox.SelectedIndex = logTarget switch { "Server" => 1, "Both" => 2, _ => 0 };
+        }
+
+        // IP serveur
+        if (settings.TryGetValue("ServerIp", out string? serverIp) && !string.IsNullOrWhiteSpace(serverIp) && _controls.ServerIpTextBox != null)
+        {
+            _controls.ServerIpTextBox.Text = serverIp;
+            _viewModel.SetServerIp(serverIp);
         }
     }
 
@@ -328,17 +352,7 @@ public partial class MainWindow : Window
     private void SavePriorityExtensionsToSettings()
     {
         var extensions = _viewModel.GetPriorityExtensions();
-        var logsPath = _fileSystemHandler.LogsPath;
-        var configPath = _fileSystemHandler.ConfigPath;
-        var statePath = _fileSystemHandler.StatePath;
-        
-        // Load current settings
-        var settings = _settingsService.LoadSettings();
-        settings["PriorityExtensions"] = string.Join(",", extensions);
-        
-        // Save with priority extensions
-        var json = System.Text.Json.JsonSerializer.Serialize(settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-        System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json"), json);
+        _settingsService.UpdateSetting("PriorityExtensions", string.Join(",", extensions));
     }
 
     // --- Application settings ---
@@ -351,6 +365,7 @@ public partial class MainWindow : Window
             if (Thread.CurrentThread.CurrentUICulture.Name == culture) return;
 
             LocalizationManager.SetLanguage(culture);
+            _settingsService.UpdateSetting("Language", culture);
             _uiService.UpdateAllTexts();
             _jobHandler.LoadJobs();
         }
@@ -362,6 +377,7 @@ public partial class MainWindow : Window
         {
             string target = idx switch { 0 => "Local", 1 => "Server", _ => "Both" };
             _viewModel.SetLogTarget(target);
+            _settingsService.UpdateSetting("LogTarget", target);
             _uiService.UpdateStatus($"Cible des logs : {target}", true);
         }
     }
@@ -371,6 +387,7 @@ public partial class MainWindow : Window
         if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
         {
             _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
+            _settingsService.UpdateSetting("ServerIp", _controls.ServerIpTextBox.Text);
             _uiService.UpdateStatus($"IP Serveur mise à jour : {_controls.ServerIpTextBox.Text}", true);
         }
     }
@@ -380,56 +397,52 @@ public partial class MainWindow : Window
         try
         {
             // Validation et récupération des valeurs
-            int maxJobs = 3; // Valeur par défaut
-            int fileSizeThresholdMB = 10; // Valeur par défaut
+            if (!TryParseMaxJobs(out int maxJobs) || !TryParseFileSizeThreshold(out int fileSizeThresholdMB))
+                return;
 
-            if (_controls.MaxJobsTextBox?.Text is string maxJobsText && !string.IsNullOrWhiteSpace(maxJobsText))
-            {
-                if (int.TryParse(maxJobsText, out int parsed) && parsed >= 1 && parsed <= 10)
-                {
-                    maxJobs = parsed;
-                }
-                else
-                {
-                    _uiService.UpdateStatus("Erreur: Le nombre de travaux doit être entre 1 et 10", false);
-                    return;
-                }
-            }
+            // 1. Appliquer immédiatement (sans attendre la sauvegarde)
+            _viewModel.UpdateThreadingSettings(maxJobs, fileSizeThresholdMB);
 
-            if (_controls.FileSizeThresholdTextBox?.Text is string thresholdText && !string.IsNullOrWhiteSpace(thresholdText))
-            {
-                if (int.TryParse(thresholdText, out int parsed) && parsed >= 1)
-                {
-                    fileSizeThresholdMB = parsed;
-                }
-                else
-                {
-                    _uiService.UpdateStatus("Erreur: Le seuil de taille doit être >= 1 MB", false);
-                    return;
-                }
-            }
+            // 2. Sauvegarder chaque paramètre indépendamment via UpdateSetting
+            _settingsService.UpdateSetting("MaxSimultaneousJobs", maxJobs.ToString());
+            _settingsService.UpdateSetting("FileSizeThresholdMB", fileSizeThresholdMB.ToString());
 
-            // Sauvegarde des paramètres
-            var logsPath = _fileSystemHandler.LogsPath;
-            var configPath = _fileSystemHandler.ConfigPath;
-            var statePath = _fileSystemHandler.StatePath;
-            
-            bool success = _settingsService.SaveSettings(logsPath, configPath, statePath, maxJobs, fileSizeThresholdMB);
-            
-            if (success)
-            {
-                // Appliquer immédiatement les nouveaux paramètres
-                _viewModel.UpdateThreadingSettings(maxJobs, fileSizeThresholdMB);
-                _uiService.UpdateStatus($"Paramètres multi-threading appliqués: {maxJobs} jobs max, seuil {fileSizeThresholdMB} MB", true);
-            }
-            else
-            {
-                _uiService.UpdateStatus("Erreur lors de la sauvegarde des paramètres", false);
-            }
+            _uiService.UpdateStatus(
+                $"Paramètres multi-threading appliqués : {maxJobs} travaux max, seuil {fileSizeThresholdMB} MB", true);
         }
         catch (Exception ex)
         {
-            _uiService.UpdateStatus($"Erreur: {ex.Message}", false);
+            _uiService.UpdateStatus($"Erreur : {ex.Message}", false);
         }
+    }
+
+    private bool TryParseMaxJobs(out int maxJobs)
+    {
+        maxJobs = 3;
+        if (_controls.MaxJobsTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
+            return true; // valeur par défaut acceptée
+
+        if (int.TryParse(text, out int parsed) && parsed >= 1 && parsed <= 10)
+        {
+            maxJobs = parsed;
+            return true;
+        }
+        _uiService.UpdateStatus("Erreur : Le nombre de travaux doit être entre 1 et 10", false);
+        return false;
+    }
+
+    private bool TryParseFileSizeThreshold(out int fileSizeThresholdMB)
+    {
+        fileSizeThresholdMB = 10;
+        if (_controls.FileSizeThresholdTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
+            return true; // valeur par défaut acceptée
+
+        if (int.TryParse(text, out int parsed) && parsed >= 1)
+        {
+            fileSizeThresholdMB = parsed;
+            return true;
+        }
+        _uiService.UpdateStatus("Erreur : Le seuil de taille doit être >= 1 MB", false);
+        return false;
     }
 }

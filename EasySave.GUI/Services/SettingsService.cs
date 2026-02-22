@@ -45,6 +45,28 @@ public class SettingsService
     }
 
     /// <summary>
+    /// Updates a single setting key and persists it immediately.
+    /// </summary>
+    /// <param name="key">The setting key.</param>
+    /// <param name="value">The setting value.</param>
+    /// <returns>True if save succeeded, false otherwise.</returns>
+    public bool UpdateSetting(string key, string value)
+    {
+        try
+        {
+            var settings = LoadSettings();
+            settings[key] = value;
+            string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_settingsFilePath, json);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Saves application settings to the JSON file.
     /// </summary>
     /// <param name="logsPath">Path to logs directory.</param>
