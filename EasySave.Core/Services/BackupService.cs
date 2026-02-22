@@ -10,6 +10,7 @@ namespace EasySave.Core.Services
     /// <summary>
     /// Service principal de sauvegarde multi-threadé.
     /// Orchestre les 3 phases : Analyse → Fusion → Exécution.
+    /// Supporte le contrôle global ET par travail (pause/reprise/arrêt).
     /// </summary>
     public class BackupService : IBackupService
     {
@@ -27,9 +28,17 @@ namespace EasySave.Core.Services
         private HashSet<string> _priorityExtensions;
         private readonly object _configLock = new();
 
-        // Mécanisme de pause / annulation global
+        // Mutex global : interdit deux transferts de fichiers LOURDS en simultané
+        // (quelque soit le nombre de travaux actifs)
+        private readonly SemaphoreSlim _heavyFileSemaphore = new SemaphoreSlim(1, 1);
+
+        // Mécanisme de pause / annulation GLOBAL
         private readonly ManualResetEventSlim _pauseEvent = new(true);
         private CancellationTokenSource _cts = new();
+
+        // Mécanisme de pause / annulation PAR TRAVAIL
+        private readonly ConcurrentDictionary<string, ManualResetEventSlim> _jobPauseEvents = new();
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _jobCancellations = new();
 
         // Suivi de l'état par travail (thread-safe)
         private readonly ConcurrentDictionary<string, BackupJobState> _jobStates = new();
@@ -113,7 +122,7 @@ namespace EasySave.Core.Services
         }
 
         // ================================================================
-        //  CONTRÔLE : PAUSE / RESUME / STOP
+        //  CONTRÔLE GLOBAL (TOUS LES TRAVAUX)
         // ================================================================
 
         public void PauseBackup()
@@ -125,19 +134,65 @@ namespace EasySave.Core.Services
         public void ResumeBackup()
         {
             _pauseEvent.Set();
+            foreach (var ev in _jobPauseEvents.Values) ev.Set();
             UpdateAllJobStates(BackupState.Paused, BackupState.Active);
         }
 
         public void StopBackup()
         {
             _cts.Cancel();
-            _pauseEvent.Set(); // Débloquer si en pause pour traiter l'annulation
+            _pauseEvent.Set();
+            foreach (var ev in _jobPauseEvents.Values) ev.Set();
             UpdateAllJobStates(BackupState.Active, BackupState.Inactive);
             UpdateAllJobStates(BackupState.Paused, BackupState.Inactive);
         }
 
         // ================================================================
-        //  EXÉCUTION PRINCIPALE (3 PHASES)
+        //  CONTRÔLE PAR TRAVAIL INDIVIDUEL
+        // ================================================================
+
+        public void PauseJob(string jobName)
+        {
+            if (_jobPauseEvents.TryGetValue(jobName, out var ev)) ev.Reset();
+
+            if (_jobStates.TryGetValue(jobName, out var state))
+            {
+                state.State = BackupState.Paused;
+                state.LastActionTimestamp = DateTime.Now;
+                OnProgressChanged?.Invoke(state);
+                SaveStates();
+            }
+        }
+
+        public void ResumeJob(string jobName)
+        {
+            if (_jobPauseEvents.TryGetValue(jobName, out var ev)) ev.Set();
+
+            if (_jobStates.TryGetValue(jobName, out var state))
+            {
+                state.State = BackupState.Active;
+                state.LastActionTimestamp = DateTime.Now;
+                OnProgressChanged?.Invoke(state);
+                SaveStates();
+            }
+        }
+
+        public void StopJob(string jobName)
+        {
+            if (_jobCancellations.TryGetValue(jobName, out var cts)) cts.Cancel();
+            if (_jobPauseEvents.TryGetValue(jobName, out var ev)) ev.Set();
+
+            if (_jobStates.TryGetValue(jobName, out var state))
+            {
+                state.State = BackupState.Inactive;
+                state.LastActionTimestamp = DateTime.Now;
+                OnProgressChanged?.Invoke(state);
+                SaveStates();
+            }
+        }
+
+        // ================================================================
+        //  EXÉCUTION PRINCIPALE
         // ================================================================
 
         public string? ExecuteBackup(List<int> jobIndices)
@@ -145,24 +200,20 @@ namespace EasySave.Core.Services
             if (jobIndices == null || jobIndices.Count == 0)
                 return "No backup job specified.";
 
-            // Réinitialisation de l'état global
+            // Réinitialisation complète
             _cts = new CancellationTokenSource();
             _pauseEvent.Set();
             _jobStates.Clear();
+            foreach (var ev in _jobPauseEvents.Values) ev.Dispose();
+            foreach (var cts in _jobCancellations.Values) cts.Dispose();
+            _jobPauseEvents.Clear();
+            _jobCancellations.Clear();
 
             var allJobs = _configService.GetAllJobs();
             var errors = new ConcurrentBag<string>();
 
-            // ============================================================
-            // PHASE 1 : ORDONNANCEMENT ET ANALYSE
-            // Limite : _maxSimultaneousJobs threads simultanés (défaut 3)
-            // Chaque travail est instancié selon son type (Full / Différentielle)
-            // Les fichiers sont triés en 4 catégories via FileJob
-            // ============================================================
-
-            var allFileJobs = new ConcurrentBag<FileJob>();
-            var analyseTasks = new List<Task>();
-
+            // Collecter les travaux valides
+            var validJobs = new List<(BackupJob Job, int Index)>();
             foreach (var jobIndex in jobIndices)
             {
                 if (jobIndex < 0 || jobIndex >= allJobs.Count)
@@ -170,191 +221,253 @@ namespace EasySave.Core.Services
                     errors.Add($"Invalid job index: {jobIndex}");
                     continue;
                 }
+                validJobs.Add((allJobs[jobIndex], jobIndex));
+            }
 
-                var job = allJobs[jobIndex];
-                int capturedIndex = jobIndex;
+            if (validJobs.Count == 0)
+                return errors.Count > 0 ? string.Join("\n", errors) : "No backup job specified.";
 
-                _jobSemaphore.Wait();
+            // ============================================================
+            // PRÉ-ENREGISTREMENT
+            // Tous les travaux sont enregistrés en Inactive dès le départ.
+            // Les travaux au-delà de _maxSimultaneousJobs restent Inactive
+            // (en attente) jusqu'à ce qu'un slot se libère.
+            // ============================================================
+            foreach (var (job, index) in validJobs)
+            {
+                _jobPauseEvents[job.Name] = new ManualResetEventSlim(true);
+                _jobCancellations[job.Name] = new CancellationTokenSource();
 
-                var task = Task.Run(() =>
+                var waitingState = new BackupJobState
                 {
+                    Id = index + 1,
+                    Name = job.Name,
+                    SourcePath = job.SourceDirectory,
+                    TargetPath = job.TargetDirectory,
+                    Type = job.Type,
+                    State = BackupState.Inactive   // En attente de slot
+                };
+                _jobStates[job.Name] = waitingState;
+                OnProgressChanged?.Invoke(waitingState);
+            }
+            SaveStates();
+
+            // ============================================================
+            // LANCEMENT
+            // Chaque travail tourne dans sa propre Task.
+            // _jobSemaphore est acquis ET TENU pour toute la durée du travail
+            // (analyse + copie + finalisation).
+            // Le 4ème travail bloque sur Wait() jusqu'à la fin complète
+            // d'un des 3 premiers.
+            // ============================================================
+            var tasks = validJobs
+                .Select(entry => Task.Run(() =>
+                {
+                    var (job, capturedIndex) = entry;
+
+                    // Attente du slot — bloque si _maxSimultaneousJobs sont déjà actifs
+                    _jobSemaphore.Wait();
                     try
                     {
-                        // Instanciation selon le type de sauvegarde
-                        BackupStrategy strategy = job.Type == BackupType.Complete
-                            ? new FullBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions)
-                            : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions);
-
-                        // Analyse des fichiers
-                        var files = strategy.Analyze();
-
-                        // Initialisation de l'état du travail
-                        long totalSize = files.Sum(f => f.FileSize);
-                        var state = new BackupJobState
-                        {
-                            Id = capturedIndex + 1,
-                            Name = job.Name,
-                            SourcePath = job.SourceDirectory,
-                            TargetPath = job.TargetDirectory,
-                            Type = job.Type,
-                            State = BackupState.Active,
-                            TotalFiles = files.Count,
-                            TotalSize = totalSize,
-                            RemainingFiles = files.Count,
-                            RemainingSize = totalSize
-                        };
-
-                        _jobStates[job.Name] = state;
-                        OnProgressChanged?.Invoke(state);
-                        SaveStates();
-
-                        // Ajout aux fichiers globaux pour la phase 2
-                        foreach (var f in files)
-                            allFileJobs.Add(f);
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.Add($"Error analyzing '{job.Name}': {ex.Message}");
-                        _jobStates[job.Name] = new BackupJobState
-                        {
-                            Id = capturedIndex + 1,
-                            Name = job.Name,
-                            SourcePath = job.SourceDirectory,
-                            TargetPath = job.TargetDirectory,
-                            Type = job.Type,
-                            State = BackupState.Error
-                        };
+                        ExecuteSingleJob(job, capturedIndex, errors);
                     }
                     finally
                     {
+                        // Libère le slot seulement après copie + finalisation complètes
                         _jobSemaphore.Release();
+                    }
+                }))
+                .ToArray();
+
+            Task.WaitAll(tasks);
+            return errors.Count > 0 ? string.Join("\n", errors) : null;
+        }
+
+        // ================================================================
+        //  EXÉCUTION D'UN SEUL TRAVAIL (3 PHASES)
+        // ================================================================
+
+        /// <summary>
+        /// Exécute un travail complet en 3 phases (Analyse → Catégorisation → Copie).
+        /// Appelé depuis ExecuteBackup dans un Task.Run protégé par _jobSemaphore.
+        /// </summary>
+        private void ExecuteSingleJob(BackupJob job, int capturedIndex, ConcurrentBag<string> errors)
+        {
+            try
+            {
+                // ---- PHASE 1 : ANALYSE (lecture seule) ----
+                var state = _jobStates[job.Name];
+                state.State = BackupState.Active;
+                state.LastActionTimestamp = DateTime.Now;
+                OnProgressChanged?.Invoke(state);
+                SaveStates();
+
+                BackupStrategy strategy = job.Type == BackupType.Complete
+                    ? new FullBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions)
+                    : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions);
+
+                var files = strategy.Analyze();
+
+                long totalSize = files.Sum(f => f.FileSize);
+                state.TotalFiles = files.Count;
+                state.TotalSize = totalSize;
+                state.RemainingFiles = files.Count;
+                state.RemainingSize = totalSize;
+                state.LastActionTimestamp = DateTime.Now;
+                OnProgressChanged?.Invoke(state);
+                SaveStates();
+
+                if (files.Count == 0)
+                {
+                    FinalizeJobState(job.Name);
+                    return;
+                }
+
+                // ---- PHASE 2 : CATÉGORISATION ----
+                // Tri en 4 catégories ; les lourds sont fusionnés en file unique
+                // (prioritaires en tête).
+                FileJobCategorizer.CategorizeFiles(
+                    files, _sizeThreshold,
+                    out var priorityLight, out var nonPriorityLight,
+                    out var priorityHeavy, out var nonPriorityHeavy);
+
+                var heavyFiles = new List<FileJob>(priorityHeavy.Count + nonPriorityHeavy.Count);
+                heavyFiles.AddRange(priorityHeavy);
+                heavyFiles.AddRange(nonPriorityHeavy);
+
+                // ---- PRÉPARATION DES DOSSIERS CIBLES ----
+                strategy.Prepare();
+
+                // ---- PHASE 3 : COPIE ----
+
+                // Fichiers lourds : thread unique dédié.
+                // _heavyFileSemaphore garantit qu'un seul fichier lourd est
+                // transféré à la fois sur l'ensemble des travaux actifs.
+                var heavyTask = Task.Run(() =>
+                {
+                    foreach (var file in heavyFiles)
+                    {
+                        if (IsCancelledJob(job.Name)) break;
+                        CopyAndProcessFile(file);
                     }
                 });
 
-                analyseTasks.Add(task);
-            }
-
-            // Attendre la fin de toutes les analyses
-            Task.WaitAll(analyseTasks.ToArray());
-
-            if (allFileJobs.IsEmpty)
-            {
-                FinalizeStates();
-                return errors.Count > 0 ? string.Join("\n", errors) : "No files to backup.";
-            }
-
-            // ============================================================
-            // PHASE 2 : FUSION ET ATTRIBUTION DES RESSOURCES
-            // Les 4 catégories de chaque travail sont fusionnées en 3 files :
-            //   1. Fichiers prioritaires légers
-            //   2. Fichiers légers standard
-            //   3. Fichiers lourds (prioritaires d'abord, puis non prioritaires)
-            // ============================================================
-
-            FileJobCategorizer.CategorizeFiles(
-                allFileJobs, _sizeThreshold,
-                out var priorityLight, out var nonPriorityLight,
-                out var priorityHeavy, out var nonPriorityHeavy);
-
-            // File 3 : fusion des lourds (prioritaires en tête)
-            var heavyFiles = new List<FileJob>(priorityHeavy.Count + nonPriorityHeavy.Count);
-            heavyFiles.AddRange(priorityHeavy);
-            heavyFiles.AddRange(nonPriorityHeavy);
-
-            // ============================================================
-            // PHASE 3 : EXÉCUTION ET FINALISATION
-            //
-            // Contraintes :
-            //   - Fichiers lourds  : 1 seul thread dédié (éviter saturation bande passante)
-            //   - Fichiers légers  : multi-thread (parallèle)
-            //   - Non prioritaires : traités uniquement après la fin des prioritaires
-            //
-            // Pour chaque fichier :
-            //   1. Copie
-            //   2. Chiffrement (si requis via EncryptionService)
-            //   3. Mise à jour de l'état (BackupJobState + event OnProgressChanged)
-            //   4. Écriture des logs (via la DLL EasyLog)
-            //
-            // Si un processus métier est détecté → pause (pas arrêt)
-            // ============================================================
-
-            // Thread unique dédié aux fichiers lourds (tourne en parallèle des légers)
-            var heavyTask = Task.Run(() =>
-            {
-                foreach (var file in heavyFiles)
+                // Fichiers prioritaires légers : multi-thread
+                if (priorityLight.Count > 0 && !IsCancelledJob(job.Name))
                 {
-                    if (_cts.IsCancellationRequested) break;
-                    CopyAndProcessFile(file);
+                    try
+                    {
+                        Parallel.ForEach(priorityLight,
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                                CancellationToken = BuildLinkedToken(job.Name)
+                            },
+                            file => CopyAndProcessFile(file));
+                    }
+                    catch (OperationCanceledException) { }
                 }
-            });
 
-            // Fichiers prioritaires légers (multi-thread)
-            if (priorityLight.Count > 0 && !_cts.IsCancellationRequested)
-            {
-                Parallel.ForEach(priorityLight,
-                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                    file => CopyAndProcessFile(file));
+                // Fichiers légers standard : multi-thread, uniquement après les prioritaires
+                if (nonPriorityLight.Count > 0 && !IsCancelledJob(job.Name))
+                {
+                    try
+                    {
+                        Parallel.ForEach(nonPriorityLight,
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                                CancellationToken = BuildLinkedToken(job.Name)
+                            },
+                            file => CopyAndProcessFile(file));
+                    }
+                    catch (OperationCanceledException) { }
+                }
+
+                try { heavyTask.Wait(); }
+                catch (AggregateException) { }
+
+                FinalizeJobState(job.Name);
             }
-
-            // Fichiers légers standard (multi-thread, uniquement après les prioritaires)
-            if (nonPriorityLight.Count > 0 && !_cts.IsCancellationRequested)
+            catch (Exception ex)
             {
-                Parallel.ForEach(nonPriorityLight,
-                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                    file => CopyAndProcessFile(file));
+                errors.Add($"Error executing '{job.Name}': {ex.Message}");
+                if (_jobStates.TryGetValue(job.Name, out var errState))
+                {
+                    errState.State = BackupState.Error;
+                    OnProgressChanged?.Invoke(errState);
+                    SaveStates();
+                }
             }
-
-            // Attendre la fin du thread lourd
-            try { heavyTask.Wait(); }
-            catch (AggregateException) { /* Annulation gérée en interne */ }
-
-            // Finalisation de l'état de tous les travaux
-            FinalizeStates();
-
-            return errors.Count > 0 ? string.Join("\n", errors) : null;
         }
 
         // ================================================================
         //  COPIE ET TRAITEMENT D'UN FICHIER
         // ================================================================
 
-        /// <summary>
-        /// Copie un fichier, chiffre si nécessaire, met à jour l'état et enregistre les logs.
-        /// Gère la pause utilisateur et la pause automatique (processus métier).
-        /// </summary>
         private void CopyAndProcessFile(FileJob file)
         {
-            // Vérification de l'annulation
+            // 1. Annulation globale ou par travail
             if (_cts.IsCancellationRequested) return;
+            _jobCancellations.TryGetValue(file.JobName, out var jobCts);
+            if (jobCts?.IsCancellationRequested == true) return;
 
-            // Attente si en pause (utilisateur)
-            try { _pauseEvent.Wait(_cts.Token); }
+            // Token combiné (global + travail) pour toutes les attentes
+            using var linkedCts = jobCts != null
+                ? CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, jobCts.Token)
+                : CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+            var ct = linkedCts.Token;
+
+            // 2. Attente pause globale
+            try { _pauseEvent.Wait(ct); }
             catch (OperationCanceledException) { return; }
 
-            // Attente si un processus métier est détecté (pause automatique, pas arrêt)
-            WaitForBusinessProcess();
+            // 3. Attente pause par travail
+            if (_jobPauseEvents.TryGetValue(file.JobName, out var jobPauseEvent) && !jobPauseEvent.IsSet)
+            {
+                try { jobPauseEvent.Wait(ct); }
+                catch (OperationCanceledException) { return; }
+            }
 
-            // Re-vérifier l'annulation après les pauses
-            if (_cts.IsCancellationRequested) return;
+            if (ct.IsCancellationRequested) return;
 
+            // 4. Pause si processus métier détecté (pause, pas arrêt)
+            WaitIfBusinessProcess(ct);
+            if (ct.IsCancellationRequested) return;
+
+            // 5. Fichier lourd → mutex global (1 seul transfert lourd à la fois)
+            bool isHeavy = file.FileSize > _sizeThreshold;
+            if (isHeavy)
+            {
+                try { _heavyFileSemaphore.Wait(ct); }
+                catch (OperationCanceledException) { return; }
+
+                try { PerformCopyAndLog(file); }
+                finally { _heavyFileSemaphore.Release(); }
+            }
+            else
+            {
+                PerformCopyAndLog(file);
+            }
+        }
+
+        // Changer 'private' → 'protected virtual' pour permettre l'override dans les tests
+        protected virtual void PerformCopyAndLog(FileJob file)
+        {
             try
             {
-                // Création du répertoire cible si nécessaire
                 string? destDir = Path.GetDirectoryName(file.DestinationPath);
                 if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
                     Directory.CreateDirectory(destDir);
 
-                // Copie du fichier avec mesure du temps
                 var stopwatch = Stopwatch.StartNew();
                 File.Copy(file.SourcePath, file.DestinationPath, overwrite: true);
                 stopwatch.Stop();
 
-                // Chiffrement si requis (appel de l'app CryptoSoft via EncryptionService)
-                long encryptionTime = 0;
-                if (file.IsEncrypted)
-                    encryptionTime = EncryptionService.Instance.EncryptFile(file.DestinationPath);
+                long encryptionTime = file.IsEncrypted
+                    ? EncryptionService.Instance.EncryptFile(file.DestinationPath)
+                    : 0;
 
-                // Écriture des logs (via la DLL EasyLog)
                 WriteLog(new Record
                 {
                     Name = file.JobName,
@@ -366,12 +479,10 @@ namespace EasySave.Core.Services
                     EncryptionTime = encryptionTime
                 });
 
-                // Mise à jour de l'état du travail (event + state.json)
                 UpdateJobProgress(file);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log de l'erreur
                 WriteLog(new Record
                 {
                     Name = file.JobName,
@@ -396,35 +507,46 @@ namespace EasySave.Core.Services
         //  MÉTHODES UTILITAIRES
         // ================================================================
 
+        private bool IsCancelledJob(string jobName)
+        {
+            if (_cts.IsCancellationRequested) return true;
+            return _jobCancellations.TryGetValue(jobName, out var cts) && cts.IsCancellationRequested;
+        }
+
+        private CancellationToken BuildLinkedToken(string jobName)
+        {
+            _jobCancellations.TryGetValue(jobName, out var jobCts);
+            return jobCts != null
+                ? CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, jobCts.Token).Token
+                : _cts.Token;
+        }
+
         /// <summary>
-        /// Attend que tous les processus métier surveillés soient terminés.
-        /// Les sauvegardes sont mises en PAUSE (pas arrêtées) pendant la détection.
+        /// Met la sauvegarde en pause si un processus métier est détecté.
+        /// Attente interruptible de 500 ms via le CancellationToken.
+        /// Reprend automatiquement quand le processus métier s'arrête.
         /// </summary>
-        private void WaitForBusinessProcess()
+        private void WaitIfBusinessProcess(CancellationToken ct)
         {
             string? runningProcess;
             bool wasPaused = false;
 
-            while ((runningProcess = _processDetector.IsAnyWatchedProcessRunning()) != null)
+            while (!ct.IsCancellationRequested &&
+                   (runningProcess = _processDetector.IsAnyWatchedProcessRunning()) != null)
             {
                 if (!wasPaused)
                 {
+                    wasPaused = true;
                     OnBusinessProcessDetected?.Invoke(runningProcess);
                     UpdateAllJobStates(BackupState.Active, BackupState.Paused);
-                    wasPaused = true;
                 }
-
-                Thread.Sleep(1000);
-                if (_cts.IsCancellationRequested) return;
+                ct.WaitHandle.WaitOne(500);
             }
 
-            if (wasPaused)
+            if (wasPaused && !ct.IsCancellationRequested)
                 UpdateAllJobStates(BackupState.Paused, BackupState.Active);
         }
 
-        /// <summary>
-        /// Met à jour la progression d'un travail après la copie d'un fichier.
-        /// </summary>
         private void UpdateJobProgress(FileJob file)
         {
             if (!_jobStates.TryGetValue(file.JobName, out var state)) return;
@@ -442,9 +564,6 @@ namespace EasySave.Core.Services
             SaveStates();
         }
 
-        /// <summary>
-        /// Met à jour l'état de tous les travaux correspondant à un état source.
-        /// </summary>
         private void UpdateAllJobStates(BackupState fromState, BackupState toState)
         {
             foreach (var state in _jobStates.Values)
@@ -460,27 +579,24 @@ namespace EasySave.Core.Services
         }
 
         /// <summary>
-        /// Finalise l'état de tous les travaux à la fin de l'exécution.
+        /// Finalise l'état d'un travail individuel après complétion ou annulation.
         /// </summary>
-        private void FinalizeStates()
+        private void FinalizeJobState(string jobName)
         {
-            foreach (var state in _jobStates.Values)
+            if (!_jobStates.TryGetValue(jobName, out var state)) return;
+
+            if (state.State == BackupState.Active || state.State == BackupState.Paused)
             {
-                if (state.State == BackupState.Active || state.State == BackupState.Paused)
-                {
-                    state.State = state.RemainingFiles == 0
-                        ? BackupState.Completed
-                        : BackupState.Inactive;
-                    state.LastActionTimestamp = DateTime.Now;
-                }
-                OnProgressChanged?.Invoke(state);
+                state.State = state.RemainingFiles == 0
+                    ? BackupState.Completed
+                    : BackupState.Inactive;
+                state.LastActionTimestamp = DateTime.Now;
             }
+
+            OnProgressChanged?.Invoke(state);
             SaveStates();
         }
 
-        /// <summary>
-        /// Persiste l'état de tous les travaux via le repository (state.json).
-        /// </summary>
         private void SaveStates()
         {
             lock (_stateLock)
@@ -489,28 +605,17 @@ namespace EasySave.Core.Services
             }
         }
 
-        /// <summary>
-        /// Enregistre un log de manière thread-safe.
-        /// EasyLog (JsonLog/XmlLog) n'est pas thread-safe : un lock est requis
-        /// pour éviter les accès concurrents au fichier de log.
-        /// </summary>
         private void WriteLog(Record record)
         {
             if (_currentLogTarget == LogTarget.Local || _currentLogTarget == LogTarget.Both)
             {
-                lock (_logLock)
-                {
-                    _logger.WriteLog(record);
-                }
+                lock (_logLock) { _logger.WriteLog(record); }
             }
 
             if (_currentLogTarget == LogTarget.Server || _currentLogTarget == LogTarget.Both)
                 _ = RemoteLogService.SendLogAsync(record);
         }
 
-        /// <summary>
-        /// Convertit un chemin local en chemin UNC réseau.
-        /// </summary>
         private static string GetUncPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path) || path.StartsWith(@"\\")) return path;
@@ -519,9 +624,6 @@ namespace EasySave.Core.Services
             return path;
         }
 
-        /// <summary>
-        /// Gère l'événement de changement de statut d'un processus surveillé.
-        /// </summary>
         private void OnWatchedProcessStatusChanged(object? sender, ProcessStatusChangedEventArgs e)
         {
             if (e.IsRunning)

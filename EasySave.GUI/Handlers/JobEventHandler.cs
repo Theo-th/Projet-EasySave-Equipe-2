@@ -18,9 +18,6 @@ using EasySave.Core.Properties;
 
 namespace EasySave.GUI.Handlers;
 
-/// <summary>
-/// Handles backup job-related events and actions in the EasySave GUI.
-/// </summary>
 public class JobEventHandler
 {
     private readonly Window _window;
@@ -31,15 +28,7 @@ public class JobEventHandler
     private readonly ObservableCollection<JobProgressItem> _jobProgressItems;
     private readonly Dictionary<string, JobProgressItem> _progressByJobName;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="JobEventHandler"/> class.
-    /// </summary>
-    /// <param name="window">The main application window.</param>
-    /// <param name="controls">The cached UI controls.</param>
-    /// <param name="viewModel">The view model for job operations.</param>
-    /// <param name="uiService">The UI update service.</param>
-    /// <param name="jobs">The observable collection of jobs.</param>
-    public JobEventHandler(Window window, ControlCache controls, ViewModelConsole viewModel, 
+    public JobEventHandler(Window window, ControlCache controls, ViewModelConsole viewModel,
         UIUpdateService uiService, ObservableCollection<JobItem> jobs)
     {
         _window = window;
@@ -49,32 +38,25 @@ public class JobEventHandler
         _jobs = jobs;
         _jobProgressItems = new ObservableCollection<JobProgressItem>();
         _progressByJobName = new Dictionary<string, JobProgressItem>();
-        
-        // Initialize ItemsControl binding
+
         if (_window.FindControl<ItemsControl>("JobProgressList") is ItemsControl progressList)
-        {
             progressList.ItemsSource = _jobProgressItems;
-        }
     }
 
-    /// <summary>
-    /// Loads all jobs from the view model and updates the UI lists.
-    /// </summary>
     public void LoadJobs()
     {
         _jobs.Clear();
         var jobNames = _viewModel.GetAllJobs();
-        var jobCount = jobNames.Count;
-        var jobNamesList = new List<string>(jobCount);
-        
-        for (int i = 0; i < jobCount; i++)
+        var jobNamesList = new List<string>(jobNames.Count);
+
+        for (int i = 0; i < jobNames.Count; i++)
         {
             var jobInfo = _viewModel.GetJob(i);
             if (jobInfo != null)
             {
                 var parts = jobInfo.Split(" -- ");
-                _jobs.Add(new JobItem 
-                { 
+                _jobs.Add(new JobItem
+                {
                     Name = parts[0],
                     Index = i,
                     IsSelected = false,
@@ -85,21 +67,15 @@ public class JobEventHandler
                 jobNamesList.Add(parts[0]);
             }
         }
-        
+
         if (_controls.JobListBox != null)
             _controls.JobListBox.ItemsSource = jobNamesList;
-            
         if (_controls.ManageJobListBox != null)
             _controls.ManageJobListBox.ItemsSource = jobNamesList;
-            
+
         _uiService.UpdateJobsCount(_jobs.Count);
     }
 
-    /// <summary>
-    /// Handles the execution of selected backup jobs when the execute button is clicked.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The event arguments.</param>
     public async void ExecuteButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_controls.JobListBox?.SelectedItems == null || _controls.JobListBox.SelectedItems.Count == 0)
@@ -108,49 +84,53 @@ public class JobEventHandler
             return;
         }
 
-        var selectedCount = _controls.JobListBox.SelectedItems.Count;
-        var selectedIndices = new List<int>(selectedCount);
-        
-        // Clear previous progress items
+        var selectedIndices = new List<int>();
+
+        // Vider les précédents items de progression
         _jobProgressItems.Clear();
         _progressByJobName.Clear();
-        
+
         var jobDict = new Dictionary<string, int>(_jobs.Count);
         for (int i = 0; i < _jobs.Count; i++)
-        {
             jobDict[_jobs[i].Name] = _jobs[i].Index;
-        }
-        
+
         foreach (var item in _controls.JobListBox.SelectedItems)
         {
             var name = item?.ToString();
-            if (name != null && jobDict.TryGetValue(name, out var index))
+            if (name == null || !jobDict.TryGetValue(name, out var index)) continue;
+
+            selectedIndices.Add(index);
+
+            // Capture du nom pour les lambdas (closure-safe)
+            string capturedName = name;
+
+            var progressItem = new JobProgressItem(
+                pauseAction:  () => _viewModel.PauseJob(capturedName),
+                resumeAction: () => _viewModel.ResumeJob(capturedName),
+                stopAction:   () => _viewModel.StopJob(capturedName)
+            )
             {
-                selectedIndices.Add(index);
-                
-                // Initialize progress item for this job
-                var progressItem = new JobProgressItem
-                {
-                    JobName = name,
-                    Progress = 0,
-                    ProgressText = "0%",
-                    CurrentFile = "",
-                    IsCompleted = false
-                };
-                _jobProgressItems.Add(progressItem);
-                _progressByJobName[name] = progressItem;
-            }
+                JobName        = name,
+                Progress       = 0,
+                ProgressText   = "En attente...",
+                FilesCountText = "En attente...",
+                CurrentFile    = "",
+                State          = BackupState.Inactive   // ← était Active, corrigé en Inactive
+            };
+
+            _jobProgressItems.Add(progressItem);
+            _progressByJobName[name] = progressItem;
         }
-        
+
         if (selectedIndices.Count == 0)
         {
             _uiService.UpdateStatus("Aucun travail valide sélectionné", false);
             return;
         }
-        
-            _uiService.UpdateStatus(string.Format(EasySave.Core.Properties.Lang.StatusExecutingBackups, selectedIndices.Count), true);
+
+        _uiService.UpdateStatus(string.Format(Lang.StatusExecutingBackups, selectedIndices.Count), true);
         _uiService.ShowProgress(true);
-        
+
         await Task.Run(() =>
         {
             var result = _viewModel.ExecuteJobs(selectedIndices);
@@ -159,39 +139,30 @@ public class JobEventHandler
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     _uiService.ShowProgress(false);
-                    bool isSuccess = result.Contains("completed successfully");
-                    _uiService.UpdateStatus(result, isSuccess);
+                    _uiService.UpdateStatus(result, false);
                 });
-                return;
             }
         });
-        
+
         _uiService.ShowProgress(false);
         if (selectedIndices.Count == 1)
-            _uiService.UpdateStatus(EasySave.Core.Properties.Lang.StatusBackupCompleted, true);
+            _uiService.UpdateStatus(Lang.StatusBackupCompleted, true);
         else
-            _uiService.UpdateStatus(string.Format(EasySave.Core.Properties.Lang.StatusBackupsCompleted, selectedIndices.Count), true);
+            _uiService.UpdateStatus(string.Format(Lang.StatusBackupsCompleted, selectedIndices.Count), true);
     }
 
-    /// <summary>
-    /// Handles the creation of a new backup job when the create button is clicked.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The event arguments.</param>
     public void CreateJobButton_Click(object? sender, RoutedEventArgs e)
     {
-        var nameBox = _window.FindControl<TextBox>("JobNameTextBox");
+        var nameBox   = _window.FindControl<TextBox>("JobNameTextBox");
         var sourceBox = _window.FindControl<TextBox>("SourcePathTextBox");
         var targetBox = _window.FindControl<TextBox>("TargetPathTextBox");
-        var typeBox = _controls.TypeComboBox;
+        var typeBox   = _controls.TypeComboBox;
 
-        if (nameBox == null || sourceBox == null || targetBox == null || typeBox == null)
-            return;
+        if (nameBox == null || sourceBox == null || targetBox == null || typeBox == null) return;
 
-        var name = nameBox.Text;
+        var name   = nameBox.Text;
         var source = sourceBox.Text;
         var target = targetBox.Text;
-        var typeIndex = typeBox.SelectedIndex;
 
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(target))
         {
@@ -199,38 +170,29 @@ public class JobEventHandler
             return;
         }
 
-        var type = typeIndex == 1 ? BackupType.Differential : BackupType.Complete;
+        var type   = typeBox.SelectedIndex == 1 ? BackupType.Differential : BackupType.Complete;
         var result = _viewModel.CreateJob(name, source, target, type);
-        
+
         if (!result.Success)
         {
             _uiService.UpdateStatus($"Erreur: {result.ErrorMessage}", false);
             return;
         }
-        
-        nameBox.Text = "";
-        sourceBox.Text = "";
-        targetBox.Text = "";
+
+        nameBox.Text = ""; sourceBox.Text = ""; targetBox.Text = "";
         typeBox.SelectedIndex = 0;
-        
         LoadJobs();
         _uiService.UpdateStatus($"Plan '{name}' créé avec succès", true);
     }
 
-    /// <summary>
-    /// Handles the deletion of a selected backup job when the delete button is clicked.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The event arguments.</param>
     public void DeleteJobButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_controls.ManageJobListBox?.SelectedIndex >= 0 && _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
+        if (_controls.ManageJobListBox?.SelectedIndex >= 0 &&
+            _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
         {
             var jobIndex = _controls.ManageJobListBox.SelectedIndex;
-            var jobName = _jobs[jobIndex].Name;
-            var success = _viewModel.DeleteJob(jobIndex);
-            
-            if (success)
+            var jobName  = _jobs[jobIndex].Name;
+            if (_viewModel.DeleteJob(jobIndex))
             {
                 LoadJobs();
                 _uiService.UpdateStatus($"Plan '{jobName}' supprimé", true);
@@ -246,19 +208,13 @@ public class JobEventHandler
         }
     }
 
-    /// <summary>
-    /// Displays the details of the selected backup job in a dialog.
-    /// </summary>
-    /// <param name="sender">The event sender.</param>
-    /// <param name="e">The event arguments.</param>
     public async void ViewDetailsButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_controls.ManageJobListBox?.SelectedItem != null && 
-            _controls.ManageJobListBox.SelectedIndex >= 0 && 
+        if (_controls.ManageJobListBox?.SelectedItem != null &&
+            _controls.ManageJobListBox.SelectedIndex >= 0 &&
             _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
         {
-            var job = _jobs[_controls.ManageJobListBox.SelectedIndex];
-            await ShowJobDetailsDialog(job);
+            await ShowJobDetailsDialog(_jobs[_controls.ManageJobListBox.SelectedIndex]);
         }
         else
         {
@@ -266,30 +222,70 @@ public class JobEventHandler
         }
     }
 
+    /// <summary>
+    /// Met à jour la progression et l'état d'un travail dans l'UI.
+    /// </summary>
+    public void OnBackupProgressChanged(BackupJobState state)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (!_progressByJobName.TryGetValue(state.Name, out var progressItem)) return;
+
+            // Mise à jour de l'état (badge couleur + visibilité boutons)
+            progressItem.State = state.State;
+
+            // Calcul de la progression
+            double progress = state.TotalSize > 0
+                ? Math.Min(100, Math.Max(0, (double)(state.TotalSize - state.RemainingSize) / state.TotalSize * 100.0))
+                : 0;
+
+            progressItem.Progress = progress;
+
+            // Compteur fichiers
+            int filesDone = state.TotalFiles - state.RemainingFiles;
+            progressItem.FilesCountText = $"{filesDone} / {state.TotalFiles} fichiers";
+
+            // Texte progression + temps restant estimé
+            string timeText = string.Empty;
+            if (filesDone > 0 && state.RemainingFiles > 0)
+            {
+                double elapsed = (DateTime.Now - state.StartTimestamp).TotalSeconds;
+                int secondsLeft = (int)(elapsed / filesDone * state.RemainingFiles);
+                timeText = $"  ~{secondsLeft / 60:D2}:{secondsLeft % 60:D2} restant";
+            }
+
+            progressItem.ProgressText = state.State switch
+            {
+                BackupState.Completed => "100% ✓",
+                BackupState.Paused    => $"{(int)progress}% ⏸",
+                BackupState.Inactive  => $"{(int)progress}% ⏹",
+                BackupState.Error     => $"{(int)progress}% ✕",
+                _                    => $"{(int)progress}%{timeText}"
+            };
+
+            // Fichier en cours
+            if (!string.IsNullOrEmpty(state.CurrentSourceFile))
+                progressItem.CurrentFile = $"↳  {Path.GetFileName(state.CurrentSourceFile)}";
+        });
+    }
+
+    // ----------------------------------------------------------------
+
     private async Task ShowJobDetailsDialog(JobItem job)
     {
         var dialog = new Window
         {
             Title = $"Détails - {job.Name}",
-            Width = 600,
-            Height = 400,
+            Width = 600, Height = 400,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false
         };
 
-        var scrollViewer = new ScrollViewer
-        {
-            Padding = new Thickness(30),
-            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto
-        };
-
-        var panel = new StackPanel { Spacing = 20 };
-
+        var panel = new StackPanel { Spacing = 20, Margin = new Thickness(30) };
         panel.Children.Add(new TextBlock
         {
-            Text = $"📋 Détails du plan de sauvegarde",
-            FontSize = 20,
-            FontWeight = FontWeight.Bold,
+            Text = "📋 Détails du plan de sauvegarde",
+            FontSize = 20, FontWeight = FontWeight.Bold,
             Foreground = new SolidColorBrush(Color.Parse("#1F2937")),
             Margin = new Thickness(0, 0, 0, 20)
         });
@@ -299,7 +295,7 @@ public class JobEventHandler
         panel.Children.Add(CreateDetailBlock("Chemin source", job.Source));
         panel.Children.Add(CreateDetailBlock("Chemin de destination", job.Target));
 
-        var closeButton = new Button
+        var closeBtn = new Button
         {
             Content = "Fermer",
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -307,15 +303,16 @@ public class JobEventHandler
             Padding = new Thickness(40, 12),
             Background = new SolidColorBrush(Color.Parse("#3B82F6")),
             Foreground = Brushes.White,
-            CornerRadius = new CornerRadius(6),
-            FontSize = 14,
-            FontWeight = FontWeight.SemiBold
+            CornerRadius = new CornerRadius(6)
         };
-        closeButton.Click += (s, e) => dialog.Close();
+        closeBtn.Click += (s, ev) => dialog.Close();
+        panel.Children.Add(closeBtn);
 
-        panel.Children.Add(closeButton);
-        scrollViewer.Content = panel;
-        dialog.Content = scrollViewer;
+        dialog.Content = new ScrollViewer
+        {
+            Content = panel,
+            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto
+        };
 
         await dialog.ShowDialog(_window);
     }
@@ -323,15 +320,11 @@ public class JobEventHandler
     private StackPanel CreateDetailBlock(string label, string value)
     {
         var block = new StackPanel { Spacing = 5 };
-
         block.Children.Add(new TextBlock
         {
-            Text = label,
-            FontSize = 13,
-            FontWeight = FontWeight.SemiBold,
+            Text = label, FontSize = 13, FontWeight = FontWeight.SemiBold,
             Foreground = new SolidColorBrush(Color.Parse("#6B7280"))
         });
-
         block.Children.Add(new Border
         {
             Background = new SolidColorBrush(Color.Parse("#F9FAFB")),
@@ -341,65 +334,11 @@ public class JobEventHandler
             Padding = new Thickness(15, 10),
             Child = new TextBlock
             {
-                Text = value,
-                FontSize = 14,
+                Text = value, FontSize = 14,
                 Foreground = new SolidColorBrush(Color.Parse("#1F2937")),
                 TextWrapping = TextWrapping.Wrap
             }
         });
-
         return block;
-    }
-
-    /// <summary>
-    /// Updates the UI to reflect the progress of a running backup job.
-    /// </summary>
-    /// <param name="state">The current state of the backup job.</param>
-    public void OnBackupProgressChanged(BackupJobState state)
-    {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            // Find the progress item for this job using the Name property
-            if (_progressByJobName.TryGetValue(state.Name, out var progressItem))
-            {
-                double progress = 0;
-                if (state.TotalSize > 0)
-                {
-                    long processedSize = state.TotalSize - state.RemainingSize;
-                    progress = (double)processedSize / state.TotalSize * 100.0;
-                }
-
-                progressItem.Progress = Math.Min(100, Math.Max(0, progress));
-
-                // Calcul du temps restant estimé (multilingue)
-                string timeLeftText = string.Empty;
-                int filesDone = state.TotalFiles - state.RemainingFiles;
-                if (filesDone > 0 && state.RemainingFiles > 0)
-                {
-                    var elapsed = (DateTime.Now - state.StartTimestamp).TotalSeconds;
-                    double avgPerFile = elapsed / filesDone;
-                    int secondsLeft = (int)(avgPerFile * state.RemainingFiles);
-                    int min = secondsLeft / 60;
-                    int sec = secondsLeft % 60;
-                    string timeValue = $"{min:D2}:{sec:D2}";
-                    timeLeftText = $" | {Lang.TimeLeft.Replace("{0}", timeValue)}";
-                }
-
-                progressItem.ProgressText = $"{(int)progress}%{timeLeftText}";
-
-                if (!string.IsNullOrEmpty(state.CurrentSourceFile))
-                {
-                    string fileName = Path.GetFileName(state.CurrentSourceFile);
-                    progressItem.CurrentFile = string.Format(Lang.CurrentFile, fileName);
-                }
-
-                // Mark as completed if progress is 100%
-                if (progress >= 100)
-                {
-                    progressItem.IsCompleted = true;
-                    progressItem.ProgressText = "100% ✓";
-                }
-            }
-        });
     }
 }

@@ -5,8 +5,9 @@ namespace EasySave.Core.Services.Strategies
 {
     /// <summary>
     /// Classe abstraite définissant la stratégie d'analyse de sauvegarde.
-    /// Responsable uniquement de l'analyse des fichiers (Phase 1).
-    /// La copie, le chiffrement, les logs et l'état sont gérés par BackupService.
+    /// Analyze() : Phase 1 — lecture seule, ne modifie jamais le disque.
+    /// Prepare() : appelé par BackupService entre la Phase 2 et la Phase 3
+    ///             pour préparer les dossiers cibles (nettoyage / création).
     /// </summary>
     public abstract class BackupStrategy
     {
@@ -19,7 +20,8 @@ namespace EasySave.Core.Services.Strategies
         protected string JobName { get; }
         protected HashSet<string> PriorityExtensions { get; }
 
-        protected BackupStrategy(string sourceDirectory, string targetDirectory, string jobName, HashSet<string> priorityExtensions)
+        protected BackupStrategy(string sourceDirectory, string targetDirectory,
+            string jobName, HashSet<string> priorityExtensions)
         {
             SourceDirectory = sourceDirectory;
             TargetDirectory = targetDirectory;
@@ -29,25 +31,31 @@ namespace EasySave.Core.Services.Strategies
 
         /// <summary>
         /// Analyse les fichiers à sauvegarder et retourne la liste des FileJob.
-        /// Chaque FileJob contient : source, destination, nom du travail, booléen chiffrement.
+        /// Opération en LECTURE SEULE : ne crée, ne modifie ni ne supprime aucun fichier.
+        /// Chaque FileJob contient : source, destination, nom du travail, booléen chiffrement,
+        /// booléen priorité et taille — permettant le tri en 4 catégories en Phase 2.
         /// </summary>
         public abstract List<FileJob> Analyze();
 
         /// <summary>
-        /// Valide l'existence du répertoire source et crée le répertoire cible si nécessaire.
+        /// Prépare les dossiers de destination avant l'exécution des copies (Phase 3).
+        /// Appelé par BackupService après Task.WaitAll de la Phase 1.
         /// </summary>
-        protected void ValidateDirectories()
+        public abstract void Prepare();
+
+        /// <summary>
+        /// Valide l'existence du répertoire source.
+        /// </summary>
+        protected void ValidateSource()
         {
             if (!Directory.Exists(SourceDirectory))
-                throw new DirectoryNotFoundException($"Le répertoire source '{SourceDirectory}' n'existe pas.");
-
-            if (!Directory.Exists(TargetDirectory))
-                Directory.CreateDirectory(TargetDirectory);
+                throw new DirectoryNotFoundException(
+                    $"Le répertoire source '{SourceDirectory}' n'existe pas.");
         }
 
         /// <summary>
-        /// Crée un FileJob à partir d'un FileInfo et d'un dossier de destination.
-        /// Détermine automatiquement la priorité (selon l'extension) et le chiffrement.
+        /// Crée un FileJob à partir d'un FileInfo.
+        /// Détermine automatiquement IsPriority (extension prioritaire) et IsEncrypted.
         /// </summary>
         protected FileJob CreateFileJob(FileInfo file, string destinationFolder)
         {
