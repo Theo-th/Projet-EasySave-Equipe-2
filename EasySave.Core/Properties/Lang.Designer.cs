@@ -272,6 +272,7 @@ namespace EasySave.Core.Properties {
         public static string PageIndicatorFull { get { return ResourceManager.GetString("PageIndicatorFull", resourceCulture); } }
 
         // MainWindow status messages
+        public static string StatusLogFormatChanged { get { return ResourceManager.GetString("StatusLogFormatChanged", resourceCulture); } }
         public static string StatusLogTargetChanged { get { return ResourceManager.GetString("StatusLogTargetChanged", resourceCulture); } }
         public static string StatusServerIpUpdated { get { return ResourceManager.GetString("StatusServerIpUpdated", resourceCulture); } }
         public static string StatusThreadingApplied { get { return ResourceManager.GetString("StatusThreadingApplied", resourceCulture); } }

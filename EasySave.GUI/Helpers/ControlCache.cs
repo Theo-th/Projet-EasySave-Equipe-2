@@ -29,6 +29,7 @@ public class ControlCache
     public TextBlock? CurrentFileText { get; set; }
     public TextBlock? ItemsCountText { get; set; }
     public ComboBox? ItemsPerPageComboBox { get; set; }
+    public ComboBox? LogFormatComboBox { get; set; }
 
     public TextBox? EncryptionKeyTextBox { get; set; }
     public Button? EditEncryptionKeyButton { get; set; }
@@ -77,7 +78,8 @@ public class ControlCache
         ProgressArea = window.FindControl<Border>("ProgressArea");
         TypeComboBox = window.FindControl<ComboBox>("TypeComboBox");
         LanguageComboBox = window.FindControl<ComboBox>("LanguageComboBox");
-        LogTargetComboBox = window.FindControl<ComboBox>("LogTargetComboBox"); // AJOUT
+        LogTargetComboBox = window.FindControl<ComboBox>("LogTargetComboBox");
+        LogFormatComboBox = window.FindControl<ComboBox>("LogFormatComboBox");
 
         LogsPathValueText = window.FindControl<TextBlock>("LogsPathValueText");
         LogsPathTextBox = window.FindControl<TextBox>("LogsPathTextBox");

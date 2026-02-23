@@ -569,6 +569,9 @@
   <data name="PageIndicatorFull" xml:space="preserve">
     <value>Page {0} / {1}</value>
   </data>
+  <data name="StatusLogFormatChanged" xml:space="preserve">
+    <value>Log format changed: {0}</value>
+  </data>
   <data name="StatusLogTargetChanged" xml:space="preserve">
     <value>Log target: {0}</value>
   </data>

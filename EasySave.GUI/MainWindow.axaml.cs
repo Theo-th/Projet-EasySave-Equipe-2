@@ -169,6 +169,7 @@ public partial class MainWindow : Window
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
 
         if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
+        if (_controls.LogFormatComboBox != null) _controls.LogFormatComboBox.SelectionChanged += LogFormatComboBox_SelectionChanged;
         
         // Initialize first section visible
         ShowSection("Paths");
@@ -274,6 +275,17 @@ public partial class MainWindow : Window
             _viewModel.SetLogTarget(target);
             _settingsService.UpdateSetting("LogTarget", target);
             _uiService.UpdateStatus(string.Format(Lang.StatusLogTargetChanged, target), true);
+        }
+    }
+
+    private void LogFormatComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_controls.LogFormatComboBox?.SelectedIndex is int idx and >= 0)
+        {
+            string format = idx == 0 ? "JSON" : "XML";
+            _viewModel.ChangeLogFormat(format);
+            _settingsService.UpdateSetting("LogFormat", format);
+            _uiService.UpdateStatus(string.Format(Lang.StatusLogFormatChanged, format), true);
         }
     }
 
