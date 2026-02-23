@@ -93,7 +93,7 @@ namespace EasySave.Tests
             // Act
 
             // Assert
-            Assert.True(false, "CryptoSoft is not protected by a Mutex (Single-instance).");
+            Assert.Fail("CryptoSoft is not protected by a Mutex (Single-instance).");
         }
     }
 }
