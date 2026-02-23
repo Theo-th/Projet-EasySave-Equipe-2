@@ -1,290 +1,88 @@
 using EasySave.Core.Models;
-using EasyLog;
-using System.Diagnostics;
 using EasySave.Core.Services;
-using System.Text.Json.Serialization;
 
 namespace EasySave.Core.Services.Strategies
 {
-    // Abstract class defining the backup strategy.
+    /// <summary>
+    /// Classe abstraite d�finissant la strat�gie d'analyse de sauvegarde.
+    /// Analyze() : Phase 1 � lecture seule, ne modifie jamais le disque.
+    /// Prepare() : appel� par BackupService entre la Phase 2 et la Phase 3
+    ///             pour pr�parer les dossiers cibles (nettoyage / cr�ation).
+    /// </summary>
     public abstract class BackupStrategy
     {
-        // Constants for marker files
-        protected const string FULL_MARKER = "full";
-        protected const string DIFFERENTIAL_MARKER = "differential";
+        protected const string FULL_FOLDER = "full";
+        protected const string DIFFERENTIAL_FOLDER = "differential";
         protected const string DELETED_FILES_REPORT = "_deleted_files.txt";
 
-        protected string SourceDirectory { get; set; }
-        protected string TargetDirectory { get; set; }
-        protected BackupType BackupType { get; set; }
-        protected string JobName { get; set; }
-        protected BaseLog Logger { get; set; }
-        protected LogTarget _logTarget;
+        protected string SourceDirectory { get; }
+        protected string TargetDirectory { get; }
+        protected string JobName { get; }
+        protected HashSet<string> PriorityExtensions { get; }
 
-        // Cancellation token to stop the backup in progress
-        private CancellationTokenSource _cancellationTokenSource = new();
-
-        // Pause mechanism: starts in signaled state (not paused)
-        private readonly ManualResetEventSlim _pauseEvent = new(true);
-
-        public event Action<int, long>? OnBackupInitialized;
-
-        // Event triggered after each file transfer (sourceFile, targetFile, fileSize).
-        public event Action<string, string, long>? OnFileTransferred;
-        public event Action<bool>? OnPauseStateChanged;
-
-        public BackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger, LogTarget logTarget)
+        protected BackupStrategy(string sourceDirectory, string targetDirectory,
+            string jobName, HashSet<string> priorityExtensions)
         {
             SourceDirectory = sourceDirectory;
             TargetDirectory = targetDirectory;
-            BackupType = backupType;
             JobName = jobName;
-            Logger = logger;
-            _logTarget = logTarget;
-        }
-
-        // Executes the backup strategy.
-        public abstract (bool Success, string? ErrorMessage) Execute();
-
-        /// <summary>
-        /// Requests cancellation of the current backup operation.
-        /// </summary>
-        public void Cancel()
-        {
-            _cancellationTokenSource.Cancel();
-            // Unblock if paused so the cancellation can be processed
-            _pauseEvent.Set();
-        }
-
-        public void Pause()
-        {
-            _pauseEvent.Reset();
-            OnPauseStateChanged?.Invoke(true);
+            PriorityExtensions = priorityExtensions;
         }
 
         /// <summary>
-        /// Resumes a paused backup operation.
+        /// Analyse les fichiers � sauvegarder et retourne la liste des FileJob.
+        /// Op�ration en LECTURE SEULE : ne cr�e, ne modifie ni ne supprime aucun fichier.
+        /// Chaque FileJob contient : source, destination, nom du travail, bool�en chiffrement,
+        /// bool�en priorit� et taille � permettant le tri en 4 cat�gories en Phase 2.
         /// </summary>
-        public void Resume()
+        public abstract List<FileJob> Analyze();
+
+        /// <summary>
+        /// Pr�pare les dossiers de destination avant l'ex�cution des copies (Phase 3).
+        /// Appel� par BackupService apr�s Task.WaitAll de la Phase 1.
+        /// </summary>
+        public abstract void Prepare();
+
+        /// <summary>
+        /// Valide l'existence du r�pertoire source.
+        /// </summary>
+        protected void ValidateSource()
         {
-            _pauseEvent.Set();
-            OnPauseStateChanged?.Invoke(false);
+            if (!Directory.Exists(SourceDirectory))
+                throw new DirectoryNotFoundException(
+                    $"Le r�pertoire source '{SourceDirectory}' n'existe pas.");
         }
 
         /// <summary>
-        /// Returns true if the backup is currently paused.
+        /// Cr�e un FileJob � partir d'un FileInfo.
+        /// D�termine automatiquement IsPriority (extension prioritaire) et IsEncrypted.
         /// </summary>
-        public bool IsPaused => !_pauseEvent.IsSet;
-
-        /// <summary>
-        /// Checks whether cancellation has been requested and throws if so.
-        /// Call this before each file copy to allow interruption.
-        /// </summary>
-        protected void ThrowIfCancellationRequested()
+        protected FileJob CreateFileJob(FileInfo file, string destinationFolder)
         {
-            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-        }
+            string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
+            string extension = Path.GetExtension(file.FullName).ToLower();
 
-        /// <summary>
-        /// Converts a local file system path to a UNC network path format.
-        /// If the path is already a UNC path or a network path, it is returned unchanged.
-        /// For local paths (e.g., "C:\..."), it converts them to the administrative share format
-        /// (e.g., "\\MachineName\C$\...").
-        /// </summary>
-        /// <param name="path">The original file system path.</param>
-        /// <returns>The UNC-formatted path if conversion is applicable; otherwise, the original path.</returns>
-        protected string GetUncPath(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return path;
-            if (path.StartsWith(@"\\")) return path;
-
-            if (path.Length >= 2 && path[1] == ':')
+            return new FileJob
             {
-                return $@"\\{Environment.MachineName}\{path[0]}${path.Substring(2)}";
-            }
-            return path;
+                SourcePath = file.FullName,
+                DestinationPath = Path.Combine(destinationFolder, relativePath),
+                JobName = JobName,
+                IsEncrypted = EncryptionService.Instance.GetExtensions().Contains(extension),
+                IsPriority = !string.IsNullOrEmpty(extension) && PriorityExtensions.Contains(extension),
+                FileSize = file.Length
+            };
         }
 
         /// <summary>
-        /// Waits if the backup is paused, then checks for cancellation.
-        /// Call this before each file copy to support pause and stop.
+        /// Supprime le contenu d'un dossier sans supprimer le dossier lui-même.
         /// </summary>
-        protected void WaitIfPausedAndThrowIfCancelled()
+        protected static void ClearFolder(string folderPath)
         {
-            // Block here if paused
-            _pauseEvent.Wait(_cancellationTokenSource.Token);
-            // After unblocking, check if we should cancel
-            ThrowIfCancellationRequested();
-        }
+            if (!Directory.Exists(folderPath)) return;
 
-        /// <summary>
-        /// Returns true if cancellation has been requested.
-        /// </summary>
-        protected bool IsCancellationRequested => _cancellationTokenSource.Token.IsCancellationRequested;
-
-        // Validates and prepares the source and destination directories.
-        protected (bool Success, string? ErrorMessage) ValidateAndPrepareDirectories()
-        {
-            if (!Directory.Exists(SourceDirectory)) return (false, $"Source directory '{SourceDirectory}' does not exist.");
-            try
-            {
-                if (!Directory.Exists(TargetDirectory)) Directory.CreateDirectory(TargetDirectory);
-                return (true, null);
-            }
-            catch (Exception ex) { return (false, $"Unable to create the destination directory: {ex.Message}"); }
-        }
-
-        // Checks whether a file is a backup marker.
-        protected bool IsBackupMarker(string fileName)
-        {
-            return fileName == FULL_MARKER || fileName == DIFFERENTIAL_MARKER;
-        }
-
-        // Creates a backup folder and its marker file.
-        protected (bool Success, string? ErrorMessage) CreateBackupFolder(string backupFolderPath, string markerFileName)
-        {
-            try
-            {
-                Directory.CreateDirectory(backupFolderPath);
-                string markerFilePath = Path.Combine(backupFolderPath, markerFileName);
-                string markerContent = $"Backup {markerFileName} created on {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
-                var stopwatch = Stopwatch.StartNew();
-                File.WriteAllText(markerFilePath, markerContent);
-                stopwatch.Stop();
-
-                var record = new Record
-                {
-                    Name = JobName,
-                    Source = "",
-                    Target = GetUncPath(markerFilePath),
-                    Size = markerContent.Length,
-                    Time = stopwatch.Elapsed.TotalMilliseconds,
-                    Timestamp = DateTime.Now
-                };
-
-                if (_logTarget == LogTarget.Local || _logTarget == LogTarget.Both)
-                    Logger.WriteLog(record);
-
-                if (_logTarget == LogTarget.Server || _logTarget == LogTarget.Both)
-                    _ = RemoteLogService.SendLogAsync(record);
-
-                return (true, null);
-            }
-            catch (Exception ex) { return (false, $"Error creating the backup folder: {ex.Message}"); }
-        }
-
-        // Computes the total size of a list of files relative to a source directory.
-        protected long ComputeTotalSize(List<string> relativeFilePaths, string sourceDir)
-        {
-            long totalSize = 0;
-            foreach (string relativePath in relativeFilePaths)
-            {
-                var fileInfo = new FileInfo(Path.Combine(sourceDir, relativePath));
-                if (fileInfo.Exists) totalSize += fileInfo.Length;
-            }
-            return totalSize;
-        }
-
-        // Raises the backup initialization event.
-        protected void RaiseBackupInitialized(int totalFiles, long totalSize)
-        {
-            OnBackupInitialized?.Invoke(totalFiles, totalSize);
-        }
-
-        // Raises the file transfer event.
-        protected void RaiseFileTransferred(string sourceFile, string targetFile, long fileSize)
-        {
-            OnFileTransferred?.Invoke(sourceFile, targetFile, fileSize);
-        }
-
-        /// <summary>
-        /// Copies a single file (relative path) from a source directory to a target directory.
-        /// The transfer is logged via Logger.WriteLog() and triggers a progress event.
-        /// </summary>
-        protected (bool Success, string? ErrorMessage) CopyFile(
-            string relativePath, string sourceDir, string targetDir)
-        {
-            string sourceFilePath = Path.Combine(sourceDir, relativePath);
-            string targetFilePath = Path.Combine(targetDir, relativePath);
-            long fileSize = 0;
-
-            try
-            {
-                // Wait if paused, then check cancellation before each file copy
-                WaitIfPausedAndThrowIfCancelled();
-                // Create necessary subdirectories
-                string? targetFileDir = Path.GetDirectoryName(targetFilePath);
-                if (targetFileDir != null && !Directory.Exists(targetFileDir)) Directory.CreateDirectory(targetFileDir);
-
-                var fileInfo = new FileInfo(sourceFilePath);
-                fileSize = fileInfo.Length;
-                var stopwatch = Stopwatch.StartNew();
-                File.Copy(sourceFilePath, targetFilePath, overwrite: true);
-                stopwatch.Stop();
-
-                long encryptionTime = EncryptionService.Instance.EncryptFile(targetFilePath);
-
-                var record = new Record
-                {
-                    Name = JobName,
-                    Source = GetUncPath(sourceFilePath),
-                    Target = GetUncPath(targetFilePath),
-                    Size = fileSize,
-                    Time = stopwatch.Elapsed.TotalMilliseconds,
-                    Timestamp = DateTime.Now,
-                    EncryptionTime = encryptionTime,
-                };
-
-                if (_logTarget == LogTarget.Local || _logTarget == LogTarget.Both)
-                    Logger.WriteLog(record);
-
-                if (_logTarget == LogTarget.Server || _logTarget == LogTarget.Both)
-                    _ = RemoteLogService.SendLogAsync(record);
-
-                // Notify progress after file copied
-                RaiseFileTransferred(sourceFilePath, targetFilePath, fileSize);
-                return (true, null);
-            }
-            catch (OperationCanceledException) { return (false, $"Backup cancelled."); }
-            catch (Exception ex)
-            {
-                var errorRecord = new Record
-                {
-                    Name = JobName,
-                    Source = GetUncPath(sourceFilePath),
-                    Target = GetUncPath(targetFilePath),
-                    Size = fileSize,
-                    Time = -1,
-                    Timestamp = DateTime.Now,
-                    EncryptionTime = 0,
-                };
-
-                if (_logTarget == LogTarget.Local || _logTarget == LogTarget.Both)
-                    Logger.WriteLog(errorRecord);
-
-                if (_logTarget == LogTarget.Server || _logTarget == LogTarget.Both)
-                    _ = RemoteLogService.SendLogAsync(errorRecord);
-
-                return (false, $"Error copying file '{relativePath}': {ex.Message}");
-            }
-        }
-
-        // Clears the contents of a backup folder without deleting the folder itself.
-        protected void ClearBackupFolder(string backupFolder)
-        {
-            try
-            {
-                if (Directory.Exists(backupFolder))
-                {
-                    var dirInfo = new DirectoryInfo(backupFolder);
-                    // Delete all files
-                    foreach (var file in dirInfo.GetFiles()) file.Delete();
-                    // Delete all subdirectories
-                    foreach (var subDir in dirInfo.GetDirectories()) subDir.Delete(recursive: true);
-                }
-                else Directory.CreateDirectory(backupFolder);
-            }
-            catch (Exception ex) { throw new IOException($"Error clearing the backup folder: {ex.Message}", ex); }
+            var dirInfo = new DirectoryInfo(folderPath);
+            foreach (var file in dirInfo.GetFiles()) file.Delete();
+            foreach (var subDir in dirInfo.GetDirectories()) subDir.Delete(recursive: true);
         }
     }
 }

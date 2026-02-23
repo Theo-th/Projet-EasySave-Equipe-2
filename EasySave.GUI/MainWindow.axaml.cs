@@ -10,7 +10,9 @@ using EasySave.GUI.Handlers;
 using EasySave.GUI.Models;
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 
 namespace EasySave.GUI;
@@ -41,9 +43,21 @@ public partial class MainWindow : Window
         var logsPath = settings.ContainsKey("LogsPath") ? settings["LogsPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
         var configPath = settings.ContainsKey("ConfigPath") ? settings["ConfigPath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jobs_config.json");
         var statePath = settings.ContainsKey("StatePath") ? settings["StatePath"] : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "state.json");
+        
+        // Loading multi-threading settings
+        int maxJobs = 3;
+        int fileSizeThresholdMB = 10;
+        List<string>? priorityExtensions = null;
+        
+        if (settings.ContainsKey("MaxSimultaneousJobs") && int.TryParse(settings["MaxSimultaneousJobs"], out int parsedMaxJobs))
+            maxJobs = parsedMaxJobs;
+        if (settings.ContainsKey("FileSizeThresholdMB") && int.TryParse(settings["FileSizeThresholdMB"], out int parsedThreshold))
+            fileSizeThresholdMB = parsedThreshold;
+        if (settings.ContainsKey("PriorityExtensions"))
+            priorityExtensions = settings["PriorityExtensions"].Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
         // 3. Initializing the ViewModel and the collection
-        _viewModel = new ViewModelConsole(LogType.JSON, configPath, statePath, logsPath);
+        _viewModel = new ViewModelConsole(LogType.JSON, configPath, statePath, logsPath, maxJobs, fileSizeThresholdMB, priorityExtensions);
         _jobs = new ObservableCollection<JobItem>();
 
         // 4. Initializing Helpers and Handlers
@@ -68,11 +82,61 @@ public partial class MainWindow : Window
         // 7. Initialization of specific controls (Encryption and Process)
         UpdateEncryptionKeyUI();
         UpdateEncryptionExtensionsUI();
+        UpdatePriorityExtensionsUI();
         UpdateWatchedProcessesUI();
+        LoadThreadingSettings(settings);
+        LoadMiscSettings(settings);
+    }
+
+    private void LoadThreadingSettings(Dictionary<string, string> settings)
+    {
+        if (_controls.MaxJobsTextBox != null)
+        {
+            _controls.MaxJobsTextBox.Text = settings.ContainsKey("MaxSimultaneousJobs") 
+                ? settings["MaxSimultaneousJobs"] 
+                : "3";
+        }
+        
+        if (_controls.FileSizeThresholdTextBox != null)
+        {
+            _controls.FileSizeThresholdTextBox.Text = settings.ContainsKey("FileSizeThresholdMB") 
+                ? settings["FileSizeThresholdMB"] 
+                : "10";
+        }
+    }
+
+    private void LoadMiscSettings(Dictionary<string, string> settings)
+    {
+        // Langue : appliquer avant de changer l'index pour éviter le double-déclenchement
+        if (settings.TryGetValue("Language", out string? lang) && _controls.LanguageComboBox != null)
+        {
+            LocalizationManager.SetLanguage(lang);
+            _controls.LanguageComboBox.SelectedIndex = lang == "en-US" ? 1 : 0;
+        }
+
+        // Cible des logs
+        if (settings.TryGetValue("LogTarget", out string? logTarget) && _controls.LogTargetComboBox != null)
+        {
+            _viewModel.SetLogTarget(logTarget);
+            _controls.LogTargetComboBox.SelectedIndex = logTarget switch { "Server" => 1, "Both" => 2, _ => 0 };
+        }
+
+        // IP serveur
+        if (settings.TryGetValue("ServerIp", out string? serverIp) && !string.IsNullOrWhiteSpace(serverIp) && _controls.ServerIpTextBox != null)
+        {
+            _controls.ServerIpTextBox.Text = serverIp;
+            _viewModel.SetServerIp(serverIp);
+        }
     }
 
     private void SetupEventHandlers()
     {
+        // Navigation sidebar
+        if (this.FindControl<Button>("PathsNavButton") is Button pathsNav) pathsNav.Click += (s, e) => ShowSection("Paths");
+        if (this.FindControl<Button>("SecurityNavButton") is Button secNav) secNav.Click += (s, e) => ShowSection("Security");
+        if (this.FindControl<Button>("ThreadingNavButton") is Button thrNav) thrNav.Click += (s, e) => ShowSection("Threading");
+        if (this.FindControl<Button>("LogsNavButton") is Button logsNav) logsNav.Click += (s, e) => ShowSection("Logs");
+
         // Job management buttons
         if (this.FindControl<Button>("ExecuteButton") is Button execBtn) execBtn.Click += _jobHandler.ExecuteButton_Click;
         if (this.FindControl<Button>("CreateJobButton") is Button createBtn) createBtn.Click += _jobHandler.CreateJobButton_Click;
@@ -95,9 +159,16 @@ public partial class MainWindow : Window
         if (_controls.AddExtensionButton != null) _controls.AddExtensionButton.Click += AddExtensionButton_Click;
         if (_controls.RemoveExtensionButton != null) _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
 
+        // Priority extensions
+        if (_controls.AddPriorityExtensionButton != null) _controls.AddPriorityExtensionButton.Click += AddPriorityExtensionButton_Click;
+        if (_controls.RemovePriorityExtensionButton != null) _controls.RemovePriorityExtensionButton.Click += RemovePriorityExtensionButton_Click;
+
         // Business process
         if (_controls.AddProcessButton != null) _controls.AddProcessButton.Click += AddProcessButton_Click;
         if (_controls.RemoveProcessButton != null) _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
+
+        // Multi-threading settings
+        if (_controls.SaveThreadingSettingsButton != null) _controls.SaveThreadingSettingsButton.Click += SaveThreadingSettingsButton_Click;
 
         // Backup flow controls
         if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
@@ -105,6 +176,45 @@ public partial class MainWindow : Window
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
 
         if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
+        
+        // Initialize first section visible
+        ShowSection("Paths");
+    }
+
+    private void ShowSection(string sectionName)
+    {
+        // Hide all sections
+        if (this.FindControl<StackPanel>("PathsSection") is StackPanel pathsSec) pathsSec.IsVisible = false;
+        if (this.FindControl<StackPanel>("SecuritySection") is StackPanel secSec) secSec.IsVisible = false;
+        if (this.FindControl<StackPanel>("ThreadingSection") is StackPanel thrSec) thrSec.IsVisible = false;
+        if (this.FindControl<StackPanel>("LogsSection") is StackPanel logsSec) logsSec.IsVisible = false;
+
+        // Remove active class from all buttons
+        if (this.FindControl<Button>("PathsNavButton") is Button pathsNav) pathsNav.Classes.Remove("active");
+        if (this.FindControl<Button>("SecurityNavButton") is Button secNav) secNav.Classes.Remove("active");
+        if (this.FindControl<Button>("ThreadingNavButton") is Button thrNav) thrNav.Classes.Remove("active");
+        if (this.FindControl<Button>("LogsNavButton") is Button logsNav) logsNav.Classes.Remove("active");
+
+        // Show selected section and mark button as active
+        switch (sectionName)
+        {
+            case "Paths":
+                if (this.FindControl<StackPanel>("PathsSection") is StackPanel ps) ps.IsVisible = true;
+                if (this.FindControl<Button>("PathsNavButton") is Button pn) pn.Classes.Add("active");
+                break;
+            case "Security":
+                if (this.FindControl<StackPanel>("SecuritySection") is StackPanel ss) ss.IsVisible = true;
+                if (this.FindControl<Button>("SecurityNavButton") is Button sn) sn.Classes.Add("active");
+                break;
+            case "Threading":
+                if (this.FindControl<StackPanel>("ThreadingSection") is StackPanel ts) ts.IsVisible = true;
+                if (this.FindControl<Button>("ThreadingNavButton") is Button tn) tn.Classes.Add("active");
+                break;
+            case "Logs":
+                if (this.FindControl<StackPanel>("LogsSection") is StackPanel ls) ls.IsVisible = true;
+                if (this.FindControl<Button>("LogsNavButton") is Button ln) ln.Classes.Add("active");
+                break;
+        }
     }
 
     // --- Backup Control Event Handlers ---
@@ -145,6 +255,9 @@ public partial class MainWindow : Window
 
     private void UpdateEncryptionExtensionsUI() =>
         _controls.EncryptionExtensionsListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetEncryptionExtensions());
+
+    private void UpdatePriorityExtensionsUI() =>
+        _controls.PriorityExtensionsListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetPriorityExtensions());
 
     private void UpdateWatchedProcessesUI() =>
         _controls.WatchedProcessesListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetWatchedProcesses());
@@ -205,6 +318,43 @@ public partial class MainWindow : Window
         }
     }
 
+    private void AddPriorityExtensionButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_controls.AddPriorityExtensionTextBox?.Text is string text && !string.IsNullOrWhiteSpace(text))
+        {
+            string extension = text.Trim();
+            if (!extension.StartsWith(".")) extension = "." + extension;
+            
+            var currentExtensions = _viewModel.GetPriorityExtensions();
+            if (!currentExtensions.Any(e => e.Equals(extension, StringComparison.OrdinalIgnoreCase)))
+            {
+                currentExtensions.Add(extension);
+                _viewModel.UpdatePriorityExtensions(currentExtensions);
+                UpdatePriorityExtensionsUI();
+                SavePriorityExtensionsToSettings();
+                _controls.AddPriorityExtensionTextBox.Text = string.Empty;
+            }
+        }
+    }
+
+    private void RemovePriorityExtensionButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_controls.PriorityExtensionsListBox?.SelectedItem is string ext)
+        {
+            var currentExtensions = _viewModel.GetPriorityExtensions();
+            currentExtensions.Remove(ext);
+            _viewModel.UpdatePriorityExtensions(currentExtensions);
+            UpdatePriorityExtensionsUI();
+            SavePriorityExtensionsToSettings();
+        }
+    }
+
+    private void SavePriorityExtensionsToSettings()
+    {
+        var extensions = _viewModel.GetPriorityExtensions();
+        _settingsService.UpdateSetting("PriorityExtensions", string.Join(",", extensions));
+    }
+
     // --- Application settings ---
 
     private void LanguageComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -215,6 +365,7 @@ public partial class MainWindow : Window
             if (Thread.CurrentThread.CurrentUICulture.Name == culture) return;
 
             LocalizationManager.SetLanguage(culture);
+            _settingsService.UpdateSetting("Language", culture);
             _uiService.UpdateAllTexts();
             _jobHandler.LoadJobs();
         }
@@ -226,6 +377,7 @@ public partial class MainWindow : Window
         {
             string target = idx switch { 0 => "Local", 1 => "Server", _ => "Both" };
             _viewModel.SetLogTarget(target);
+            _settingsService.UpdateSetting("LogTarget", target);
             _uiService.UpdateStatus($"Cible des logs : {target}", true);
         }
     }
@@ -235,7 +387,62 @@ public partial class MainWindow : Window
         if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
         {
             _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
+            _settingsService.UpdateSetting("ServerIp", _controls.ServerIpTextBox.Text);
             _uiService.UpdateStatus($"IP Serveur mise à jour : {_controls.ServerIpTextBox.Text}", true);
         }
+    }
+
+    private void SaveThreadingSettingsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Validation et récupération des valeurs
+            if (!TryParseMaxJobs(out int maxJobs) || !TryParseFileSizeThreshold(out int fileSizeThresholdMB))
+                return;
+
+            // 1. Appliquer immédiatement (sans attendre la sauvegarde)
+            _viewModel.UpdateThreadingSettings(maxJobs, fileSizeThresholdMB);
+
+            // 2. Sauvegarder chaque paramètre indépendamment via UpdateSetting
+            _settingsService.UpdateSetting("MaxSimultaneousJobs", maxJobs.ToString());
+            _settingsService.UpdateSetting("FileSizeThresholdMB", fileSizeThresholdMB.ToString());
+
+            _uiService.UpdateStatus(
+                $"Paramètres multi-threading appliqués : {maxJobs} travaux max, seuil {fileSizeThresholdMB} MB", true);
+        }
+        catch (Exception ex)
+        {
+            _uiService.UpdateStatus($"Erreur : {ex.Message}", false);
+        }
+    }
+
+    private bool TryParseMaxJobs(out int maxJobs)
+    {
+        maxJobs = 3;
+        if (_controls.MaxJobsTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
+            return true; // valeur par défaut acceptée
+
+        if (int.TryParse(text, out int parsed) && parsed >= 1 && parsed <= 10)
+        {
+            maxJobs = parsed;
+            return true;
+        }
+        _uiService.UpdateStatus("Erreur : Le nombre de travaux doit être entre 1 et 10", false);
+        return false;
+    }
+
+    private bool TryParseFileSizeThreshold(out int fileSizeThresholdMB)
+    {
+        fileSizeThresholdMB = 10;
+        if (_controls.FileSizeThresholdTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
+            return true; // valeur par défaut acceptée
+
+        if (int.TryParse(text, out int parsed) && parsed >= 1)
+        {
+            fileSizeThresholdMB = parsed;
+            return true;
+        }
+        _uiService.UpdateStatus("Erreur : Le seuil de taille doit être >= 1 MB", false);
+        return false;
     }
 }

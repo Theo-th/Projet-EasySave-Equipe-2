@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:EasySave.GUI.Models"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="EasySave.GUI.MainWindow"
         Title="EasySave 3.0 - Gestionnaire de sauvegardes"
@@ -85,6 +86,27 @@
 		</Style>
 		<Style Selector="ListBoxItem:selected:focus /template/ ContentPresenter">
 			<Setter Property="Background" Value="#374151"/>
+		</Style>
+
+		<!-- Style pour les boutons de navigation sidebar -->
+		<Style Selector="Button.sidebar-button">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="Medium"/>
+			<Setter Property="Foreground" Value="#6B7280"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="CornerRadius" Value="0"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="Cursor" Value="Hand"/>
+		</Style>
+		<Style Selector="Button.sidebar-button:pointerover">
+			<Setter Property="Background" Value="#F3F4F6"/>
+			<Setter Property="Foreground" Value="#374151"/>
+		</Style>
+		<Style Selector="Button.sidebar-button.active">
+			<Setter Property="Background" Value="#EFF6FF"/>
+			<Setter Property="Foreground" Value="#3B82F6"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
 		</Style>
 
 		<Style Selector="TabItem">
@@ -179,8 +201,10 @@
 							</Grid>
 						</Border>
 
-						<Border Grid.Row="2" Background="White" CornerRadius="4" Padding="12">
-							<ListBox Name="JobListBox" SelectionMode="Multiple" BorderThickness="0" Background="Transparent"/>
+						<Border Grid.Row="2" Background="White" CornerRadius="4" Padding="12" MaxHeight="350">
+							<ListBox Name="JobListBox" SelectionMode="Multiple" BorderThickness="0" Background="Transparent"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
 						</Border>
 
 						<Border Grid.Row="3" Background="White" CornerRadius="4" Padding="12" Margin="0,12,0,0">
@@ -201,36 +225,137 @@
 
 							<Border Name="ProgressArea" Background="White" CornerRadius="6"
                                 Padding="20" Margin="0,0,0,0" IsVisible="False"
-                                BorderBrush="#E5E7EB" BorderThickness="1">
-								<StackPanel Spacing="16">
-									<!-- Progress bar -->
-									<StackPanel Spacing="8">
-										<Grid ColumnDefinitions="Auto,*,Auto">
-											<TextBlock Grid.Column="0" Text="Progression" FontSize="13" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
-											<ProgressBar Grid.Column="1" Name="ProgressBar" Height="8" Minimum="0" Maximum="100" Value="0" Margin="12,0,12,0" CornerRadius="4" VerticalAlignment="Center" Background="#E5E7EB"/>
-											<TextBlock Grid.Column="2" Name="ProgressText" Text="0%" FontSize="15" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" MinWidth="45" TextAlignment="Right"/>
-										</Grid>
-										<TextBlock Name="CurrentFileText" Text="" FontSize="12" Foreground="#6B7280"
-                                                  TextTrimming="CharacterEllipsis"/>
-									</StackPanel>
+                                BorderBrush="#E5E7EB" BorderThickness="1" MaxHeight="400">
+								<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+									<StackPanel Spacing="16">
 
-									<!-- Control buttons -->
-									<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-										<Button Name="PauseButton" Content="⏸  Pause" Padding="20,10"
-                                                Background="#F59E0B" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                                CornerRadius="6" MinWidth="130" Cursor="Hand"/>
-										<Button Name="ResumeButton" Content="▶  " Padding="20,10"
-                                            Background="#10B981" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                            CornerRadius="6" MinWidth="130" Cursor="Hand" IsVisible="False"/>
-										<Button Name="StopButton" Content="⏹  " Padding="20,10"
-                                            Background="#EF4444" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                            CornerRadius="6" MinWidth="130" Cursor="Hand"/>
+										<!-- Barre de progression individuelle par travail -->
+										<ItemsControl Name="JobProgressList">
+											<ItemsControl.ItemTemplate>
+												<DataTemplate DataType="models:JobProgressItem">
+													<Border Padding="16" Margin="0,0,0,10"
+                                                            Background="#FAFAFA"
+                                                            BorderBrush="#E5E7EB" BorderThickness="1"
+                                                            CornerRadius="8">
+														<StackPanel Spacing="10">
+
+															<!-- Ligne 1 : Nom + Badge d'état -->
+															<Grid ColumnDefinitions="*,Auto">
+																<TextBlock Grid.Column="0"
+                                                                           Text="{Binding JobName}"
+                                                                           FontSize="14" FontWeight="SemiBold"
+                                                                           Foreground="#1F2937"
+                                                                           VerticalAlignment="Center"/>
+																<StackPanel Grid.Column="1" Orientation="Horizontal">
+																	<Border Background="#10B981" IsVisible="{Binding IsActive}"
+                                                                            CornerRadius="10" Padding="10,4">
+																		<TextBlock Text="● En cours" FontSize="11"
+                                                                                   Foreground="White" FontWeight="SemiBold"/>
+																	</Border>
+																	<Border Background="#F59E0B" IsVisible="{Binding IsPaused}"
+                                                                            CornerRadius="10" Padding="10,4">
+																		<TextBlock Text="⏸ En pause" FontSize="11"
+                                                                                   Foreground="White" FontWeight="SemiBold"/>
+																	</Border>
+																	<Border Background="#3B82F6" IsVisible="{Binding IsCompleted}"
+                                                                            CornerRadius="10" Padding="10,4">
+																		<TextBlock Text="✓ Terminé" FontSize="11"
+                                                                                   Foreground="White" FontWeight="SemiBold"/>
+																	</Border>
+																	<Border Background="#EF4444" IsVisible="{Binding IsError}"
+                                                                            CornerRadius="10" Padding="10,4">
+																		<TextBlock Text="✕ Erreur" FontSize="11"
+                                                                                   Foreground="White" FontWeight="SemiBold"/>
+																	</Border>
+																	<Border Background="#6B7280" IsVisible="{Binding IsStopped}"
+                                                                            CornerRadius="10" Padding="10,4">
+																		<TextBlock Text="○ Arrêté" FontSize="11"
+                                                                                   Foreground="White" FontWeight="SemiBold"/>
+																	</Border>
+																</StackPanel>
+															</Grid>
+
+															<!-- Ligne 2 : Barre de progression + pourcentage -->
+															<Grid ColumnDefinitions="*,80">
+																<ProgressBar Grid.Column="0"
+                                                                             Value="{Binding Progress}"
+                                                                             Height="10" Minimum="0" Maximum="100"
+                                                                             Margin="0,0,12,0" CornerRadius="5"
+                                                                             Background="#E5E7EB"/>
+																<TextBlock Grid.Column="1"
+                                                                           Text="{Binding ProgressText}"
+                                                                           FontSize="13" FontWeight="Bold"
+                                                                           Foreground="#374151"
+                                                                           VerticalAlignment="Center"
+                                                                           TextAlignment="Right"/>
+															</Grid>
+
+															<!-- Ligne 3 : Compteur fichiers + fichier en cours -->
+															<Grid ColumnDefinitions="Auto,*">
+																<TextBlock Grid.Column="0"
+                                                                           Text="{Binding FilesCountText}"
+                                                                           FontSize="11" Foreground="#6B7280"
+                                                                           FontWeight="Medium" VerticalAlignment="Center"/>
+																<TextBlock Grid.Column="1"
+                                                                           Text="{Binding CurrentFile}"
+                                                                           FontSize="11" Foreground="#9CA3AF"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           HorizontalAlignment="Right"
+                                                                           VerticalAlignment="Center"/>
+															</Grid>
+
+															<!-- Ligne 4 : Boutons de contrôle individuels -->
+															<StackPanel Orientation="Horizontal" Spacing="8"
+                                                                    IsVisible="{Binding CanControl}">
+																<Button Command="{Binding PauseCommand}"
+                                                                    IsVisible="{Binding IsActive}"
+                                                                    Content="⏸  Pause"
+                                                                    Background="#F59E0B" Foreground="White"
+                                                                    Padding="14,7" FontSize="12"
+                                                                    FontWeight="SemiBold" CornerRadius="5"
+                                                                    MinWidth="100"/>
+																<Button Command="{Binding ResumeCommand}"
+                                                                    IsVisible="{Binding IsPaused}"
+                                                                    Content="▶  Reprendre"
+                                                                    Background="#10B981" Foreground="White"
+                                                                    Padding="14,7" FontSize="12"
+                                                                    FontWeight="SemiBold" CornerRadius="5"
+                                                                    MinWidth="100"/>
+																<Button Command="{Binding StopCommand}"
+                                                                    Content="⏹  Arrêter"
+                                                                    Background="#EF4444" Foreground="White"
+                                                                    Padding="14,7" FontSize="12"
+                                                                    FontWeight="SemiBold" CornerRadius="5"
+                                                                    MinWidth="100"/>
+															</StackPanel>
+
+														</StackPanel>
+													</Border>
+												</DataTemplate>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
+
+										<!-- Boutons de contrôle globaux (tous les travaux) -->
+										<Border BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+											<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+												<TextBlock Text="Contrôle global :" FontSize="12" Foreground="#6B7280"
+                                                           VerticalAlignment="Center" Margin="0,0,4,0"/>
+												<Button Name="PauseButton" Content="⏸  Tout mettre en pause"
+                                                        Padding="16,9" Background="#F59E0B" Foreground="White"
+                                                        FontSize="12" FontWeight="SemiBold" CornerRadius="5"/>
+												<Button Name="ResumeButton" Content="▶  Tout reprendre"
+                                                        Padding="16,9" Background="#10B981" Foreground="White"
+                                                        FontSize="12" FontWeight="SemiBold" CornerRadius="5"
+                                                        IsVisible="False"/>
+												<Button Name="StopButton" Content="⏹  Tout arrêter"
+                                                        Padding="16,9" Background="#EF4444" Foreground="White"
+                                                        FontSize="12" FontWeight="SemiBold" CornerRadius="5"/>
+											</StackPanel>
+										</Border>
+
 									</StackPanel>
-								</StackPanel>
+								</ScrollViewer>
 							</Border>
-
-							<TextBlock Name="StatusText" Text="" FontSize="12"
-                                       HorizontalAlignment="Center"/>
 						</StackPanel>
 					</Grid>
 				</Border>
@@ -313,91 +438,158 @@
                 </summary>
             -->
 			<TabItem Header="Paramètres">
-				<Border Background="#FAFAFA" Padding="24" BorderBrush="#E5E7EB" BorderThickness="1">
-					<ScrollViewer>
-						<StackPanel MaxWidth="600">
-							<TextBlock Name="SettingsTitleText" Text="Paramètres" FontSize="16"
-                                       FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-							<StackPanel Spacing="16">
-								<!-- Paths -->
-								<StackPanel>
-									<TextBlock Text="Dossier logs" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<Grid ColumnDefinitions="*,Auto">
-										<TextBox Name="LogsPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-										<Button Name="BrowseLogsButton" Grid.Column="1" Width="120" Padding="12,10"/>
-									</Grid>
-								</StackPanel>
-								<StackPanel>
-									<TextBlock Text="Fichier config" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<Grid ColumnDefinitions="*,Auto">
-										<TextBox Name="ConfigPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-										<Button Name="BrowseConfigButton" Grid.Column="1" Width="120" Padding="12,10"/>
-									</Grid>
-								</StackPanel>
-								<StackPanel>
-									<TextBlock Text="Fichier état" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<Grid ColumnDefinitions="*,Auto">
-										<TextBox Name="StatePathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
-										<Button Name="BrowseStateButton" Grid.Column="1" Width="120" Padding="12,10"/>
-									</Grid>
-								</StackPanel>
-								<!-- Language -->
-								<StackPanel>
-									<TextBlock Name="LanguageInterfaceText" Text="Langue de l'interface" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<ComboBox Name="LanguageComboBox" SelectedIndex="0"/>
-								</StackPanel>
-								<!-- Encryption key -->
-								<StackPanel>
-									<TextBlock Text="Clé de cryptage" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-										<TextBox Name="EncryptionKeyTextBox" Width="180" IsReadOnly="True" VerticalAlignment="Center"/>
-										<Button Name="EditEncryptionKeyButton" Content="Modifier" Width="120" Padding="12,10" VerticalAlignment="Center"/>
+				<Border Background="#FAFAFA" BorderBrush="#E5E7EB" BorderThickness="1">
+					<Grid ColumnDefinitions="200,*">
+						
+						<!-- SIDEBAR -->
+						<Border Grid.Column="0" Background="White" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0" Padding="0">
+							<StackPanel Spacing="0">
+								<Button Name="PathsNavButton" Classes="sidebar-button" Content="Chemins" HorizontalContentAlignment="Left" Padding="20,16" Background="Transparent" BorderThickness="0"/>
+								<Button Name="SecurityNavButton" Classes="sidebar-button" Content="Sécurité" HorizontalContentAlignment="Left" Padding="20,16" Background="Transparent" BorderThickness="0"/>
+								<Button Name="ThreadingNavButton" Classes="sidebar-button" Content="Multi-threading" HorizontalContentAlignment="Left" Padding="20,16" Background="Transparent" BorderThickness="0"/>
+								<Button Name="LogsNavButton" Classes="sidebar-button" Content="Journalisation" HorizontalContentAlignment="Left" Padding="20,16" Background="Transparent" BorderThickness="0"/>
+							</StackPanel>
+						</Border>
+						
+						<!-- CONTENU -->
+						<ScrollViewer Grid.Column="1" Padding="32">
+							<StackPanel MaxWidth="700">
+								
+								<!-- Section Chemins -->
+								<StackPanel Name="PathsSection">
+									<TextBlock Text="Chemins" FontSize="20" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+									
+									<StackPanel Spacing="16">
+										<StackPanel>
+											<TextBlock Text="Dossier logs" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBox Name="LogsPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
+												<Button Name="BrowseLogsButton" Grid.Column="1" Width="100" Padding="10,8" Content="Parcourir"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Fichier config" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBox Name="ConfigPathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
+												<Button Name="BrowseConfigButton" Grid.Column="1" Width="100" Padding="10,8" Content="Parcourir"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Fichier état" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBox Name="StatePathTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
+												<Button Name="BrowseStateButton" Grid.Column="1" Width="100" Padding="10,8" Content="Parcourir"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Name="LanguageInterfaceText" Text="Langue de l'interface" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<ComboBox Name="LanguageComboBox" SelectedIndex="0" HorizontalAlignment="Stretch"/>
+										</StackPanel>
 									</StackPanel>
 								</StackPanel>
-								<!-- Extensions to encrypt -->
-								<StackPanel>
-									<TextBlock Text="Extensions à chiffrer" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<ListBox Name="EncryptionExtensionsListBox" Height="80"/>
-									<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-										<TextBox Name="AddExtensionTextBox" Width="100" Watermark=".ext"/>
-										<Button Name="AddExtensionButton" Content="Ajouter" Padding="18,10"/>
-										<Button Name="RemoveExtensionButton" Content="Supprimer sélection" Padding="18,10"/>
+								
+								<!-- Section Sécurité -->
+								<StackPanel Name="SecuritySection" IsVisible="False">
+									<TextBlock Text="Sécurité" FontSize="20" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+									
+									<StackPanel Spacing="16">
+										<StackPanel>
+											<TextBlock Text="Clé de cryptage" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBox Name="EncryptionKeyTextBox" Grid.Column="0" IsReadOnly="True" Margin="0,0,8,0"/>
+												<Button Name="EditEncryptionKeyButton" Grid.Column="1" Width="100" Padding="10,8" Content="Modifier"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Extensions à chiffrer" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<ListBox Name="EncryptionExtensionsListBox" Height="120"/>
+											<Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+												<TextBox Name="AddExtensionTextBox" Grid.Column="0" Watermark=".ext" Margin="0,0,8,0"/>
+												<Button Name="AddExtensionButton" Grid.Column="1" Content="+" Width="40" Padding="0" Margin="0,0,8,0"/>
+												<Button Name="RemoveExtensionButton" Grid.Column="2" Content="-" Width="40" Padding="0"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Processus métier" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<TextBlock Text="Bloque la sauvegarde si un de ces processus est en cours d'exécution" FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
+											<ListBox Name="WatchedProcessesListBox" Height="120"/>
+											<Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+												<TextBox Name="AddProcessTextBox" Grid.Column="0" Watermark="notepad" Margin="0,0,8,0"/>
+												<Button Name="AddProcessButton" Grid.Column="1" Content="+" Width="40" Padding="0" Margin="0,0,8,0"/>
+												<Button Name="RemoveProcessButton" Grid.Column="2" Content="-" Width="40" Padding="0"/>
+											</Grid>
+										</StackPanel>
 									</StackPanel>
 								</StackPanel>
-								<!-- Business processes to monitor -->
-								<StackPanel>
-									<TextBlock Text="Processus métier à surveiller" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<TextBlock Text="Si un de ces processus est lancé, la sauvegarde sera bloquée ou interrompue." FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
-									<ListBox Name="WatchedProcessesListBox" Height="100"/>
-									<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-										<TextBox Name="AddProcessTextBox" Width="180" Watermark="Ex: notepad"/>
-										<Button Name="AddProcessButton" Content="Ajouter" Padding="18,10"/>
-										<Button Name="RemoveProcessButton" Content="Supprimer sélection" Padding="18,10"/>
+								
+								<!-- Section Multi-threading -->
+								<StackPanel Name="ThreadingSection" IsVisible="False">
+									<TextBlock Text="Multi-threading" FontSize="20" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+									
+									<StackPanel Spacing="16">
+										<StackPanel>
+											<TextBlock Text="Extensions prioritaires" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<TextBlock Text="Ces fichiers seront traités en premier" FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
+											<ListBox Name="PriorityExtensionsListBox" Height="120"/>
+											<Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+												<TextBox Name="AddPriorityExtensionTextBox" Grid.Column="0" Watermark=".docx" Margin="0,0,8,0"/>
+												<Button Name="AddPriorityExtensionButton" Grid.Column="1" Content="+" Width="40" Padding="0" Margin="0,0,8,0"/>
+												<Button Name="RemovePriorityExtensionButton" Grid.Column="2" Content="-" Width="40" Padding="0"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Travaux simultanés maximum" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="120,*">
+												<TextBox Name="MaxJobsTextBox" Grid.Column="0" Text="3" Watermark="3"/>
+												<TextBlock Grid.Column="1" Text="(1 à 10 travaux)" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="12,0,0,0"/>
+											</Grid>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Seuil fichier lourd (MB)" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<TextBlock Text="Les fichiers plus lourds que ce seuil seront traités séquentiellement" FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
+											<Grid ColumnDefinitions="120,*">
+												<TextBox Name="FileSizeThresholdTextBox" Grid.Column="0" Text="10" Watermark="10"/>
+												<TextBlock Grid.Column="1" Text="mégaoctets" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="12,0,0,0"/>
+											</Grid>
+										</StackPanel>
+										
+										<Button Name="SaveThreadingSettingsButton" Content="Enregistrer les paramètres" Background="#3B82F6" Foreground="White" HorizontalAlignment="Left" Padding="20,10" Margin="0,8,0,0"/>
 									</StackPanel>
 								</StackPanel>
-
-								<!-- Target Logs -->
-								<StackPanel>
-									<TextBlock Text="Cible des logs" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
-									<TextBlock Text="Où souhaitez-vous enregistrer les journaux ?" FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
-									<ComboBox Name="LogTargetComboBox" SelectedIndex="2" HorizontalAlignment="Stretch">
-										<ComboBoxItem Content="Local uniquement"/>
-										<ComboBoxItem Content="Serveur (Docker) uniquement"/>
-										<ComboBoxItem Content="Les deux (Local + Serveur)"/>
-									</ComboBox>
-								</StackPanel>
-
-								<StackPanel>
-									<TextBlock Text="Adresse IP du Serveur" FontSize="12" FontWeight="Bold" Foreground="#111827" Margin="0,4,0,4"/>
-									<TextBlock Text="Ex: 192.168.1.25 ou localhost" FontSize="10" Foreground="#6B7280" Margin="0,0,0,4"/>
-									<Grid ColumnDefinitions="*, Auto">
-										<TextBox x:Name="ServerIpTextBox" Watermark="localhost" Margin="0,0,5,0"/>
-										<Button x:Name="SaveIpButton" Grid.Column="1" Content="OK" Background="#3B82F6" Foreground="White"/>
-									</Grid>
+								
+								<!-- Section Logs -->
+								<StackPanel Name="LogsSection" IsVisible="False">
+									<TextBlock Text="Journalisation" FontSize="20" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+									
+									<StackPanel Spacing="16">
+										<StackPanel>
+											<TextBlock Text="Cible des logs" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<ComboBox Name="LogTargetComboBox" SelectedIndex="2" HorizontalAlignment="Stretch">
+												<ComboBoxItem Content="Local uniquement"/>
+												<ComboBoxItem Content="Serveur uniquement"/>
+												<ComboBoxItem Content="Local + Serveur"/>
+											</ComboBox>
+										</StackPanel>
+										
+										<StackPanel>
+											<TextBlock Text="Adresse IP du serveur" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
+											<Grid ColumnDefinitions="*,Auto">
+												<TextBox x:Name="ServerIpTextBox" Grid.Column="0" Watermark="localhost" Margin="0,0,8,0"/>
+												<Button x:Name="SaveIpButton" Grid.Column="1" Content="Enregistrer" Background="#3B82F6" Foreground="White" Width="120" Padding="10,8"/>
+											</Grid>
+										</StackPanel>
+									</StackPanel>
 								</StackPanel>
 							</StackPanel>
-						</StackPanel>
-					</ScrollViewer>
+						</ScrollViewer>
+					</Grid>
 				</Border>
 			</TabItem>
 		</TabControl>
