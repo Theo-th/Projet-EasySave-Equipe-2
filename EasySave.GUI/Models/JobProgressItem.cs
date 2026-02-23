@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows.Input;
 using EasySave.Core.Models;
+using EasySave.Core.Properties;
 
 namespace EasySave.GUI.Models;
 
@@ -82,6 +83,16 @@ public class JobProgressItem : INotifyPropertyChanged
     public bool IsStopped   => _state == BackupState.Inactive;
     public bool CanControl  => IsActive || IsPaused;
 
+    // Localized text properties
+    public string StatusInProgressText => Lang.StatusInProgress;
+    public string StatusPausedText => Lang.StatusPaused;
+    public string StatusCompletedText => Lang.StatusCompleted;
+    public string StatusErrorText => Lang.StatusError;
+    public string StatusStoppedText => Lang.StatusStopped;
+    public string BtnPauseText => Lang.BtnPause;
+    public string BtnResumeText => Lang.BtnResume;
+    public string BtnStopText => Lang.BtnStopJob;
+
     // ----------------------------------------------------------------
     //  Control commands (bound in the AXAML DataTemplate)
     // ----------------------------------------------------------------
@@ -95,6 +106,22 @@ public class JobProgressItem : INotifyPropertyChanged
         PauseCommand  = new RelayCommand(pauseAction);
         ResumeCommand = new RelayCommand(resumeAction);
         StopCommand   = new RelayCommand(stopAction);
+    }
+
+    /// <summary>
+    /// Refreshes all localized text properties.
+    /// Call this when the language changes.
+    /// </summary>
+    public void RefreshLocalizedTexts()
+    {
+        OnPropertyChanged(nameof(StatusInProgressText));
+        OnPropertyChanged(nameof(StatusPausedText));
+        OnPropertyChanged(nameof(StatusCompletedText));
+        OnPropertyChanged(nameof(StatusErrorText));
+        OnPropertyChanged(nameof(StatusStoppedText));
+        OnPropertyChanged(nameof(BtnPauseText));
+        OnPropertyChanged(nameof(BtnResumeText));
+        OnPropertyChanged(nameof(BtnStopText));
     }
 
     // ----------------------------------------------------------------

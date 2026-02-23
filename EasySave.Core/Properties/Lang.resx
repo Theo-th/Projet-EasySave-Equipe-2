@@ -77,12 +77,6 @@
   <data name="DestPath" xml:space="preserve">
     <value>Chemin de destination :</value>
   </data>
-  <data name="DifferentialBackupCreated" xml:space="preserve">
-    <value>Sauvegarde différentielle créée.</value>
-  </data>
-  <data name="DirectoryNoExist" xml:space="preserve">
-    <value>Le répertoire source n'existe pas : {0}</value>
-  </data>
   <data name="EnterReturn" xml:space="preserve">
     <value>Entrée : Supprimer | Echap : Retour</value>
   </data>
@@ -97,9 +91,6 @@
   </data>
   <data name="JobAlreadyExists" xml:space="preserve">
     <value>Un travail avec le nom {0} existe déjà.</value>
-  </data>
-  <data name="JobIndexNotFound" xml:space="preserve">
-    <value>Travail de sauvegarde introuvable à l'indice {0}</value>
   </data>
   <data name="JobNameEmpty" xml:space="preserve">
     <value>Le nom du travail ne peut pas être vide.</value>
@@ -125,14 +116,8 @@
   <data name="MenuLaunch" xml:space="preserve">
     <value>LANCEMENT DES SAUVEGARDES</value>
   </data>
-  <data name="MenuMainMenu" xml:space="preserve">
-    <value>Menu Principal</value>
-  </data>
   <data name="MenuOptionExecute" xml:space="preserve">
     <value>Exécuter un travail de sauvegarde</value>
-  </data>
-  <data name="MenuOptionModify" xml:space="preserve">
-    <value>Modifier un travail de sauvegarde</value>
   </data>
   <data name="MenuOptionSave" xml:space="preserve">
     <value>Espace : Sélectionner | Entrée : Lancer | Echap : Retour</value>
@@ -149,15 +134,6 @@
   <data name="NameSave" xml:space="preserve">
     <value>Nom de la sauvegarde :</value>
   </data>
-  <data name="NoFullBackupFound" xml:space="preserve">
-    <value>Aucune sauvegarde complète trouvée. Création de la sauvegarde complète de référence...</value>
-  </data>
-  <data name="NoSaveDelete" xml:space="preserve">
-    <value>Aucune sauvegarde à supprimer</value>
-  </data>
-  <data name="SaveErrorWithException" xml:space="preserve">
-    <value>Erreur lors de la sauvegarde : {0}</value>
-  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Paramètres</value>
   </data>
@@ -165,7 +141,7 @@
     <value>Le répertoire source ne peut pas être vide.</value>
   </data>
   <data name="SourceDirectoryNotFound" xml:space="preserve">
-    <value>Le répertoire source {0] n'existe pas.</value>
+    <value>Le répertoire source {0} n'existe pas.</value>
   </data>
   <data name="SourcePath" xml:space="preserve">
     <value>Chemin source :</value>
@@ -245,12 +221,6 @@
     <data name="BtnDelete" xml:space="preserve">
       <value>Supprimer</value>
     </data>
-    <data name="LanguageLabel" xml:space="preserve">
-      <value>Langue</value>
-    </data>
-    <data name="AboutTitle" xml:space="preserve">
-      <value>À propos</value>
-    </data>
     <data name="Version" xml:space="preserve">
       <value>Version</value>
     </data>
@@ -305,23 +275,14 @@
     <data name="StatusReady" xml:space="preserve">
       <value>Prêt</value>
     </data>
-    <data name="Progression" xml:space="preserve">
-      <value>Progression</value>
-    </data>
     <data name="CurrentFile" xml:space="preserve">
       <value>Fichier en cours : {0}</value>
-    </data>
-    <data name="TimeLeft" xml:space="preserve">
-      <value>Temps restant : {0}</value>
     </data>
     <data name="BtnResume" xml:space="preserve">
       <value>Reprendre</value>
     </data>
     <data name="BtnStop" xml:space="preserve">
       <value>Arrêter</value>
-    </data>
-    <data name="Paused" xml:space="preserve">
-      <value>Sauvegarde en pause...</value>
     </data>
     <data name="StatusBackupCompleted" xml:space="preserve">
     <value>Sauvegarde terminée !</value>
@@ -341,4 +302,271 @@
   <data name="StatusExecutingBackups" xml:space="preserve">
     <value>Exécution de {0} sauvegarde(s)...</value>
   </data>
-  </root>
+  <data name="NoValidJobSelected" xml:space="preserve">
+    <value>Aucun travail valide sélectionné</value>
+  </data>
+  <data name="PleaseSelectPlanToDelete" xml:space="preserve">
+    <value>Veuillez sélectionner un plan à supprimer</value>
+  </data>
+  <data name="PleaseSelectPlanForDetails" xml:space="preserve">
+    <value>⚠️ Veuillez sélectionner un plan pour voir les détails</value>
+  </data>
+  <data name="PleaseFillAllFields" xml:space="preserve">
+    <value>Veuillez remplir tous les champs</value>
+  </data>
+  <data name="ErrorPrefix" xml:space="preserve">
+    <value>Erreur</value>
+  </data>
+  <data name="PlanCreatedSuccessfully" xml:space="preserve">
+    <value>Plan '{0}' créé avec succès</value>
+  </data>
+  <data name="PlanDeleted" xml:space="preserve">
+    <value>Plan '{0}' supprimé</value>
+  </data>
+  <data name="ErrorWhileDeleting" xml:space="preserve">
+    <value>Erreur lors de la suppression</value>
+  </data>
+  <data name="FilesText" xml:space="preserve">
+    <value>fichiers</value>
+  </data>
+  <data name="RemainingText" xml:space="preserve">
+    <value>restant</value>
+  </data>
+  <data name="DetailsTitle" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="BackupPlanDetails" xml:space="preserve">
+    <value>📋 Détails du plan de sauvegarde</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="LabelType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="LabelSourcePath" xml:space="preserve">
+    <value>Chemin source</value>
+  </data>
+  <data name="LabelDestinationPath" xml:space="preserve">
+    <value>Chemin de destination</value>
+  </data>
+  <data name="BtnClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="FileLabel" xml:space="preserve">
+    <value>Fichier</value>
+  </data>
+  <data name="SelectFolder" xml:space="preserve">
+    <value>Sélectionner un dossier</value>
+  </data>
+  <data name="SelectLogsFolder" xml:space="preserve">
+    <value>Sélectionner le dossier pour les logs</value>
+  </data>
+  <data name="ErrorCreatingFolder" xml:space="preserve">
+    <value>Erreur lors de la création du dossier</value>
+  </data>
+  <data name="LogsFolderConfigured" xml:space="preserve">
+    <value>Dossier des logs configuré</value>
+  </data>
+  <data name="SelectConfigFileLocation" xml:space="preserve">
+    <value>Sélectionner l'emplacement du fichier de configuration</value>
+  </data>
+  <data name="ConfigFileConfigured" xml:space="preserve">
+    <value>Fichier de configuration configuré</value>
+  </data>
+  <data name="SelectStateFileLocation" xml:space="preserve">
+    <value>Sélectionner l'emplacement du fichier d'état</value>
+  </data>
+  <data name="StateFileConfigured" xml:space="preserve">
+    <value>Fichier d'état configuré</value>
+  </data>
+  <data name="EncryptionKeyTitle" xml:space="preserve">
+    <value>Clé de cryptage</value>
+  </data>
+  <data name="BtnValidate" xml:space="preserve">
+    <value>Valider</value>
+  </data>
+  <data name="NavPaths" xml:space="preserve">
+    <value>Chemins</value>
+  </data>
+  <data name="NavSecurity" xml:space="preserve">
+    <value>Sécurité</value>
+  </data>
+  <data name="NavMultiThreading" xml:space="preserve">
+    <value>Multi-threading</value>
+  </data>
+  <data name="NavLogging" xml:space="preserve">
+    <value>Journalisation</value>
+  </data>
+  <data name="SectionPaths" xml:space="preserve">
+    <value>Chemins</value>
+  </data>
+  <data name="SectionSecurity" xml:space="preserve">
+    <value>Sécurité</value>
+  </data>
+  <data name="SectionMultiThreading" xml:space="preserve">
+    <value>Multi-threading</value>
+  </data>
+  <data name="SectionLogging" xml:space="preserve">
+    <value>Journalisation</value>
+  </data>
+  <data name="LabelLogsFolder" xml:space="preserve">
+    <value>Dossier logs</value>
+  </data>
+  <data name="LabelConfigFile" xml:space="preserve">
+    <value>Fichier config</value>
+  </data>
+  <data name="LabelStateFile" xml:space="preserve">
+    <value>Fichier état</value>
+  </data>
+  <data name="LabelEncryptionKey" xml:space="preserve">
+    <value>Clé de cryptage</value>
+  </data>
+  <data name="LabelExtensionsToEncrypt" xml:space="preserve">
+    <value>Extensions à chiffrer</value>
+  </data>
+  <data name="LabelBusinessProcess" xml:space="preserve">
+    <value>Processus métier</value>
+  </data>
+  <data name="BusinessProcessDescription" xml:space="preserve">
+    <value>Bloque la sauvegarde si un de ces processus est en cours d'exécution</value>
+  </data>
+  <data name="LabelPriorityExtensions" xml:space="preserve">
+    <value>Extensions prioritaires</value>
+  </data>
+  <data name="PriorityExtensionsDescription" xml:space="preserve">
+    <value>Ces fichiers seront traités en premier</value>
+  </data>
+  <data name="LabelMaxSimultaneousJobs" xml:space="preserve">
+    <value>Travaux simultanés maximum</value>
+  </data>
+  <data name="MaxJobsRange" xml:space="preserve">
+    <value>(1 à 10 travaux)</value>
+  </data>
+  <data name="LabelFileSizeThreshold" xml:space="preserve">
+    <value>Seuil fichier lourd (MB)</value>
+  </data>
+  <data name="FileSizeThresholdDescription" xml:space="preserve">
+    <value>Les fichiers plus lourds que ce seuil seront traités séquentiellement</value>
+  </data>
+  <data name="Megabytes" xml:space="preserve">
+    <value>mégaoctets</value>
+  </data>
+  <data name="BtnSaveSettings" xml:space="preserve">
+    <value>Enregistrer les paramètres</value>
+  </data>
+  <data name="LabelLogTarget" xml:space="preserve">
+    <value>Cible des logs</value>
+  </data>
+  <data name="LogTargetLocalOnly" xml:space="preserve">
+    <value>Local uniquement</value>
+  </data>
+  <data name="LogTargetServerOnly" xml:space="preserve">
+    <value>Serveur uniquement</value>
+  </data>
+  <data name="LogTargetBoth" xml:space="preserve">
+    <value>Local + Serveur</value>
+  </data>
+  <data name="LabelServerIp" xml:space="preserve">
+    <value>Adresse IP du serveur</value>
+  </data>
+  <data name="BtnSave" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="StatusInProgress" xml:space="preserve">
+    <value>● En cours</value>
+  </data>
+  <data name="StatusPaused" xml:space="preserve">
+    <value>⏸ En pause</value>
+  </data>
+  <data name="StatusCompleted" xml:space="preserve">
+    <value>✓ Terminé</value>
+  </data>
+  <data name="StatusError" xml:space="preserve">
+    <value>✕ Erreur</value>
+  </data>
+  <data name="StatusStopped" xml:space="preserve">
+    <value>○ Arrêté</value>
+  </data>
+  <data name="BtnPause" xml:space="preserve">
+    <value>⏸  Pause</value>
+  </data>
+  <data name="BtnStopJob" xml:space="preserve">
+    <value>⏹  Arrêter</value>
+  </data>
+  <data name="GlobalControl" xml:space="preserve">
+    <value>Contrôle global :</value>
+  </data>
+  <data name="BtnPauseAll" xml:space="preserve">
+    <value>⏸  Tout mettre en pause</value>
+  </data>
+  <data name="BtnResumeAll" xml:space="preserve">
+    <value>▶  Tout reprendre</value>
+  </data>
+  <data name="BtnStopAll" xml:space="preserve">
+    <value>⏹  Tout arrêter</value>
+  </data>
+  <data name="StatusWaiting" xml:space="preserve">
+    <value>En attente...</value>
+  </data>
+  <data name="BusinessProcessAlert" xml:space="preserve">
+    <value> ALERTE : Logiciel métier '{0}' détecté ! Sauvegarde en pause.</value>
+  </data>
+  <data name="JobsCountNone" xml:space="preserve">
+    <value>Aucune sauvegarde</value>
+  </data>
+  <data name="JobsCountOne" xml:space="preserve">
+    <value>1 sauvegarde</value>
+  </data>
+  <data name="JobsCountMany" xml:space="preserve">
+    <value>{0} sauvegardes</value>
+  </data>
+  <data name="MenuChangeLang" xml:space="preserve">
+    <value>Changer la Langue</value>
+  </data>
+  <data name="MenuConfigServerIp" xml:space="preserve">
+    <value>Configurer IP Serveur</value>
+  </data>
+  <data name="MenuLogTarget" xml:space="preserve">
+    <value>Cible des logs (Docker)</value>
+  </data>
+  <data name="LogTargetMenuTitle" xml:space="preserve">
+    <value>=== CIBLE DES LOGS ===</value>
+  </data>
+  <data name="MenuNoItemAvailable" xml:space="preserve">
+    <value>Aucun élément disponible</value>
+  </data>
+  <data name="ServerIpMenuTitle" xml:space="preserve">
+    <value>=== CONFIGURATION IP SERVEUR ===</value>
+  </data>
+  <data name="ServerIpCurrent" xml:space="preserve">
+    <value>IP Actuelle :</value>
+  </data>
+  <data name="ServerIpNewPrompt" xml:space="preserve">
+    <value>Nouvelle IP (laisser vide pour annuler) :</value>
+  </data>
+  <data name="ServerIpSaved" xml:space="preserve">
+    <value>IP enregistrée avec succès !</value>
+  </data>
+  <data name="ServerIpCancelled" xml:space="preserve">
+    <value>Modification annulée.</value>
+  </data>
+  <data name="LogTargetModified" xml:space="preserve">
+    <value>Cible modifiée :</value>
+  </data>
+  <data name="BtnPrevious" xml:space="preserve">
+    <value>◄ Précédent</value>
+  </data>
+  <data name="BtnNext" xml:space="preserve">
+    <value>Suivant ►</value>
+  </data>
+  <data name="LabelPerPage" xml:space="preserve">
+    <value>Par page :</value>
+  </data>
+  <data name="PageIndicator" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+  <data name="PageIndicatorFull" xml:space="preserve">
+    <value>Page {0} / {1}</value>
+  </data>
+</root>

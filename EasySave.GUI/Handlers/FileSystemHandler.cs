@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using EasySave.Core.Properties;
 using EasySave.Core.ViewModels;
 using EasySave.GUI.Helpers;
 using EasySave.GUI.Services;
@@ -64,7 +65,7 @@ public class FileSystemHandler
         
         var options = new FolderPickerOpenOptions
         {
-            Title = "Sélectionner un dossier",
+            Title = Lang.SelectFolder,
             AllowMultiple = false
         };
 
@@ -87,7 +88,7 @@ public class FileSystemHandler
         
         var options = new FolderPickerOpenOptions
         {
-            Title = "Sélectionner le dossier pour les logs",
+            Title = Lang.SelectLogsFolder,
             AllowMultiple = false
         };
 
@@ -105,13 +106,13 @@ public class FileSystemHandler
                 }
                 catch (Exception ex)
                 {
-                    _uiService.UpdateStatus($"Erreur lors de la création du dossier : {ex.Message}", false);
+                    _uiService.UpdateStatus($"{Lang.ErrorCreatingFolder} : {ex.Message}", false);
                     return;
                 }
             }
             
             SaveSettingsAndReload();
-            _uiService.UpdateStatus($"Dossier des logs configuré : {_currentLogsPath}", true);
+            _uiService.UpdateStatus($"{Lang.LogsFolderConfigured} : {_currentLogsPath}", true);
         }
     }
     
@@ -124,7 +125,7 @@ public class FileSystemHandler
         
         var options = new FilePickerSaveOptions
         {
-            Title = "Sélectionner l'emplacement du fichier de configuration",
+            Title = Lang.SelectConfigFileLocation,
             SuggestedFileName = "jobs_config.json",
             DefaultExtension = "json"
         };
@@ -139,7 +140,7 @@ public class FileSystemHandler
                 return;
             
             SaveSettingsAndReload();
-            _uiService.UpdateStatus($"Fichier de configuration configuré : {_currentConfigPath}", true);
+            _uiService.UpdateStatus($"{Lang.ConfigFileConfigured} : {_currentConfigPath}", true);
         }
     }
     
@@ -152,7 +153,7 @@ public class FileSystemHandler
         
         var options = new FilePickerSaveOptions
         {
-            Title = "Sélectionner l'emplacement du fichier d'état",
+            Title = Lang.SelectStateFileLocation,
             SuggestedFileName = "state.json",
             DefaultExtension = "json"
         };
@@ -167,7 +168,7 @@ public class FileSystemHandler
                 return;
             
             SaveSettingsAndReload();
-            _uiService.UpdateStatus($"Fichier d'état configuré : {_currentStatePath}", true);
+            _uiService.UpdateStatus($"{Lang.StateFileConfigured} : {_currentStatePath}", true);
         }
     }
 
@@ -182,7 +183,7 @@ public class FileSystemHandler
             }
             catch (Exception ex)
             {
-                _uiService.UpdateStatus($"Erreur lors de la création du dossier : {ex.Message}", false);
+                _uiService.UpdateStatus($"{Lang.ErrorCreatingFolder} : {ex.Message}", false);
                 return false;
             }
         }

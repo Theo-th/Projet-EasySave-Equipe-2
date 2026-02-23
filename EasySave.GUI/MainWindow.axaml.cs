@@ -30,6 +30,8 @@ public partial class MainWindow : Window
     private readonly SettingsService _settingsService;
     private readonly JobEventHandler _jobHandler;
     private readonly FileSystemHandler _fileSystemHandler;
+    private readonly EncryptionHandler _encryptionHandler;
+    private readonly ProcessPriorityHandler _processPriorityHandler;
 
     public MainWindow()
     {
@@ -66,7 +68,10 @@ public partial class MainWindow : Window
 
         _uiService = new UIUpdateService(this, _controls);
         _jobHandler = new JobEventHandler(this, _controls, _viewModel, _uiService, _jobs);
+        _uiService.SetJobHandler(_jobHandler);
         _fileSystemHandler = new FileSystemHandler(this, _controls, _viewModel, _uiService, _settingsService, logsPath, configPath, statePath);
+        _encryptionHandler = new EncryptionHandler(this, _controls, _viewModel);
+        _processPriorityHandler = new ProcessPriorityHandler(this, _controls, _viewModel, _settingsService);
 
         // 5. Event subscriptions
         _viewModel.OnProgressChanged += _jobHandler.OnBackupProgressChanged;
@@ -80,10 +85,8 @@ public partial class MainWindow : Window
         _uiService.UpdatePaths(_fileSystemHandler.LogsPath, _fileSystemHandler.ConfigPath, _fileSystemHandler.StatePath);
 
         // 7. Initialization of specific controls (Encryption and Process)
-        UpdateEncryptionKeyUI();
-        UpdateEncryptionExtensionsUI();
-        UpdatePriorityExtensionsUI();
-        UpdateWatchedProcessesUI();
+        _encryptionHandler.Initialize();
+        _processPriorityHandler.Initialize();
         LoadThreadingSettings(settings);
         LoadMiscSettings(settings);
     }
@@ -143,6 +146,9 @@ public partial class MainWindow : Window
         if (this.FindControl<Button>("DeleteJobButton") is Button deleteBtn) deleteBtn.Click += _jobHandler.DeleteJobButton_Click;
         if (this.FindControl<Button>("ViewDetailsButton") is Button detailsBtn) detailsBtn.Click += _jobHandler.ViewDetailsButton_Click;
 
+        // Pagination
+        if (_controls.ItemsPerPageComboBox != null) _controls.ItemsPerPageComboBox.SelectionChanged += _jobHandler.ItemsPerPage_Changed;
+
         // File system navigation buttons
         if (this.FindControl<Button>("BrowseSourceButton") is Button bSrc) bSrc.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("SourcePathTextBox");
         if (this.FindControl<Button>("BrowseTargetButton") is Button bTrg) bTrg.Click += async (s, e) => await _fileSystemHandler.BrowseFolder("TargetPathTextBox");
@@ -153,19 +159,6 @@ public partial class MainWindow : Window
         // Global settings
         if (_controls.LanguageComboBox != null) _controls.LanguageComboBox.SelectionChanged += LanguageComboBox_SelectionChanged;
         if (_controls.LogTargetComboBox != null) _controls.LogTargetComboBox.SelectionChanged += LogTargetComboBox_SelectionChanged;
-
-        // Encryption
-        if (_controls.EditEncryptionKeyButton != null) _controls.EditEncryptionKeyButton.Click += EditEncryptionKeyButton_Click;
-        if (_controls.AddExtensionButton != null) _controls.AddExtensionButton.Click += AddExtensionButton_Click;
-        if (_controls.RemoveExtensionButton != null) _controls.RemoveExtensionButton.Click += RemoveExtensionButton_Click;
-
-        // Priority extensions
-        if (_controls.AddPriorityExtensionButton != null) _controls.AddPriorityExtensionButton.Click += AddPriorityExtensionButton_Click;
-        if (_controls.RemovePriorityExtensionButton != null) _controls.RemovePriorityExtensionButton.Click += RemovePriorityExtensionButton_Click;
-
-        // Business process
-        if (_controls.AddProcessButton != null) _controls.AddProcessButton.Click += AddProcessButton_Click;
-        if (_controls.RemoveProcessButton != null) _controls.RemoveProcessButton.Click += RemoveProcessButton_Click;
 
         // Multi-threading settings
         if (_controls.SaveThreadingSettingsButton != null) _controls.SaveThreadingSettingsButton.Click += SaveThreadingSettingsButton_Click;
@@ -251,108 +244,10 @@ public partial class MainWindow : Window
 
     // --- Encryption and Process Management ---
 
-    private void UpdateEncryptionKeyUI() => _controls.EncryptionKeyTextBox!.Text = _viewModel.GetEncryptionKey();
-
-    private void UpdateEncryptionExtensionsUI() =>
-        _controls.EncryptionExtensionsListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetEncryptionExtensions());
-
-    private void UpdatePriorityExtensionsUI() =>
-        _controls.PriorityExtensionsListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetPriorityExtensions());
-
-    private void UpdateWatchedProcessesUI() =>
-        _controls.WatchedProcessesListBox!.ItemsSource = new ObservableCollection<string>(_viewModel.GetWatchedProcesses());
-
     private void OnBusinessProcessDetected(string processName)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             _uiService.UpdateStatus($"Sauvegarde interrompue : processus métier '{processName}' détecté !", false));
-    }
-
-    private void AddProcessButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(_controls.AddProcessTextBox?.Text)) return;
-        _viewModel.AddWatchedProcess(_controls.AddProcessTextBox.Text.Trim());
-        UpdateWatchedProcessesUI();
-        _controls.AddProcessTextBox.Text = string.Empty;
-    }
-
-    private void RemoveProcessButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.WatchedProcessesListBox?.SelectedItem is string processName)
-        {
-            _viewModel.RemoveWatchedProcess(processName);
-            UpdateWatchedProcessesUI();
-        }
-    }
-
-    private async void EditEncryptionKeyButton_Click(object? sender, RoutedEventArgs e)
-    {
-        // Quick dialog for the key
-        var newKeyBox = new TextBox { Width = 200 };
-        var validateBtn = new Button { Content = "Valider", Margin = new Thickness(0, 10, 0, 0) };
-        var dialog = new Window
-        {
-            Title = "Clé de cryptage",
-            Width = 250,
-            Height = 120,
-            Content = new StackPanel { Margin = new Thickness(10), Children = { newKeyBox, validateBtn } }
-        };
-        validateBtn.Click += (s, ev) => { _viewModel.SetEncryptionKey(newKeyBox.Text ?? ""); UpdateEncryptionKeyUI(); dialog.Close(); };
-        await dialog.ShowDialog(this);
-    }
-
-    private void AddExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(_controls.AddExtensionTextBox?.Text)) return;
-        _viewModel.AddEncryptionExtension(_controls.AddExtensionTextBox.Text.Trim());
-        UpdateEncryptionExtensionsUI();
-        _controls.AddExtensionTextBox.Text = string.Empty;
-    }
-
-    private void RemoveExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.EncryptionExtensionsListBox?.SelectedItem is string ext)
-        {
-            _viewModel.RemoveEncryptionExtension(ext);
-            UpdateEncryptionExtensionsUI();
-        }
-    }
-
-    private void AddPriorityExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.AddPriorityExtensionTextBox?.Text is string text && !string.IsNullOrWhiteSpace(text))
-        {
-            string extension = text.Trim();
-            if (!extension.StartsWith(".")) extension = "." + extension;
-            
-            var currentExtensions = _viewModel.GetPriorityExtensions();
-            if (!currentExtensions.Any(e => e.Equals(extension, StringComparison.OrdinalIgnoreCase)))
-            {
-                currentExtensions.Add(extension);
-                _viewModel.UpdatePriorityExtensions(currentExtensions);
-                UpdatePriorityExtensionsUI();
-                SavePriorityExtensionsToSettings();
-                _controls.AddPriorityExtensionTextBox.Text = string.Empty;
-            }
-        }
-    }
-
-    private void RemovePriorityExtensionButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.PriorityExtensionsListBox?.SelectedItem is string ext)
-        {
-            var currentExtensions = _viewModel.GetPriorityExtensions();
-            currentExtensions.Remove(ext);
-            _viewModel.UpdatePriorityExtensions(currentExtensions);
-            UpdatePriorityExtensionsUI();
-            SavePriorityExtensionsToSettings();
-        }
-    }
-
-    private void SavePriorityExtensionsToSettings()
-    {
-        var extensions = _viewModel.GetPriorityExtensions();
-        _settingsService.UpdateSetting("PriorityExtensions", string.Join(",", extensions));
     }
 
     // --- Application settings ---

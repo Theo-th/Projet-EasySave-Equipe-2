@@ -29,7 +29,7 @@ namespace EasySave.Tests
 
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var processDetector = new ProcessDetector(Path.Combine(Path.GetTempPath(), "test-watched.json"));
 
             var job = new BackupJob
             {
@@ -45,7 +45,7 @@ namespace EasySave.Tests
             var backupService = new BackupService(
                 mockConfigService.Object,
                 mockStateRepository.Object,
-                mockProcessDetector.Object,
+                processDetector,
                 LogType.JSON,
                 "test-logs"
             );
@@ -58,9 +58,12 @@ namespace EasySave.Tests
             Assert.True(File.Exists(Path.Combine(target, "full", "file.txt")));
 
             // Cleanup
+            processDetector.Dispose();
             Directory.Delete(source, true);
             Directory.Delete(target, true);
             if (Directory.Exists("test-logs")) Directory.Delete("test-logs", true);
+            if (File.Exists(Path.Combine(Path.GetTempPath(), "test-watched.json")))
+                File.Delete(Path.Combine(Path.GetTempPath(), "test-watched.json"));
         }
 
         /// <summary>
@@ -72,17 +75,22 @@ namespace EasySave.Tests
             // Arrange
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var processDetector = new ProcessDetector(Path.Combine(Path.GetTempPath(), "test-pause.json"));
 
             var backupService = new BackupService(
                 mockConfigService.Object,
                 mockStateRepository.Object,
-                mockProcessDetector.Object,
+                processDetector,
                 LogType.JSON
             );
 
             // Act & Assert - Pause should work even without active jobs
             backupService.PauseBackup(); // No exception means success
+            
+            // Cleanup
+            processDetector.Dispose();
+            if (File.Exists(Path.Combine(Path.GetTempPath(), "test-pause.json")))
+                File.Delete(Path.Combine(Path.GetTempPath(), "test-pause.json"));
         }
 
         /// <summary>
@@ -94,17 +102,22 @@ namespace EasySave.Tests
             // Arrange
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var processDetector = new ProcessDetector(Path.Combine(Path.GetTempPath(), "test-stop.json"));
 
             var backupService = new BackupService(
                 mockConfigService.Object,
                 mockStateRepository.Object,
-                mockProcessDetector.Object,
+                processDetector,
                 LogType.JSON
             );
 
             // Act & Assert - Stop should work even without active jobs
             backupService.StopBackup(); // No exception means success
+            
+            // Cleanup
+            processDetector.Dispose();
+            if (File.Exists(Path.Combine(Path.GetTempPath(), "test-stop.json")))
+                File.Delete(Path.Combine(Path.GetTempPath(), "test-stop.json"));
         }
     }
 }
