@@ -386,6 +386,15 @@
 										<ComboBoxItem Content="Les deux (Local + Serveur)"/>
 									</ComboBox>
 								</StackPanel>
+								<!-- XML or JSON Logs -->
+								<StackPanel Margin="0,16,0,0">
+									<TextBlock Text="Format des logs" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,8,0,4"/>
+									<TextBlock Text="Choisissez l'extension de vos fichiers journaux." FontSize="11" Foreground="#6B7280" Margin="0,0,0,8"/>
+									<ComboBox Name="LogFormatComboBox" SelectedIndex="0" HorizontalAlignment="Stretch">
+										<ComboBoxItem Content="JSON"/>
+										<ComboBoxItem Content="XML"/>
+									</ComboBox>
+								</StackPanel>
 							</StackPanel>
 						</StackPanel>
 					</ScrollViewer>

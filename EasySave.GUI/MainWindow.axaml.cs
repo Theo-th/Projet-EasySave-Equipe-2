@@ -103,6 +103,9 @@ public partial class MainWindow : Window
         if (_controls.PauseButton != null) _controls.PauseButton.Click += PauseButton_Click;
         if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
+
+        // Choice Log Format (XML, JSON)
+        if (_controls.LogFormatComboBox != null) _controls.LogFormatComboBox.SelectionChanged += LogFormatComboBox_SelectionChanged;
     }
 
     // --- Backup Control Event Handlers ---
@@ -225,6 +228,16 @@ public partial class MainWindow : Window
             string target = idx switch { 0 => "Local", 1 => "Server", _ => "Both" };
             _viewModel.SetLogTarget(target);
             _uiService.UpdateStatus($"Cible des logs : {target}", true);
+        }
+    }
+
+    private void LogFormatComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_controls.LogFormatComboBox?.SelectedIndex is int idx and >= 0)
+        {
+            string format = idx == 0 ? "JSON" : "XML";
+            _viewModel.ChangeLogFormat(format);
+            _uiService.UpdateStatus($"Format des logs modifié : {format}", true);
         }
     }
 }
