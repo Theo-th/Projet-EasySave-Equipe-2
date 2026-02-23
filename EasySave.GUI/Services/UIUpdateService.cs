@@ -343,63 +343,6 @@ public class UIUpdateService
     }
 
     /// <summary>
-    /// Updates the section title TextBlock.
-    /// </summary>
-    private void UpdateSectionTitle(string sectionName, string newText)
-    {
-        var section = _window.FindControl<StackPanel>(sectionName);
-        var titleTextBlock = section?.Children.OfType<TextBlock>().FirstOrDefault();
-        if (titleTextBlock != null)
-        {
-            titleTextBlock.Text = newText;
-        }
-    }
-
-    /// <summary>
-    /// Updates a label TextBlock in a section by finding it by its current text.
-    /// </summary>
-    private void UpdateLabelInSection(string sectionName, string oldText, string newText)
-    {
-        var section = _window.FindControl<StackPanel>(sectionName);
-        if (section != null)
-        {
-            // Search through all StackPanel children recursively
-            FindAndUpdateTextBlock(section, oldText, newText);
-        }
-    }
-
-    /// <summary>
-    /// Updates a description TextBlock in a section.
-    /// </summary>
-    private void UpdateDescriptionInSection(string sectionName, string oldText, string newText)
-    {
-        var section = _window.FindControl<StackPanel>(sectionName);
-        if (section != null)
-        {
-            FindAndUpdateTextBlock(section, oldText, newText);
-        }
-    }
-
-    /// <summary>
-    /// Recursively finds and updates a TextBlock with matching text.
-    /// </summary>
-    private void FindAndUpdateTextBlock(Panel panel, string oldText, string newText)
-    {
-        foreach (var child in panel.Children)
-        {
-            if (child is TextBlock textBlock && textBlock.Text == oldText)
-            {
-                textBlock.Text = newText;
-                return;
-            }
-            else if (child is Panel childPanel)
-            {
-                FindAndUpdateTextBlock(childPanel, oldText, newText);
-            }
-        }
-    }
-
-    /// <summary>
     /// Updates the Execute tab controls (global buttons and control label).
     /// </summary>
     private void UpdateExecuteTab()

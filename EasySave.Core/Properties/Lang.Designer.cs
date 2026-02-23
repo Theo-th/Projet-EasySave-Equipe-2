@@ -270,5 +270,12 @@ namespace EasySave.Core.Properties {
         public static string LabelPerPage { get { return ResourceManager.GetString("LabelPerPage", resourceCulture); } }
         public static string PageIndicator { get { return ResourceManager.GetString("PageIndicator", resourceCulture); } }
         public static string PageIndicatorFull { get { return ResourceManager.GetString("PageIndicatorFull", resourceCulture); } }
+
+        // MainWindow status messages
+        public static string StatusLogTargetChanged { get { return ResourceManager.GetString("StatusLogTargetChanged", resourceCulture); } }
+        public static string StatusServerIpUpdated { get { return ResourceManager.GetString("StatusServerIpUpdated", resourceCulture); } }
+        public static string StatusThreadingApplied { get { return ResourceManager.GetString("StatusThreadingApplied", resourceCulture); } }
+        public static string ErrorMaxJobsRange { get { return ResourceManager.GetString("ErrorMaxJobsRange", resourceCulture); } }
+        public static string ErrorFileSizeThresholdMin { get { return ResourceManager.GetString("ErrorFileSizeThresholdMin", resourceCulture); } }
     }
 }

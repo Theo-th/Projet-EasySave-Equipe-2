@@ -127,6 +127,11 @@ namespace EasySave.Core.ViewModels
         }
 
         /// <summary>
+        /// Gets all configured backup jobs with full details (single config read).
+        /// </summary>
+        public List<BackupJob> GetAllJobDetails() => _configService.GetAllJobs();
+
+        /// <summary>
         /// Gets job name and type by index.
         /// </summary>
         /// <param name="jobIndex">The index of the job.</param>

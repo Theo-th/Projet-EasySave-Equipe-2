@@ -58,7 +58,6 @@ public class ControlCache
 
     // Backup control buttons (Pause / Resume / Stop)
     public Border? GlobalControlsSection { get; set; }
-    public Button? PlayButton { get; set; }
     public Button? PauseButton { get; set; }
     public Button? ResumeButton { get; set; }
     public Button? StopButton { get; set; }
@@ -122,7 +121,6 @@ public class ControlCache
 
 
         // Backup control buttons
-        PlayButton = window.FindControl<Button>("PlayButton");
         GlobalControlsSection = window.FindControl<Border>("GlobalControlsSection");
         PauseButton = window.FindControl<Button>("PauseButton");
         ResumeButton = window.FindControl<Button>("ResumeButton");

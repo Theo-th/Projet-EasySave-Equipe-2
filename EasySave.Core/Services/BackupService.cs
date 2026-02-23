@@ -226,9 +226,12 @@ namespace EasySave.Core.Services
                 // PHASE 1: ANALYSIS
                 _stateTracker.UpdateJobState(job.Name, state => state.State = BackupState.Active);
 
+                HashSet<string> priorityExtCopy;
+                lock (_configLock) { priorityExtCopy = new HashSet<string>(_priorityExtensions, StringComparer.OrdinalIgnoreCase); }
+
                 BackupStrategy strategy = job.Type == BackupType.Complete
-                    ? new FullBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions)
-                    : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, _priorityExtensions);
+                    ? new FullBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, priorityExtCopy)
+                    : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, priorityExtCopy);
 
                 var files = strategy.Analyze();
 

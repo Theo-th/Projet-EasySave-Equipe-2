@@ -247,7 +247,7 @@ public partial class MainWindow : Window
     private void OnBusinessProcessDetected(string processName)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            _uiService.UpdateStatus($"Sauvegarde interrompue : processus métier '{processName}' détecté !", false));
+            _uiService.ShowBusinessProcessAlert(processName));
     }
 
     // --- Application settings ---
@@ -273,7 +273,7 @@ public partial class MainWindow : Window
             string target = idx switch { 0 => "Local", 1 => "Server", _ => "Both" };
             _viewModel.SetLogTarget(target);
             _settingsService.UpdateSetting("LogTarget", target);
-            _uiService.UpdateStatus($"Cible des logs : {target}", true);
+            _uiService.UpdateStatus(string.Format(Lang.StatusLogTargetChanged, target), true);
         }
     }
 
@@ -283,7 +283,7 @@ public partial class MainWindow : Window
         {
             _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
             _settingsService.UpdateSetting("ServerIp", _controls.ServerIpTextBox.Text);
-            _uiService.UpdateStatus($"IP Serveur mise à jour : {_controls.ServerIpTextBox.Text}", true);
+            _uiService.UpdateStatus(string.Format(Lang.StatusServerIpUpdated, _controls.ServerIpTextBox.Text), true);
         }
     }
 
@@ -303,7 +303,7 @@ public partial class MainWindow : Window
             _settingsService.UpdateSetting("FileSizeThresholdMB", fileSizeThresholdMB.ToString());
 
             _uiService.UpdateStatus(
-                $"Paramètres multi-threading appliqués : {maxJobs} travaux max, seuil {fileSizeThresholdMB} MB", true);
+                string.Format(Lang.StatusThreadingApplied, maxJobs, fileSizeThresholdMB), true);
         }
         catch (Exception ex)
         {
@@ -322,7 +322,7 @@ public partial class MainWindow : Window
             maxJobs = parsed;
             return true;
         }
-        _uiService.UpdateStatus("Erreur : Le nombre de travaux doit être entre 1 et 10", false);
+        _uiService.UpdateStatus(Lang.ErrorMaxJobsRange, false);
         return false;
     }
 
@@ -337,7 +337,7 @@ public partial class MainWindow : Window
             fileSizeThresholdMB = parsed;
             return true;
         }
-        _uiService.UpdateStatus("Erreur : Le seuil de taille doit être >= 1 MB", false);
+        _uiService.UpdateStatus(Lang.ErrorFileSizeThresholdMin, false);
         return false;
     }
 }

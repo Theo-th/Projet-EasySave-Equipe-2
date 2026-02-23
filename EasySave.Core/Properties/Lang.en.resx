@@ -569,4 +569,19 @@
   <data name="PageIndicatorFull" xml:space="preserve">
     <value>Page {0} / {1}</value>
   </data>
+  <data name="StatusLogTargetChanged" xml:space="preserve">
+    <value>Log target: {0}</value>
+  </data>
+  <data name="StatusServerIpUpdated" xml:space="preserve">
+    <value>Server IP updated: {0}</value>
+  </data>
+  <data name="StatusThreadingApplied" xml:space="preserve">
+    <value>Multi-threading applied: {0} max jobs, threshold {1} MB</value>
+  </data>
+  <data name="ErrorMaxJobsRange" xml:space="preserve">
+    <value>Error: Number of jobs must be between 1 and 10</value>
+  </data>
+  <data name="ErrorFileSizeThresholdMin" xml:space="preserve">
+    <value>Error: Size threshold must be ≥ 1 MB</value>
+  </data>
 </root>

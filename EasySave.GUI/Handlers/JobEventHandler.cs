@@ -64,25 +64,21 @@ public class JobEventHandler
     {
         _jobs.Clear();
         _allJobNames.Clear();
-        var jobNames = _viewModel.GetAllJobs();
+        var allJobs = _viewModel.GetAllJobDetails();
 
-        for (int i = 0; i < jobNames.Count; i++)
+        for (int i = 0; i < allJobs.Count; i++)
         {
-            var jobInfo = _viewModel.GetJob(i);
-            if (jobInfo != null)
+            var job = allJobs[i];
+            _jobs.Add(new JobItem
             {
-                var parts = jobInfo.Split(" -- ");
-                _jobs.Add(new JobItem
-                {
-                    Name = parts[0],
-                    Index = i,
-                    IsSelected = false,
-                    Type = parts.Length > 1 ? parts[1] : "Unknown",
-                    Source = parts.Length > 2 ? parts[2] : "",
-                    Target = parts.Length > 3 ? parts[3] : ""
-                });
-                _allJobNames.Add(parts[0]);
-            }
+                Name = job.Name,
+                Index = i,
+                IsSelected = false,
+                Type = job.Type.ToString(),
+                Source = job.SourceDirectory,
+                Target = job.TargetDirectory
+            });
+            _allJobNames.Add(job.Name);
         }
 
         if (_controls.ManageJobListBox != null)
