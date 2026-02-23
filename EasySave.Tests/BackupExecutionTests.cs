@@ -6,7 +6,6 @@ using EasySave.Core.Models;
 using EasySave.Core.Interfaces;
 using EasyLog;
 using System.IO;
-using System.Collections.Generic;
 
 namespace EasySave.Tests
 {
@@ -29,7 +28,7 @@ namespace EasySave.Tests
 
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var mockProcessDetector = new Mock<ProcessDetector>((string?)null);
 
             var job = new BackupJob
             {
@@ -72,7 +71,7 @@ namespace EasySave.Tests
             // Arrange
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var mockProcessDetector = new Mock<ProcessDetector>((string?)null);
 
             var backupService = new BackupService(
                 mockConfigService.Object,
@@ -82,7 +81,7 @@ namespace EasySave.Tests
             );
 
             // Act & Assert - Pause should work even without active jobs
-            backupService.PauseBackup(); // No exception means success
+            backupService.PauseBackup(); 
         }
 
         /// <summary>
@@ -94,7 +93,7 @@ namespace EasySave.Tests
             // Arrange
             var mockConfigService = new Mock<IJobConfigService>();
             var mockStateRepository = new Mock<IBackupStateRepository>();
-            var mockProcessDetector = new Mock<ProcessDetector>();
+            var mockProcessDetector = new Mock<ProcessDetector>((string?)null);
 
             var backupService = new BackupService(
                 mockConfigService.Object,
@@ -104,7 +103,7 @@ namespace EasySave.Tests
             );
 
             // Act & Assert - Stop should work even without active jobs
-            backupService.StopBackup(); // No exception means success
+            backupService.StopBackup(); 
         }
     }
 }

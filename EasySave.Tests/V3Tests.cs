@@ -35,7 +35,7 @@ namespace EasySave.Tests
                     statesHistory.Add(states.Select(s => new BackupJobState { Name = s.Name, State = s.State }).ToList());
                 });
 
-            var service = new BackupService(mockConfig.Object, mockStateRepo.Object, new ProcessDetector(), LogType.JSON, "logs");
+            var service = new BackupService(mockConfig.Object, mockStateRepo.Object, new ProcessDetector((string?)null), LogType.JSON, "logs");
 
             // Act
             service.ExecuteBackup(new List<int> { 0, 1 });
@@ -51,34 +51,41 @@ namespace EasySave.Tests
         /// Verifies that the detection of a watched business process pauses the backup rather than completely canceling it.
         /// </summary>
         [Fact]
-        public void BusinessProcessDetection_ShouldPauseBackup_NotCancel()
+        public async Task BusinessProcessDetection_ShouldPauseBackup_NotCancel()
         {
             // Arrange
-            var processDetector = new ProcessDetector();
+            string testJson = "test_watched_processes.json";
+            if (File.Exists(testJson)) File.Delete(testJson);
+            var processDetector = new ProcessDetector(testJson);
+
+            string currentProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+            processDetector.AddWatchedProcess(currentProcessName);
+
             var mockConfig = new Mock<IJobConfigService>();
             mockConfig.Setup(c => c.GetAllJobs()).Returns(new List<BackupJob> {
                 new BackupJob { Name = "Job1", SourceDirectory = "src", TargetDirectory = "dst", Type = BackupType.Complete }
             });
 
+            var statesHistory = new List<BackupState>();
             var mockStateRepo = new Mock<IBackupStateRepository>();
-            BackupState finalState = BackupState.Inactive;
-
             mockStateRepo.Setup(r => r.UpdateState(It.IsAny<List<BackupJobState>>()))
-                .Callback<List<BackupJobState>>(states => finalState = states.First().State);
+                .Callback<List<BackupJobState>>(states => statesHistory.Add(states.First().State));
 
             var service = new BackupService(mockConfig.Object, mockStateRepo.Object, processDetector, LogType.JSON, "logs");
 
             // Act
-            var eventArgs = new ProcessStatusChangedEventArgs { Process = new DetectedProcess { ProcessName = "calculator" }, IsRunning = true };
+            var executeTask = Task.Run(() => service.ExecuteBackup(new List<int> { 0 }));
 
-            var methodInfo = typeof(BackupService).GetMethod("OnWatchedProcessStatusChanged", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (methodInfo != null)
-            {
-                methodInfo.Invoke(service, new object[] { this, eventArgs });
-            }
+            await Task.Delay(500);
+
+            service.StopBackup();
+            await executeTask;
 
             // Assert
-            Assert.Equal(BackupState.Paused, finalState);
+            Assert.Contains(BackupState.Paused, statesHistory);
+
+            // Cleanup
+            if (File.Exists(testJson)) File.Delete(testJson);
         }
 
         /// <summary>
@@ -89,11 +96,28 @@ namespace EasySave.Tests
         {
             // Arrange
             var service = EncryptionService.Instance;
+            service.AddExtension(".txt"); 
+
+            string testFile = "test_crypto.txt";
+            File.WriteAllText(testFile, "Contenu de test pour le lock.");
 
             // Act
+            var tasks = new List<Task<long>>();
+            for (int i = 0; i < 10; i++)
+            {
+                tasks.Add(Task.Run(() => service.EncryptFile(testFile)));
+            }
+
+            Task.WaitAll(tasks.ToArray());
 
             // Assert
-            Assert.Fail("CryptoSoft is not protected by a Mutex (Single-instance).");
+            foreach (var task in tasks)
+            {
+                Assert.True(task.IsCompletedSuccessfully);
+            }
+
+            // Cleanup
+            if (File.Exists(testFile)) File.Delete(testFile);
         }
     }
 }
