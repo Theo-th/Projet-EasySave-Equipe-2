@@ -6,6 +6,7 @@ using EasySave.Core.Models;
 using System.Collections.Generic;
 using System.Linq;
 
+
 namespace EasySave.Tests
 {
     /// <summary>
@@ -54,8 +55,14 @@ namespace EasySave.Tests
         public async Task BusinessProcessDetection_ShouldPauseBackup_NotCancel()
         {
             // Arrange
-            string testJson = "test_watched_processes.json";
+            string testJson = Path.GetFullPath("test_watched_processes.json");
             if (File.Exists(testJson)) File.Delete(testJson);
+
+            string dummySrc = Path.GetFullPath("dummy_src_break");
+            string dummyDst = Path.GetFullPath("dummy_dst_break");
+            Directory.CreateDirectory(dummySrc);
+            File.WriteAllText(Path.Combine(dummySrc, "file.txt"), "dummy content");
+
             var processDetector = new ProcessDetector(testJson);
 
             string currentProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -63,7 +70,7 @@ namespace EasySave.Tests
 
             var mockConfig = new Mock<IJobConfigService>();
             mockConfig.Setup(c => c.GetAllJobs()).Returns(new List<BackupJob> {
-                new BackupJob { Name = "Job1", SourceDirectory = "src", TargetDirectory = "dst", Type = BackupType.Complete }
+                new BackupJob { Name = "Job1", SourceDirectory = dummySrc, TargetDirectory = dummyDst, Type = BackupType.Complete }
             });
 
             var statesHistory = new List<BackupState>();
@@ -86,6 +93,8 @@ namespace EasySave.Tests
 
             // Cleanup
             if (File.Exists(testJson)) File.Delete(testJson);
+            if (Directory.Exists(dummySrc)) Directory.Delete(dummySrc, true);
+            if (Directory.Exists(dummyDst)) Directory.Delete(dummyDst, true);
         }
 
         /// <summary>
@@ -96,7 +105,7 @@ namespace EasySave.Tests
         {
             // Arrange
             var service = EncryptionService.Instance;
-            service.AddExtension(".txt"); 
+            service.AddExtension(".txt");
 
             string testFile = "test_crypto.txt";
             File.WriteAllText(testFile, "Contenu de test pour le lock.");
