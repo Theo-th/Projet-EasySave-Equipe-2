@@ -1,19 +1,19 @@
 [
   {
-    "startTimestamp": "2026-02-17T14:59:08.6532366+01:00",
-    "id": 0,
-    "name": "test",
+    "startTimestamp": "2026-02-24T15:39:24.3443287+01:00",
+    "id": 2,
+    "name": "TestFull2",
     "sourcePath": "C:\\Users\\theot\\Documents\\TestProjet\\1",
-    "targetPath": "C:\\Users\\theot\\Documents\\TestProjet\\2",
+    "targetPath": "C:\\Users\\theot\\Documents\\TestProjet\\10",
     "type": "Complete",
-    "state": "Active",
-    "lastActionTimestamp": "2026-02-17T14:59:18.8201189+01:00",
-    "totalFiles": 1427,
-    "totalSize": 11416,
-    "remainingFiles": 1368,
-    "remainingSize": 10944,
-    "currentSourceFile": "C:\\Users\\theot\\Documents\\TestProjet\\1\\Test - Copie - Copie - Copie - Copie (148) - Copie.txt",
-    "currentTargetFile": "C:\\Users\\theot\\Documents\\TestProjet\\2\\full\\Test - Copie - Copie - Copie - Copie (148) - Copie.txt",
-    "progressPercentage": 4
+    "state": "Completed",
+    "lastActionTimestamp": "2026-02-24T15:39:24.3808171+01:00",
+    "totalFiles": 0,
+    "totalSize": 0,
+    "remainingFiles": 0,
+    "remainingSize": 0,
+    "currentSourceFile": "",
+    "currentTargetFile": "",
+    "progressPercentage": 0
   }
 ]

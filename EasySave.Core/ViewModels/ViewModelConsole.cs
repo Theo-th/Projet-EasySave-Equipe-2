@@ -22,6 +22,9 @@ namespace EasySave.Core.ViewModels
         // Event triggered when a watched business process is detected during backup.
         public event Action<string>? OnBusinessProcessDetected;
 
+        // Event triggered when a job is deleted to refresh the view.
+        public event Action? OnJobDeleted;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ViewModelConsole"/> class.
         /// </summary>
@@ -114,7 +117,23 @@ namespace EasySave.Core.ViewModels
         /// </summary>
         /// <param name="jobIndex">The index of the job to delete.</param>
         /// <returns>True if deleted, false otherwise.</returns>
-        public bool DeleteJob(int jobIndex)   => _configService.RemoveJob(jobIndex);
+        public bool DeleteJob(int jobIndex)
+        {
+            try
+            {
+                bool result = _configService.RemoveJob(jobIndex);
+                if (result)
+                {
+                    OnJobDeleted?.Invoke();
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur suppression travail: {ex.Message}");
+                return false;
+            }
+        }
 
         /// <summary>
         /// Gets all configured backup job names.
@@ -258,7 +277,7 @@ namespace EasySave.Core.ViewModels
 
         /// <summary>
         /// Updates the backup state file path.
-        /// </summary>
+        /// /// </summary>
         /// <param name="statePath">The new state file path.</param>
         public void UpdateStatePath(string statePath)
         {

@@ -77,6 +77,14 @@ public partial class MainWindow : Window
         _viewModel.OnProgressChanged += _jobHandler.OnBackupProgressChanged;
         _viewModel.OnProgressChanged += OnBackupStateChanged;
         _viewModel.OnBusinessProcessDetected += OnBusinessProcessDetected;
+        
+        _viewModel.OnJobDeleted += () => 
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+            {
+                _jobHandler.LoadJobs();
+            });
+        };
 
         // 6. Initializing the interface
         SetupEventHandlers();

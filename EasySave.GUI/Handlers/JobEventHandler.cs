@@ -31,7 +31,7 @@ public class JobEventHandler
 
     // Pagination
     private int _itemsPerPage = 10;
-    private List<string> _allJobNames = new();
+    private readonly ObservableCollection<string> _allJobNames = new();
 
     public JobEventHandler(Window window, ControlCache controls, ViewModelConsole viewModel,
         UIUpdateService uiService, ObservableCollection<JobItem> jobs)
@@ -62,34 +62,42 @@ public class JobEventHandler
 
     public void LoadJobs()
     {
-        _jobs.Clear();
-        _allJobNames.Clear();
-        var allJobs = _viewModel.GetAllJobDetails();
-
-        for (int i = 0; i < allJobs.Count; i++)
+        try
         {
-            var job = allJobs[i];
-            _jobs.Add(new JobItem
+            _jobs.Clear();
+            _allJobNames.Clear();
+            var allJobs = _viewModel.GetAllJobDetails();
+
+            for (int i = 0; i < allJobs.Count; i++)
             {
-                Name = job.Name,
-                Index = i,
-                IsSelected = false,
-                Type = job.Type.ToString(),
-                Source = job.SourceDirectory,
-                Target = job.TargetDirectory
-            });
-            _allJobNames.Add(job.Name);
+                var job = allJobs[i];
+                _jobs.Add(new JobItem
+                {
+                    Name = job.Name,
+                    Index = i,
+                    IsSelected = false,
+                    Type = job.Type.ToString(),
+                    Source = job.SourceDirectory,
+                    Target = job.TargetDirectory
+                });
+                _allJobNames.Add(job.Name);
+            }
+
+            if (_controls.ManageJobListBox != null && _controls.ManageJobListBox.ItemsSource != _allJobNames)
+                _controls.ManageJobListBox.ItemsSource = _allJobNames;
+
+            ApplyPagination();
+            _uiService.UpdateJobsCount(_jobs.Count);
         }
-
-        if (_controls.ManageJobListBox != null)
-            _controls.ManageJobListBox.ItemsSource = _allJobNames;
-
-        ApplyPagination();
-        _uiService.UpdateJobsCount(_jobs.Count);
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Erreur dans LoadJobs: {ex.Message}");
+            _uiService.UpdateStatus("Erreur lors du chargement des travaux", false);
+        }
     }
 
     /// <summary>
-    /// Applique le filtre d'affichage : affiche les N premiers éléments selon le ComboBox.
+    /// Apply the display filter: displays the first N elements according to the ComboBox.
     /// </summary>
     public void ApplyPagination()
     {
@@ -121,7 +129,6 @@ public class JobEventHandler
 
         var selectedIndices = new List<int>();
 
-        // Vider les précédents items de progression
         _jobProgressItems.Clear();
         _progressByJobName.Clear();
 
@@ -150,7 +157,7 @@ public class JobEventHandler
                 ProgressText   = Lang.StatusWaiting,
                 FilesCountText = Lang.StatusWaiting,
                 CurrentFile    = "",
-                State          = BackupState.Inactive   // ← était Active, corrigé en Inactive
+                State          = BackupState.Inactive
             };
 
             _jobProgressItems.Add(progressItem);
@@ -222,24 +229,29 @@ public class JobEventHandler
 
     public void DeleteJobButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_controls.ManageJobListBox?.SelectedIndex >= 0 &&
-            _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
+        if (_controls.ManageJobListBox?.SelectedIndex < 0)
         {
-            var jobIndex = _controls.ManageJobListBox.SelectedIndex;
-            var jobName  = _jobs[jobIndex].Name;
-            if (_viewModel.DeleteJob(jobIndex))
-            {
-                LoadJobs();
-                _uiService.UpdateStatus(string.Format(Lang.PlanDeleted, jobName), true);
-            }
-            else
-            {
-                _uiService.UpdateStatus(Lang.ErrorWhileDeleting, false);
-            }
+            _uiService.UpdateStatus(Lang.PleaseSelectPlanToDelete, false);
+            return;
+        }
+
+        int selectedIndex = _controls.ManageJobListBox.SelectedIndex;
+        
+        if (selectedIndex >= _jobs.Count)
+        {
+            _uiService.UpdateStatus(Lang.PleaseSelectPlanToDelete, false);
+            return;
+        }
+
+        var jobName = _jobs[selectedIndex].Name;
+        
+        if (_viewModel.DeleteJob(selectedIndex))
+        {
+            _uiService.UpdateStatus(string.Format(Lang.PlanDeleted, jobName), true);
         }
         else
         {
-            _uiService.UpdateStatus(Lang.PleaseSelectPlanToDelete, false);
+            _uiService.UpdateStatus(Lang.ErrorWhileDeleting, false);
         }
     }
 
