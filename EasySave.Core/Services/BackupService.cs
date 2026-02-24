@@ -4,6 +4,7 @@ using EasySave.Core.Interfaces;
 using EasySave.Core.Services.Strategies;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading;
 
 namespace EasySave.Core.Services
 {
@@ -176,8 +177,7 @@ namespace EasySave.Core.Services
             foreach (var (job, index) in validJobs)
             {
                 _controlCoordinator.RegisterJob(job.Name);
-
-                var waitingState = new BackupJobState
+                _stateTracker.RegisterJob(job.Name, new BackupJobState
                 {
                     Id = index + 1,
                     Name = job.Name,
@@ -185,45 +185,111 @@ namespace EasySave.Core.Services
                     TargetPath = job.TargetDirectory,
                     Type = job.Type,
                     State = BackupState.Inactive
-                };
-                _stateTracker.RegisterJob(job.Name, waitingState);
+                });
             }
 
-            // LAUNCH: each job in its own Task
-            var tasks = validJobs
-                .Select(entry => Task.Run(() =>
-                {
-                    var (job, capturedIndex) = entry;
-                    _jobSemaphore.Wait();
-                    try
-                    {
-                        ExecuteSingleJob(job, capturedIndex, errors);
-                    }
-                    finally
-                    {
-                        _jobSemaphore.Release();
-                        _controlCoordinator.UnregisterJob(job.Name);
-                    }
-                }))
-                .ToArray();
+            // ── PHASE 1 : ANALYSE EN PARALLÈLE ─────────────────────────────
+            // Chaque job analyse ses fichiers et les dépose dans la file globale.
+            var globalQueue = new GlobalFileQueue();
+            var jobsWithFiles = new ConcurrentDictionary<string, bool>();
 
-            Task.WaitAll(tasks);
+            HashSet<string> priorityExtCopy;
+            lock (_configLock) { priorityExtCopy = new HashSet<string>(_priorityExtensions, StringComparer.OrdinalIgnoreCase); }
+
+            var analyseTasks = validJobs.Select(entry => Task.Run(() =>
+            {
+                var (job, idx) = entry;
+                try
+                {
+                    _stateTracker.UpdateJobState(job.Name, s => s.State = BackupState.Active);
+
+                    BackupStrategy strategy = job.Type == BackupType.Complete
+                        ? new FullBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, priorityExtCopy)
+                        : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, priorityExtCopy);
+
+                    var files = strategy.Analyze();
+                    long totalSize = files.Sum(f => f.FileSize);
+
+                    _stateTracker.UpdateJobState(job.Name, s =>
+                    {
+                        s.TotalFiles = files.Count;
+                        s.TotalSize = totalSize;
+                        s.RemainingFiles = files.Count;
+                        s.RemainingSize = totalSize;
+                    });
+
+                    if (files.Count == 0)
+                    {
+                        _stateTracker.FinalizeJobState(job.Name);
+                        _controlCoordinator.UnregisterJob(job.Name);
+                        return;
+                    }
+
+                    strategy.Prepare();
+                    jobsWithFiles[job.Name] = true;
+
+                    // Enregistrement comme producteur avant d'envoyer les fichiers
+                    globalQueue.RegisterProducer();
+                    foreach (var file in files)
+                        globalQueue.Enqueue(file);
+                    globalQueue.ProducerDone();
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"Error analysing '{job.Name}': {ex.Message}");
+                    _stateTracker.UpdateJobState(job.Name, s => s.State = BackupState.Error);
+                    _controlCoordinator.UnregisterJob(job.Name);
+                }
+            })).ToArray();
+
+            Task.WaitAll(analyseTasks);
+
+            // ── PHASE 2 : COPIE DEPUIS LA FILE GLOBALE ──────────────────────
+            // N workers communs consomment la file dans l'ordre de priorité.
+            // Règles respectées entre TOUS les jobs :
+            //   1. Fichiers prioritaires passent devant les non-prioritaires
+            //   2. Fichiers lourds (> seuil) : un seul à la fois (_heavyFileSemaphore)
+            //   3. Fichiers légers : parallélisme complet
+            int workerCount;
+            lock (_configLock) { workerCount = _maxSimultaneousJobs; }
+            var workerTasks = Enumerable.Range(0, workerCount).Select(_ => Task.Run(() =>
+            {
+                while (!globalQueue.IsCompleted)
+                {
+                    if (!globalQueue.TryDequeueAny(out FileJob file))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+                    CopyAndProcessFile(file);
+                }
+            })).ToArray();
+
+            Task.WaitAll(workerTasks);
+
+            // Finaliser les jobs qui avaient des fichiers
+            foreach (var (job, _) in validJobs)
+            {
+                _controlCoordinator.UnregisterJob(job.Name);
+                if (jobsWithFiles.ContainsKey(job.Name))
+                    _stateTracker.FinalizeJobState(job.Name);
+            }
+
             return errors.Count > 0 ? string.Join("\n", errors) : null;
         }
 
         // ================================================================
-        //  SINGLE JOB EXECUTION (3 PHASES)
+        //  SINGLE JOB EXECUTION — internal, used by unit tests only
         // ================================================================
 
         /// <summary>
-        /// Executes a complete job in 3 phases (Analysis → Categorization → Copy).
-        /// Called from ExecuteBackup in a Task.Run protected by _jobSemaphore.
+        /// Executes a single job standalone. Used by unit tests.
+        /// Production code uses ExecuteBackup with GlobalFileQueue.
         /// </summary>
-        private void ExecuteSingleJob(BackupJob job, int capturedIndex, ConcurrentBag<string> errors)
+        internal void ExecuteSingleJob(BackupJob job, int capturedIndex, ConcurrentBag<string> errors)
         {
             try
             {
-                // PHASE 1: ANALYSIS
                 _stateTracker.UpdateJobState(job.Name, state => state.State = BackupState.Active);
 
                 HashSet<string> priorityExtCopy;
@@ -234,8 +300,8 @@ namespace EasySave.Core.Services
                     : new DifferentialBackupStrategy(job.SourceDirectory, job.TargetDirectory, job.Name, priorityExtCopy);
 
                 var files = strategy.Analyze();
-
                 long totalSize = files.Sum(f => f.FileSize);
+
                 _stateTracker.UpdateJobState(job.Name, state =>
                 {
                     state.TotalFiles = files.Count;
@@ -244,67 +310,10 @@ namespace EasySave.Core.Services
                     state.RemainingSize = totalSize;
                 });
 
-                if (files.Count == 0)
-                {
-                    _stateTracker.FinalizeJobState(job.Name);
-                    return;
-                }
-
-                // PHASE 2: CATEGORIZATION
-                FileJobCategorizer.CategorizeFiles(
-                    files, _sizeThreshold,
-                    out var priorityLight, out var nonPriorityLight,
-                    out var priorityHeavy, out var nonPriorityHeavy);
-
-                var heavyFiles = new List<FileJob>(priorityHeavy.Count + nonPriorityHeavy.Count);
-                heavyFiles.AddRange(priorityHeavy);
-                heavyFiles.AddRange(nonPriorityHeavy);
+                if (files.Count == 0) { _stateTracker.FinalizeJobState(job.Name); return; }
 
                 strategy.Prepare();
-
-                // PHASE 3: COPY
-                var heavyTask = Task.Run(() =>
-                {
-                    foreach (var file in heavyFiles)
-                    {
-                        if (_controlCoordinator.IsCancellationRequested(job.Name)) break;
-                        CopyAndProcessFile(file);
-                    }
-                });
-
-                if (priorityLight.Count > 0 && !_controlCoordinator.IsCancellationRequested(job.Name))
-                {
-                    try
-                    {
-                        Parallel.ForEach(priorityLight,
-                            new ParallelOptions
-                            {
-                                MaxDegreeOfParallelism = Environment.ProcessorCount,
-                                CancellationToken = _controlCoordinator.GetCancellationToken(job.Name)
-                            },
-                            file => CopyAndProcessFile(file));
-                    }
-                    catch (OperationCanceledException) { }
-                }
-
-                if (nonPriorityLight.Count > 0 && !_controlCoordinator.IsCancellationRequested(job.Name))
-                {
-                    try
-                    {
-                        Parallel.ForEach(nonPriorityLight,
-                            new ParallelOptions
-                            {
-                                MaxDegreeOfParallelism = Environment.ProcessorCount,
-                                CancellationToken = _controlCoordinator.GetCancellationToken(job.Name)
-                            },
-                            file => CopyAndProcessFile(file));
-                    }
-                    catch (OperationCanceledException) { }
-                }
-
-                try { heavyTask.Wait(); }
-                catch (AggregateException) { }
-
+                foreach (var file in files) CopyAndProcessFile(file);
                 _stateTracker.FinalizeJobState(job.Name);
             }
             catch (Exception ex)
