@@ -23,7 +23,6 @@ namespace EasySave.Core.Services
 
         // Configuration multi-threading
         private int _maxSimultaneousJobs;
-        private SemaphoreSlim _jobSemaphore;
         private long _sizeThreshold;
         private HashSet<string> _priorityExtensions;
         private readonly object _configLock = new();
@@ -53,7 +52,6 @@ namespace EasySave.Core.Services
                 (from, to) => _stateTracker.UpdateAllJobStates(from, to), null);
 
             _maxSimultaneousJobs = Math.Clamp(maxSimultaneousJobs, 1, 10);
-            _jobSemaphore = new SemaphoreSlim(_maxSimultaneousJobs, _maxSimultaneousJobs);
             _sizeThreshold = (long)fileSizeThresholdMB * 1_000_000;
 
             _priorityExtensions = priorityExtensions != null
@@ -77,8 +75,6 @@ namespace EasySave.Core.Services
             lock (_configLock)
             {
                 _maxSimultaneousJobs = Math.Clamp(maxSimultaneousJobs, 1, 10);
-                _jobSemaphore?.Dispose();
-                _jobSemaphore = new SemaphoreSlim(_maxSimultaneousJobs, _maxSimultaneousJobs);
                 _sizeThreshold = (long)fileSizeThresholdMB * 1_000_000;
             }
         }

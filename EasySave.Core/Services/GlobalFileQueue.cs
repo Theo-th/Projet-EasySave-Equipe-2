@@ -56,19 +56,8 @@ namespace EasySave.Core.Services
         }
 
         /// <summary>
-        /// Tries to dequeue the next file to process.
-        /// Priority files are always served before normal files.
-        /// Returns false if no file is available right now (may retry later).
-        /// </summary>
-        public bool TryDequeue(out FileJob file)
-        {
-            if (_priorityQueue.TryDequeue(out file)) return true;
-            if (_normalQueue.TryDequeue(out file)) return false; // dequeued but not priority
-            return false; // nothing available
-        }
-
-        /// <summary>
         /// Tries to dequeue; returns true if a file was retrieved regardless of lane.
+        /// Priority files are always served before normal files.
         /// </summary>
         public bool TryDequeueAny(out FileJob file)
         {
