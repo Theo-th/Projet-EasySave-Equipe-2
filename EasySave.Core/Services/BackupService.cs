@@ -260,6 +260,8 @@ namespace EasySave.Core.Services
                         s.RemainingSize = totalSize;
                     });
 
+                    strategy.Prepare();
+
                     if (files.Count == 0)
                     {
                         _stateTracker.FinalizeJobState(job.Name);
@@ -267,7 +269,6 @@ namespace EasySave.Core.Services
                         return;
                     }
 
-                    strategy.Prepare();
                     jobsWithFiles[job.Name] = true;
 
                     // Register as producer before enqueuing files
@@ -352,9 +353,10 @@ namespace EasySave.Core.Services
                     state.RemainingSize = totalSize;
                 });
 
+                strategy.Prepare();
+
                 if (files.Count == 0) { _stateTracker.FinalizeJobState(job.Name); return; }
 
-                strategy.Prepare();
                 foreach (var file in files) CopyAndProcessFile(file);
                 _stateTracker.FinalizeJobState(job.Name);
             }
