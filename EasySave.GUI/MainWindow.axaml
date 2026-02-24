@@ -574,14 +574,6 @@
 												<ComboBoxItem Content="XML"/>
 											</ComboBox>
 										</StackPanel>
-										
-										<StackPanel>
-											<TextBlock Name="LabelServerIpText" Text="Adresse IP du serveur" FontSize="12" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,6"/>
-											<Grid ColumnDefinitions="*,Auto">
-												<TextBox x:Name="ServerIpTextBox" Grid.Column="0" Watermark="localhost" Margin="0,0,8,0"/>
-												<Button x:Name="SaveIpButton" Grid.Column="1" Content="Enregistrer" Background="#3B82F6" Foreground="White" Width="120" Padding="10,8"/>
-											</Grid>
-										</StackPanel>
 									</StackPanel>
 								</StackPanel>
 							</StackPanel>

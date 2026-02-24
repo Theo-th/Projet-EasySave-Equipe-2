@@ -123,13 +123,6 @@ public partial class MainWindow : Window
             _viewModel.SetLogTarget(logTarget);
             _controls.LogTargetComboBox.SelectedIndex = logTarget switch { "Server" => 1, "Both" => 2, _ => 0 };
         }
-
-        // IP serveur
-        if (settings.TryGetValue("ServerIp", out string? serverIp) && !string.IsNullOrWhiteSpace(serverIp) && _controls.ServerIpTextBox != null)
-        {
-            _controls.ServerIpTextBox.Text = serverIp;
-            _viewModel.SetServerIp(serverIp);
-        }
     }
 
     private void SetupEventHandlers()
@@ -168,7 +161,6 @@ public partial class MainWindow : Window
         if (_controls.ResumeButton != null) _controls.ResumeButton.Click += ResumeButton_Click;
         if (_controls.StopButton != null) _controls.StopButton.Click += StopButton_Click;
 
-        if (_controls.SaveIpButton != null) _controls.SaveIpButton.Click += SaveIpButton_Click;
         if (_controls.LogFormatComboBox != null) _controls.LogFormatComboBox.SelectionChanged += LogFormatComboBox_SelectionChanged;
         
         // Initialize first section visible
@@ -286,16 +278,6 @@ public partial class MainWindow : Window
             _viewModel.ChangeLogFormat(format);
             _settingsService.UpdateSetting("LogFormat", format);
             _uiService.UpdateStatus(string.Format(Lang.StatusLogFormatChanged, format), true);
-        }
-    }
-
-    private void SaveIpButton_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_controls.ServerIpTextBox != null && !string.IsNullOrWhiteSpace(_controls.ServerIpTextBox.Text))
-        {
-            _viewModel.SetServerIp(_controls.ServerIpTextBox.Text);
-            _settingsService.UpdateSetting("ServerIp", _controls.ServerIpTextBox.Text);
-            _uiService.UpdateStatus(string.Format(Lang.StatusServerIpUpdated, _controls.ServerIpTextBox.Text), true);
         }
     }
 
