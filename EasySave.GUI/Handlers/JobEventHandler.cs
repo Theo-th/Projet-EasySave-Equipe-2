@@ -229,7 +229,7 @@ public class JobEventHandler
 
     public void DeleteJobButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_controls.ManageJobListBox?.SelectedIndex < 0)
+        if (_controls.ManageJobListBox == null || _controls.ManageJobListBox.SelectedIndex < 0)
         {
             _uiService.UpdateStatus(Lang.PleaseSelectPlanToDelete, false);
             return;
@@ -257,7 +257,8 @@ public class JobEventHandler
 
     public async void ViewDetailsButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_controls.ManageJobListBox?.SelectedItem != null &&
+        if (_controls.ManageJobListBox != null &&
+            _controls.ManageJobListBox.SelectedItem != null &&
             _controls.ManageJobListBox.SelectedIndex >= 0 &&
             _controls.ManageJobListBox.SelectedIndex < _jobs.Count)
         {
