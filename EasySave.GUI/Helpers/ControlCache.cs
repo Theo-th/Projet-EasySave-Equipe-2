@@ -28,10 +28,8 @@ public class ControlCache
     public TextBlock? ProgressText { get; set; }
     public TextBlock? CurrentFileText { get; set; }
     public TextBlock? ItemsCountText { get; set; }
-    public TextBlock? PageInfoText { get; set; }
-    public Button? PreviousPageButton { get; set; }
-    public Button? NextPageButton { get; set; }
     public ComboBox? ItemsPerPageComboBox { get; set; }
+    public ComboBox? LogFormatComboBox { get; set; }
 
     public TextBox? EncryptionKeyTextBox { get; set; }
     public Button? EditEncryptionKeyButton { get; set; }
@@ -60,7 +58,7 @@ public class ControlCache
 
 
     // Backup control buttons (Pause / Resume / Stop)
-    public Button? PlayButton { get; set; }
+    public Border? GlobalControlsSection { get; set; }
     public Button? PauseButton { get; set; }
     public Button? ResumeButton { get; set; }
     public Button? StopButton { get; set; }
@@ -80,7 +78,8 @@ public class ControlCache
         ProgressArea = window.FindControl<Border>("ProgressArea");
         TypeComboBox = window.FindControl<ComboBox>("TypeComboBox");
         LanguageComboBox = window.FindControl<ComboBox>("LanguageComboBox");
-        LogTargetComboBox = window.FindControl<ComboBox>("LogTargetComboBox"); // AJOUT
+        LogTargetComboBox = window.FindControl<ComboBox>("LogTargetComboBox");
+        LogFormatComboBox = window.FindControl<ComboBox>("LogFormatComboBox");
 
         LogsPathValueText = window.FindControl<TextBlock>("LogsPathValueText");
         LogsPathTextBox = window.FindControl<TextBox>("LogsPathTextBox");
@@ -92,9 +91,6 @@ public class ControlCache
         ProgressText = window.FindControl<TextBlock>("ProgressText");
         CurrentFileText = window.FindControl<TextBlock>("CurrentFileText");
         ItemsCountText = window.FindControl<TextBlock>("ItemsCountText");
-        PageInfoText = window.FindControl<TextBlock>("PageInfoText");
-        PreviousPageButton = window.FindControl<Button>("PreviousPageButton");
-        NextPageButton = window.FindControl<Button>("NextPageButton");
         ItemsPerPageComboBox = window.FindControl<ComboBox>("ItemsPerPageComboBox");
 
         EncryptionKeyTextBox = window.FindControl<TextBox>("EncryptionKeyTextBox");
@@ -127,7 +123,7 @@ public class ControlCache
 
 
         // Backup control buttons
-        PlayButton = window.FindControl<Button>("PlayButton");
+        GlobalControlsSection = window.FindControl<Border>("GlobalControlsSection");
         PauseButton = window.FindControl<Button>("PauseButton");
         ResumeButton = window.FindControl<Button>("ResumeButton");
         StopButton = window.FindControl<Button>("StopButton");

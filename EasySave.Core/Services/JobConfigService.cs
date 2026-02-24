@@ -8,6 +8,7 @@ namespace EasySave.Core.Services
 {
     /// <summary>
     /// Service for managing backup job configurations.
+    /// Handles persistence and validation of backup jobs.
     /// </summary>
     public class JobConfigService : IJobConfigService
     {
@@ -21,6 +22,9 @@ namespace EasySave.Core.Services
             Converters = { new JsonStringEnumConverter() }
         };
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="JobConfigService"/> with the specified configuration file path.
+        /// </summary>
         public JobConfigService(string configFilePath = "jobs_config.json")
         {
             // If it is an absolute path, use it as is, otherwise combine it with BaseDirectory
@@ -29,6 +33,9 @@ namespace EasySave.Core.Services
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFilePath);
         }
 
+        /// <summary>
+        /// Retrieves all backup jobs from the configuration file.
+        /// </summary>
         public List<BackupJob> GetAllJobs()
         {
             lock (_lockObject)
@@ -52,6 +59,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific backup job by its index.
+        /// </summary>
         public BackupJob? GetJob(int index)
         {
             lock (_lockObject)
@@ -65,7 +75,10 @@ namespace EasySave.Core.Services
             }
         }
 
-        // Creates and saves a new backup job. Returns a tuple indicating success and an optional error message.
+        /// <summary>
+        /// Creates and saves a new backup job.
+        /// Returns a tuple indicating success and an optional error message.
+        /// </summary>
         public (bool Success, string? ErrorMessage) CreateJob(string name, string sourceDirectory, string targetDirectory, BackupType type)
         {
             lock (_lockObject)
@@ -116,6 +129,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Removes a backup job from the configuration by its index.
+        /// </summary>
         public bool RemoveJob(int index)
         {
             lock (_lockObject)
@@ -130,6 +146,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Returns the total number of configured backup jobs.
+        /// </summary>
         public int GetJobCount()
         {
             lock (_lockObject)
@@ -138,6 +157,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Saves the list of backup jobs to the configuration file.
+        /// </summary>
         private bool SaveJobsList(List<BackupJob> jobs)
         {
             try
@@ -152,7 +174,9 @@ namespace EasySave.Core.Services
             }
         }
 
-        // Updates the configuration file path without recreating the service.
+        /// <summary>
+        /// Updates the configuration file path without recreating the service.
+        /// </summary>
         public void UpdateConfigPath(string newConfigPath)
         {
             lock (_lockObject)

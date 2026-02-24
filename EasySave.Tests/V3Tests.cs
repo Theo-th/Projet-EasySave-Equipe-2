@@ -4,8 +4,9 @@ using EasySave.Core.Services;
 using EasySave.Core.Interfaces;
 using EasySave.Core.Models;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-
+using System.Threading.Tasks;
 
 namespace EasySave.Tests
 {
@@ -98,10 +99,10 @@ namespace EasySave.Tests
         }
 
         /// <summary>
-        /// Verifies that the CryptoSoft encryption tool is restricted to a single instance execution.
+        /// Verifies that the EncryptionService singleton pattern works correctly.
         /// </summary>
         [Fact]
-        public void CryptoSoft_ShouldBeMonoInstance()
+        public async Task EncryptionService_ShouldBeSingleton()
         {
             // Arrange
             var service = EncryptionService.Instance;
@@ -117,7 +118,7 @@ namespace EasySave.Tests
                 tasks.Add(Task.Run(() => service.EncryptFile(testFile)));
             }
 
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks);
 
             // Assert
             foreach (var task in tasks)

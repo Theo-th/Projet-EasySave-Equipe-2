@@ -3,6 +3,7 @@ using Avalonia.Media;
 using EasySave.Core.Models;
 using EasySave.Core.Properties;
 using EasySave.GUI.Helpers;
+using EasySave.GUI.Handlers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ public class UIUpdateService
 {
     private readonly ControlCache _controls;
     private readonly Window _window;
+    private JobEventHandler? _jobHandler;
     private string? _lastCurrentFileName = null;
 
     /// <summary>
@@ -26,6 +28,14 @@ public class UIUpdateService
     {
         _window = window;
         _controls = controls;
+    }
+
+    /// <summary>
+    /// Sets the JobEventHandler reference for updating job progress texts.
+    /// </summary>
+    public void SetJobHandler(JobEventHandler jobHandler)
+    {
+        _jobHandler = jobHandler;
     }
 
     /// <summary>
@@ -48,7 +58,7 @@ public class UIUpdateService
     /// </summary>
     public void UpdateJobsCount(int count)
     {
-        var text = count == 0 ? "Aucune sauvegarde" : count == 1 ? "1 sauvegarde" : $"{count} sauvegardes";
+        var text = count == 0 ? Lang.JobsCountNone : count == 1 ? Lang.JobsCountOne : string.Format(Lang.JobsCountMany, count);
 
         if (_controls.ItemsCountText != null)
             _controls.ItemsCountText.Text = text;
@@ -57,10 +67,13 @@ public class UIUpdateService
     /// <summary>
     /// Shows or hides the progress area and resets progress if hidden.
     /// </summary>
-    public void ShowProgress(bool show)
+    public void ShowProgress(bool show, bool showGlobalControls = false)
     {
         if (_controls.ProgressArea != null)
             _controls.ProgressArea.IsVisible = show;
+
+        if (_controls.GlobalControlsSection != null)
+            _controls.GlobalControlsSection.IsVisible = show && showGlobalControls;
 
         if (!show)
         {
@@ -84,6 +97,8 @@ public class UIUpdateService
         UpdateComboBoxes();
         UpdateHeaderAndFooter();
         UpdateCurrentFileText();
+        UpdateSettingsSections();
+        UpdateExecuteTab();
     }
 
     /// <summary>
@@ -135,7 +150,7 @@ public class UIUpdateService
         if (_controls.CurrentFileText != null)
             _controls.CurrentFileText.Text = string.IsNullOrEmpty(state.CurrentSourceFile)
                 ? "..."
-                : $"Fichier : {Path.GetFileName(state.CurrentSourceFile)}";
+                : $"{Lang.FileLabel} : {Path.GetFileName(state.CurrentSourceFile)}";
     }
 
     /// <summary>
@@ -143,7 +158,7 @@ public class UIUpdateService
     /// </summary>
     public void ShowBusinessProcessAlert(string processName)
     {
-        UpdateStatus($" ALERTE : Logiciel métier '{processName}' détecté ! Sauvegarde en pause.", false);
+        UpdateStatus(string.Format(Lang.BusinessProcessAlert, processName), false);
     }
 
 
@@ -155,10 +170,10 @@ public class UIUpdateService
             var tabItems = mainTabControl.Items.OfType<TabItem>().ToArray();
             if (tabItems.Length >= 4)
             {
-                tabItems[0].Header = LocalizationManager.GetString("TabExecute");
-                tabItems[1].Header = LocalizationManager.GetString("TabCreate");
-                tabItems[2].Header = LocalizationManager.GetString("TabManage");
-                tabItems[3].Header = LocalizationManager.GetString("TabSettings");
+                tabItems[0].Header = Lang.TabExecute;
+                tabItems[1].Header = Lang.TabCreate;
+                tabItems[2].Header = Lang.TabManage;
+                tabItems[3].Header = Lang.TabSettings;
             }
         }
     }
@@ -166,42 +181,39 @@ public class UIUpdateService
 
     private void UpdateLabels()
     {
-        UpdateTextBlock("ExecuteTitleText", "ExecuteTitle");
-        UpdateTextBlock("ExecuteDescText", "ExecuteDescription");
-        UpdateTextBlock("CreateTitleText", "CreateTitle");
-        UpdateTextBlock("ManageTitleText", "ManageTitle");
-        UpdateTextBlock("ManageDescText", "ManageDesc");
-        UpdateTextBlock("SettingsTitleText", "SettingsAppTitle");
-        UpdateTextBlock("LanguageSectionText", "LanguageSection");
-        UpdateTextBlock("LanguageInterfaceText", "LanguageInterface");
-        UpdateTextBlock("LanguageDescText", "LanguageChoose");
-        UpdateTextBlock("AboutSectionText", "AboutSection");
-        UpdateTextBlock("VersionLabelText", "VersionLabel");
-        UpdateTextBlock("LogsPathLabelText", "LogsPathLabel");
-        UpdateTextBlock("ConfigLabelText", "ConfigLabel");
-        UpdateTextBlock("StateLabelText", "StateLabel");
-        UpdateTextBlock("JobNameLabel", "JobName");
-        UpdateTextBlock("SourceLabel", "SourceFolder");
-        UpdateTextBlock("TargetLabel", "DestinationFolder");
-        UpdateTextBlock("TypeLabel", "BackupType");
+        SetTextBlock("ExecuteTitleText", Lang.ExecuteTitle);
+        SetTextBlock("ExecuteDescText", Lang.ExecuteDescription);
+        SetTextBlock("CreateTitleText", Lang.CreateTitle);
+        SetTextBlock("ManageTitleText", Lang.ManageTitle);
+        SetTextBlock("ManageDescText", Lang.ManageDesc);
+        SetTextBlock("SettingsTitleText", Lang.SettingsAppTitle);
+        SetTextBlock("LanguageSectionText", Lang.LanguageSection);
+        SetTextBlock("LanguageInterfaceText", Lang.LanguageInterface);
+        SetTextBlock("LanguageDescText", Lang.LanguageChoose);
+        SetTextBlock("AboutSectionText", Lang.AboutSection);
+        SetTextBlock("VersionLabelText", Lang.VersionLabel);
+        SetTextBlock("LogsPathLabelText", Lang.LogsPathLabel);
+        SetTextBlock("ConfigLabelText", Lang.ConfigLabel);
+        SetTextBlock("StateLabelText", Lang.StateLabel);
+        SetTextBlock("JobNameLabel", Lang.JobName);
+        SetTextBlock("SourceLabel", Lang.SourceFolder);
+        SetTextBlock("TargetLabel", Lang.DestinationFolder);
+        SetTextBlock("TypeLabel", Lang.BackupType);
     }
 
 
     private void UpdateButtons()
     {
-        UpdateButton("ExecuteButton", "BtnExecute");
-        UpdateButton("CreateJobButton", "BtnCreate");
-        UpdateButton("DeleteJobButton", "BtnDelete");
-        UpdateButton("ViewDetailsButton", "BtnViewDetails");
-        UpdateButton("BrowseSourceButton", "BtnModify");
-        UpdateButton("BrowseTargetButton", "BtnModify");
-        UpdateButton("BrowseLogsButton", "BtnModify");
-        UpdateButton("BrowseConfigButton", "BtnModify");
-        UpdateButton("BrowseStateButton", "BtnModify");
-        var resumeBtn = _window.FindControl<Button>("ResumeButton");
-        if (resumeBtn != null) resumeBtn.Content = $"â¶  {LocalizationManager.GetString("BtnResume")}";
-        var stopBtn = _window.FindControl<Button>("StopButton");
-        if (stopBtn != null) stopBtn.Content = $"â¹  {LocalizationManager.GetString("BtnStop")}";
+        // Execute tab
+        SetButton("ExecuteButton", Lang.BtnExecute);
+        SetTextBlock("PerPageText", Lang.LabelPerPage);
+        // Create tab
+        SetButton("CreateJobButton", Lang.BtnCreate);
+        SetButton("BrowseSourceButton", Lang.BtnBrowse);
+        SetButton("BrowseTargetButton", Lang.BtnBrowse);
+        // Manage tab
+        SetButton("DeleteJobButton", Lang.BtnDelete);
+        SetButton("ViewDetailsButton", Lang.BtnViewDetails);
     }
 
 
@@ -210,22 +222,14 @@ public class UIUpdateService
         if (_controls.TypeComboBox != null)
         {
             var currentIndex = _controls.TypeComboBox.SelectedIndex;
-            _controls.TypeComboBox.ItemsSource = new[]
-            {
-                LocalizationManager.GetString("BackupTypeFull"),
-                LocalizationManager.GetString("BackupTypeDifferential")
-            };
+            _controls.TypeComboBox.ItemsSource = new[] { Lang.BackupTypeFull, Lang.BackupTypeDifferential };
             _controls.TypeComboBox.SelectedIndex = currentIndex == -1 ? 0 : currentIndex;
         }
 
         if (_controls.LanguageComboBox != null)
         {
             var currentIndex = _controls.LanguageComboBox.SelectedIndex;
-            _controls.LanguageComboBox.ItemsSource = new[]
-            {
-                LocalizationManager.GetString("LangFrench"),
-                LocalizationManager.GetString("LangEnglish")
-            };
+            _controls.LanguageComboBox.ItemsSource = new[] { Lang.LangFrench, Lang.LangEnglish };
             _controls.LanguageComboBox.SelectedIndex = currentIndex;
         }
     }
@@ -234,22 +238,22 @@ public class UIUpdateService
     private void UpdateHeaderAndFooter()
     {
         if (_controls.HeaderDescription != null)
-            _controls.HeaderDescription.Text = LocalizationManager.GetString("AppDescription");
+            _controls.HeaderDescription.Text = Lang.AppDescription;
 
         if (_controls.FooterText != null)
-            _controls.FooterText.Text = LocalizationManager.GetString("StatusReady");
+            _controls.FooterText.Text = Lang.StatusReady;
     }
 
 
-    private void UpdateTextBlock(string name, string key)
+    private void SetTextBlock(string name, string value)
     {
-        _window.FindControl<TextBlock>(name)?.SetValue(TextBlock.TextProperty, LocalizationManager.GetString(key));
+        _window.FindControl<TextBlock>(name)?.SetValue(TextBlock.TextProperty, value);
     }
 
 
-    private void UpdateButton(string name, string key)
+    private void SetButton(string name, string value)
     {
-        _window.FindControl<Button>(name)?.SetValue(Button.ContentProperty, LocalizationManager.GetString(key));
+        _window.FindControl<Button>(name)?.SetValue(Button.ContentProperty, value);
     }
 
     /// <summary>
@@ -271,5 +275,87 @@ public class UIUpdateService
             _controls.StatePathValueText.Text = statePath;
         if (_controls.StatePathTextBox != null)
             _controls.StatePathTextBox.Text = statePath;
+    }
+
+    /// <summary>
+    /// Updates all settings section labels and buttons.
+    /// </summary>
+    private void UpdateSettingsSections()
+    {
+        // Sidebar navigation buttons
+        _window.FindControl<Button>("PathsNavButton")?.SetValue(Button.ContentProperty, Lang.NavPaths);
+        _window.FindControl<Button>("SecurityNavButton")?.SetValue(Button.ContentProperty, Lang.NavSecurity);
+        _window.FindControl<Button>("ThreadingNavButton")?.SetValue(Button.ContentProperty, Lang.NavMultiThreading);
+        _window.FindControl<Button>("LogsNavButton")?.SetValue(Button.ContentProperty, Lang.NavLogging);
+
+        // Update PathsSection
+        SetTextBlock("PathsSectionTitle", Lang.SectionPaths);
+        SetTextBlock("LabelLogsFolderText", Lang.LabelLogsFolder);
+        SetTextBlock("LabelConfigFileText", Lang.LabelConfigFile);
+        SetTextBlock("LabelStateFileText", Lang.LabelStateFile);
+        _window.FindControl<Button>("BrowseLogsButton")?.SetValue(Button.ContentProperty, Lang.BtnBrowse);
+        _window.FindControl<Button>("BrowseConfigButton")?.SetValue(Button.ContentProperty, Lang.BtnBrowse);
+        _window.FindControl<Button>("BrowseStateButton")?.SetValue(Button.ContentProperty, Lang.BtnBrowse);
+
+        // Update SecuritySection
+        SetTextBlock("SecuritySectionTitle", Lang.SectionSecurity);
+        SetTextBlock("LabelEncryptionKeyText", Lang.LabelEncryptionKey);
+        SetTextBlock("LabelExtensionsToEncryptText", Lang.LabelExtensionsToEncrypt);
+        SetTextBlock("LabelBusinessProcessText", Lang.LabelBusinessProcess);
+        SetTextBlock("BusinessProcessDescText", Lang.BusinessProcessDescription);
+        _window.FindControl<Button>("EditEncryptionKeyButton")?.SetValue(Button.ContentProperty, Lang.BtnModify);
+
+        // Update ThreadingSection
+        SetTextBlock("ThreadingSectionTitle", Lang.SectionMultiThreading);
+        SetTextBlock("LabelPriorityExtensionsText", Lang.LabelPriorityExtensions);
+        SetTextBlock("PriorityExtensionsDescText", Lang.PriorityExtensionsDescription);
+        SetTextBlock("LabelMaxSimultaneousJobsText", Lang.LabelMaxSimultaneousJobs);
+        SetTextBlock("MaxJobsRangeText", Lang.MaxJobsRange);
+        SetTextBlock("LabelFileSizeThresholdText", Lang.LabelFileSizeThreshold);
+        SetTextBlock("FileSizeThresholdDescText", Lang.FileSizeThresholdDescription);
+        SetTextBlock("MegabytesText", Lang.Megabytes);
+        _window.FindControl<Button>("SaveThreadingSettingsButton")?.SetValue(Button.ContentProperty, Lang.BtnSaveSettings);
+
+        // Update LogsSection
+        SetTextBlock("LogsSectionTitle", Lang.SectionLogging);
+        SetTextBlock("LabelLogTargetText", Lang.LabelLogTarget);
+        UpdateLogTargetComboBox();
+        SetTextBlock("LabelServerIpText", Lang.LabelServerIp);
+        _window.FindControl<Button>("SaveIpButton")?.SetValue(Button.ContentProperty, Lang.BtnSave);
+    }
+
+    /// <summary>
+    /// Updates the log target ComboBox items.
+    /// </summary>
+    private void UpdateLogTargetComboBox()
+    {
+        var comboBox = _window.FindControl<ComboBox>("LogTargetComboBox");
+        if (comboBox != null && comboBox.Items != null)
+        {
+            var items = comboBox.Items.OfType<ComboBoxItem>().ToArray();
+            if (items.Length >= 3)
+            {
+                items[0].Content = Lang.LogTargetLocalOnly;
+                items[1].Content = Lang.LogTargetServerOnly;
+                items[2].Content = Lang.LogTargetBoth;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Updates the Execute tab controls (global buttons and control label).
+    /// </summary>
+    private void UpdateExecuteTab()
+    {
+        // Global control label
+        SetTextBlock("GlobalControlLabel", Lang.GlobalControl);
+
+        // Global control buttons
+        _controls.PauseButton?.SetValue(Button.ContentProperty, Lang.BtnPauseAll);
+        SetButton("ResumeButton", Lang.BtnResumeAll);
+        _controls.StopButton?.SetValue(Button.ContentProperty, Lang.BtnStopAll);
+
+        // Refresh all job progress item texts (badges + per-job buttons)
+        _jobHandler?.RefreshJobProgressTexts();
     }
 }

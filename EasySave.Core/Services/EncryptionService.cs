@@ -27,20 +27,12 @@ namespace EasySave.Core.Services
     /// </summary>
     public class EncryptionService
     {
-        private static EncryptionService _instance = new EncryptionService();
+        private static readonly EncryptionService _instance = new EncryptionService();
 
         /// <summary>
         /// Gets the singleton instance of the EncryptionService.
         /// </summary>
-        public static EncryptionService Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new EncryptionService();
-                return _instance;
-            }
-        }
+        public static EncryptionService Instance => _instance;
 
         private EncryptionConfig _config = new EncryptionConfig();
         private readonly string _configFilePath;
@@ -62,8 +54,6 @@ namespace EasySave.Core.Services
             _cryptoSoftPath = Path.Combine(baseDir, "Tools", "CryptoSoft.exe");
 
             LoadConfig();
-
-            AddExtension(".txt"); // to be removed after testing
         }
 
 

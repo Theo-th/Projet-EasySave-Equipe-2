@@ -4,10 +4,13 @@ using EasySave.Core.Models;
 namespace EasySave.Core.Services
 {
     /// <summary>
-    /// Service utilitaire pour trier et catégoriser les fichiers à sauvegarder selon priorité et taille.
+    /// Utility service for sorting and categorizing files to be backed up by priority and size.
     /// </summary>
     public static class FileJobCategorizer
     {
+        /// <summary>
+        /// Categorizes a collection of backup files into four lists based on priority and size threshold.
+        /// </summary>
         public static void CategorizeFiles(IEnumerable<FileJob> files, long sizeThreshold,
             out List<FileJob> priorityLight, out List<FileJob> nonPriorityLight,
             out List<FileJob> priorityHeavy, out List<FileJob> nonPriorityHeavy)

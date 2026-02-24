@@ -4,10 +4,10 @@ using EasySave.Core.Services;
 namespace EasySave.Core.Services.Strategies
 {
     /// <summary>
-    /// Classe abstraite d�finissant la strat�gie d'analyse de sauvegarde.
-    /// Analyze() : Phase 1 � lecture seule, ne modifie jamais le disque.
-    /// Prepare() : appel� par BackupService entre la Phase 2 et la Phase 3
-    ///             pour pr�parer les dossiers cibles (nettoyage / cr�ation).
+    /// Abstract class defining the backup analysis strategy.
+    /// Analyze(): Phase 1 – read-only, never modifies disk.
+    /// Prepare(): called by BackupService between Phase 2 and Phase 3
+    ///            to prepare target folders (cleanup / creation).
     /// </summary>
     public abstract class BackupStrategy
     {
@@ -30,32 +30,32 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Analyse les fichiers � sauvegarder et retourne la liste des FileJob.
-        /// Op�ration en LECTURE SEULE : ne cr�e, ne modifie ni ne supprime aucun fichier.
-        /// Chaque FileJob contient : source, destination, nom du travail, bool�en chiffrement,
-        /// bool�en priorit� et taille � permettant le tri en 4 cat�gories en Phase 2.
+        /// Analyzes the files to backup and returns the list of FileJobs.
+        /// READ-ONLY operation: does not create, modify, or delete any files.
+        /// Each FileJob contains: source, destination, job name, encryption boolean,
+        /// priority boolean, and size – enabling sorting into 4 categories in Phase 2.
         /// </summary>
         public abstract List<FileJob> Analyze();
 
         /// <summary>
-        /// Pr�pare les dossiers de destination avant l'ex�cution des copies (Phase 3).
-        /// Appel� par BackupService apr�s Task.WaitAll de la Phase 1.
+        /// Prepares destination folders before copy execution (Phase 3).
+        /// Called by BackupService after Task.WaitAll of Phase 1.
         /// </summary>
         public abstract void Prepare();
 
         /// <summary>
-        /// Valide l'existence du r�pertoire source.
+        /// Validates the existence of the source directory.
         /// </summary>
         protected void ValidateSource()
         {
             if (!Directory.Exists(SourceDirectory))
                 throw new DirectoryNotFoundException(
-                    $"Le r�pertoire source '{SourceDirectory}' n'existe pas.");
+                    $"Source directory '{SourceDirectory}' does not exist.");
         }
 
         /// <summary>
-        /// Cr�e un FileJob � partir d'un FileInfo.
-        /// D�termine automatiquement IsPriority (extension prioritaire) et IsEncrypted.
+        /// Creates a FileJob from a FileInfo.
+        /// Automatically determines IsPriority (priority extension) and IsEncrypted.
         /// </summary>
         protected FileJob CreateFileJob(FileInfo file, string destinationFolder)
         {
@@ -74,7 +74,7 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Supprime le contenu d'un dossier sans supprimer le dossier lui-même.
+        /// Deletes the contents of a folder without deleting the folder itself.
         /// </summary>
         protected static void ClearFolder(string folderPath)
         {

@@ -3,14 +3,16 @@ using EasySave.Core.Models;
 namespace EasySave.Core.Services.Strategies
 {
     /// <summary>
-    /// Stratégie de sauvegarde différentielle.
-    /// Analyze() : identifie les fichiers ajoutés/modifiés depuis la dernière sauvegarde complète (lecture seule).
-    ///             Si aucune sauvegarde complète n'existe, analyse tous les fichiers (comportement Full).
-    /// Prepare() : nettoie le dossier cible et génère le rapport des fichiers supprimés.
+    /// Differential backup strategy.
+    /// Analyze(): identifies added/modified files since the last full backup (read-only).
+    /// If no full backup exists, analyzes all files (Full behavior).
+    /// Prepare(): cleans the target folder and generates the deleted files report.
     /// </summary>
     public class DifferentialBackupStrategy : BackupStrategy
     {
-        // Mémorise si l'analyse s'est comportée comme une Full (aucun dossier 'full' trouvé).
+        /// <summary>
+        /// Remembers if the analysis behaved like a Full (no 'full' folder found).
+        /// </summary>
         private bool _analyzedAsFull;
 
         public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory,
@@ -20,9 +22,9 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Analyse les fichiers à sauvegarder (lecture seule, aucune modification disque).
-        /// — Si le dossier 'full/' n'existe pas : retourne tous les fichiers (vers 'full/').
-        /// — Sinon : retourne uniquement les fichiers nouveaux ou modifiés (vers 'differential/').
+        /// Analyzes files to be backed up (read-only, no disk modification).
+        /// If the 'full/' folder does not exist: returns all files (to 'full/').
+        /// Otherwise: returns only new or modified files (to 'differential/').
         /// </summary>
         public override List<FileJob> Analyze()
         {
@@ -42,9 +44,9 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Prépare le dossier cible selon le type d'analyse effectuée.
-        /// Génère également le rapport des fichiers supprimés pour une analyse différentielle.
-        /// Appelé par BackupService juste avant la Phase 3.
+        /// Prepares the target folder according to the type of analysis performed.
+        /// Also generates the deleted files report for a differential analysis.
+        /// Called by BackupService just before Phase 3.
         /// </summary>
         public override void Prepare()
         {
@@ -60,17 +62,17 @@ namespace EasySave.Core.Services.Strategies
                 string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_FOLDER);
                 ClearFolder(diffBackupFolder);
                 Directory.CreateDirectory(diffBackupFolder);
-                // Rapport des suppressions uniquement disponible ici (après analyse, avant copie)
+                // Deleted files report only available here (after analysis, before copy)
                 GenerateDeletedFilesReport(fullBackupFolder, diffBackupFolder);
             }
         }
 
-        // ----------------------------------------------------------------
-        //  MÉTHODES PRIVÉES
-        // ----------------------------------------------------------------
+        // ================================================================
+        //  PRIVATE METHODS
+        // ================================================================
 
         /// <summary>
-        /// Analyse complète : retourne tous les fichiers source vers le dossier 'full/'.
+        /// Full analysis: returns all source files to the 'full/' folder.
         /// </summary>
         private List<FileJob> AnalyzeAllFiles(string fullBackupFolder)
         {
@@ -85,8 +87,8 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Analyse différentielle : retourne uniquement les fichiers ajoutés ou modifiés
-        /// par rapport à la dernière sauvegarde complète.
+        /// Differential analysis: returns only added or modified files
+        /// compared to the last full backup.
         /// </summary>
         private List<FileJob> AnalyzeChangedFiles(string fullBackupFolder, string diffBackupFolder)
         {
@@ -111,8 +113,8 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Génère un rapport des fichiers présents dans la sauvegarde complète
-        /// mais absents de la source (fichiers supprimés depuis la dernière Full).
+        /// Generates a report of files present in the full backup
+        /// but absent from the source (files deleted since the last Full).
         /// </summary>
         private void GenerateDeletedFilesReport(string fullBackupDir, string targetDir)
         {
