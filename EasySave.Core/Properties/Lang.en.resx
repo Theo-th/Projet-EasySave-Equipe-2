@@ -455,6 +455,9 @@
   <data name="BtnSaveSettings" xml:space="preserve">
     <value>Save settings</value>
   </data>
+  <data name="LogFormatDescription" xml:space="preserve">
+    <value>Choose the extension for your log files.</value>
+  </data>
   <data name="LabelLogTarget" xml:space="preserve">
     <value>Log target</value>
   </data>

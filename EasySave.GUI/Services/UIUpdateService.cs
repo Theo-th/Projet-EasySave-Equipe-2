@@ -318,6 +318,8 @@ public class UIUpdateService
 
         // Update LogsSection
         SetTextBlock("LogsSectionTitle", Lang.SectionLogging);
+        SetTextBlock("LabelLogFormatText", Lang.TitleLogFormat);
+        SetTextBlock("LogFormatDescText", Lang.LogFormatDescription);
         SetTextBlock("LabelLogTargetText", Lang.LabelLogTarget);
         UpdateLogTargetComboBox();
         SetTextBlock("LabelServerIpText", Lang.LabelServerIp);
@@ -338,6 +340,11 @@ public class UIUpdateService
                 items[0].Content = Lang.LogTargetLocalOnly;
                 items[1].Content = Lang.LogTargetServerOnly;
                 items[2].Content = Lang.LogTargetBoth;
+
+                // Force Avalonia to refresh the displayed selected item
+                var selected = comboBox.SelectedIndex;
+                comboBox.SelectedIndex = -1;
+                comboBox.SelectedIndex = selected;
             }
         }
     }
