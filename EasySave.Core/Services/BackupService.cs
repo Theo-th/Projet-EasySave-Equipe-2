@@ -21,19 +21,22 @@ namespace EasySave.Core.Services
         private readonly JobStateTracker _stateTracker;
         private readonly JobControlCoordinator _controlCoordinator;
 
-        // Configuration multi-threading
+        // Multi-threading configuration
         private int _maxSimultaneousJobs;
         private long _sizeThreshold;
         private HashSet<string> _priorityExtensions;
         private readonly object _configLock = new();
 
-        // Global mutex: prevents two HEAVY file transfers simultaneously
+        // Global mutex: prevents two heavy file transfers simultaneously
         private readonly SemaphoreSlim _heavyFileSemaphore = new SemaphoreSlim(1, 1);
 
         // Events
         public event Action<BackupJobState>? OnProgressChanged;
         public event Action<string>? OnBusinessProcessDetected;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BackupService"/> with the specified configuration and threading settings.
+        /// </summary>
         public BackupService(
             IJobConfigService configService,
             IBackupStateRepository stateRepository,
@@ -48,7 +51,7 @@ namespace EasySave.Core.Services
             _stateTracker = new JobStateTracker(stateRepository);
             _controlCoordinator = new JobControlCoordinator();
             _logManager = new BackupLogManager(logType, logDirectory);
-            _processManager = new BusinessProcessManager(processDetector, 
+            _processManager = new BusinessProcessManager(processDetector,
                 (from, to) => _stateTracker.UpdateAllJobStates(from, to), null);
 
             _maxSimultaneousJobs = Math.Clamp(maxSimultaneousJobs, 1, 10);
@@ -66,10 +69,24 @@ namespace EasySave.Core.Services
         //  CONFIGURATION
         // ================================================================
 
+        /// <summary>
+        /// Sets the log output target (file, console, etc.).
+        /// </summary>
         public void SetLogTarget(LogTarget target) => _logManager.SetLogTarget(target);
+
+        /// <summary>
+        /// Changes the log serialization format (JSON, XML, etc.).
+        /// </summary>
         public void ChangeLogFormat(LogType logType) => _logManager.ChangeLogFormat(logType);
+
+        /// <summary>
+        /// Updates the directory where log files are written.
+        /// </summary>
         public void UpdateLogsDirectory(string newLogsDirectory) => _logManager.UpdateLogsDirectory(newLogsDirectory);
 
+        /// <summary>
+        /// Updates the maximum number of simultaneous jobs and the heavy-file size threshold.
+        /// </summary>
         public void UpdateThreadingSettings(int maxSimultaneousJobs, int fileSizeThresholdMB)
         {
             lock (_configLock)
@@ -79,6 +96,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Replaces the set of file extensions that are treated as priority during backup.
+        /// </summary>
         public void UpdatePriorityExtensions(List<string> extensions)
         {
             lock (_configLock)
@@ -87,27 +107,39 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Returns the current list of priority file extensions.
+        /// </summary>
         public List<string> GetPriorityExtensions()
         {
             lock (_configLock) { return _priorityExtensions.ToList(); }
         }
 
         // ================================================================
-        //  CONTRÔLE GLOBAL (TOUS LES TRAVAUX)
+        //  GLOBAL CONTROL (ALL JOBS)
         // ================================================================
 
+        /// <summary>
+        /// Pauses all currently running backup jobs.
+        /// </summary>
         public void PauseBackup()
         {
             _controlCoordinator.PauseAllJobs();
             _stateTracker.UpdateAllJobStates(BackupState.Active, BackupState.Paused);
         }
 
+        /// <summary>
+        /// Resumes all paused backup jobs.
+        /// </summary>
         public void ResumeBackup()
         {
             _controlCoordinator.ResumeAllJobs();
             _stateTracker.UpdateAllJobStates(BackupState.Paused, BackupState.Active);
         }
 
+        /// <summary>
+        /// Stops all active and paused backup jobs.
+        /// </summary>
         public void StopBackup()
         {
             _controlCoordinator.StopAllJobs();
@@ -116,21 +148,30 @@ namespace EasySave.Core.Services
         }
 
         // ================================================================
-        //  CONTRÔLE PAR TRAVAIL INDIVIDUEL
+        //  PER-JOB CONTROL
         // ================================================================
 
+        /// <summary>
+        /// Pauses the backup job identified by <paramref name="jobName"/>.
+        /// </summary>
         public void PauseJob(string jobName)
         {
             _controlCoordinator.PauseJob(jobName);
             _stateTracker.UpdateJobState(jobName, state => state.State = BackupState.Paused);
         }
 
+        /// <summary>
+        /// Resumes the backup job identified by <paramref name="jobName"/>.
+        /// </summary>
         public void ResumeJob(string jobName)
         {
             _controlCoordinator.ResumeJob(jobName);
             _stateTracker.UpdateJobState(jobName, state => state.State = BackupState.Active);
         }
 
+        /// <summary>
+        /// Stops the backup job identified by <paramref name="jobName"/>.
+        /// </summary>
         public void StopJob(string jobName)
         {
             _controlCoordinator.StopJob(jobName);
@@ -138,15 +179,20 @@ namespace EasySave.Core.Services
         }
 
         // ================================================================
-        //  EXÉCUTION PRINCIPALE
+        //  MAIN EXECUTION
         // ================================================================
 
+        /// <summary>
+        /// Executes the backup jobs corresponding to the given list of indices.
+        /// Runs in three phases: analysis, global-queue population, then parallel copy.
+        /// Returns an error message string if any errors occurred, or <c>null</c> on full success.
+        /// </summary>
         public string? ExecuteBackup(List<int> jobIndices)
         {
             if (jobIndices == null || jobIndices.Count == 0)
                 return "No backup job specified.";
 
-            // Réinitialisation complète
+            // Full reset
             _controlCoordinator.StopAllJobs();
             _controlCoordinator.ResumeAllJobs();
             _stateTracker.ClearStates();
@@ -184,8 +230,8 @@ namespace EasySave.Core.Services
                 });
             }
 
-            // ── PHASE 1 : ANALYSE EN PARALLÈLE ─────────────────────────────
-            // Chaque job analyse ses fichiers et les dépose dans la file globale.
+            // ── PHASE 1: PARALLEL ANALYSIS ──────────────────────────────────
+            // Each job analyses its files and enqueues them into the global queue.
             var globalQueue = new GlobalFileQueue();
             var jobsWithFiles = new ConcurrentDictionary<string, bool>();
 
@@ -224,7 +270,7 @@ namespace EasySave.Core.Services
                     strategy.Prepare();
                     jobsWithFiles[job.Name] = true;
 
-                    // Enregistrement comme producteur avant d'envoyer les fichiers
+                    // Register as producer before enqueuing files
                     globalQueue.RegisterProducer();
                     foreach (var file in files)
                         globalQueue.Enqueue(file);
@@ -240,12 +286,12 @@ namespace EasySave.Core.Services
 
             Task.WaitAll(analyseTasks);
 
-            // ── PHASE 2 : COPIE DEPUIS LA FILE GLOBALE ──────────────────────
-            // N workers communs consomment la file dans l'ordre de priorité.
-            // Règles respectées entre TOUS les jobs :
-            //   1. Fichiers prioritaires passent devant les non-prioritaires
-            //   2. Fichiers lourds (> seuil) : un seul à la fois (_heavyFileSemaphore)
-            //   3. Fichiers légers : parallélisme complet
+            // ── PHASE 2: COPY FROM GLOBAL QUEUE ─────────────────────────────
+            // N shared workers consume the queue in priority order.
+            // Rules enforced across ALL jobs:
+            //   1. Priority files go before non-priority files
+            //   2. Heavy files (> threshold): only one at a time (_heavyFileSemaphore)
+            //   3. Light files: full parallelism
             int workerCount;
             lock (_configLock) { workerCount = _maxSimultaneousJobs; }
             var workerTasks = Enumerable.Range(0, workerCount).Select(_ => Task.Run(() =>
@@ -263,7 +309,7 @@ namespace EasySave.Core.Services
 
             Task.WaitAll(workerTasks);
 
-            // Finaliser les jobs qui avaient des fichiers
+            // Finalize jobs that had files
             foreach (var (job, _) in validJobs)
             {
                 _controlCoordinator.UnregisterJob(job.Name);
@@ -280,7 +326,7 @@ namespace EasySave.Core.Services
 
         /// <summary>
         /// Executes a single job standalone. Used by unit tests.
-        /// Production code uses ExecuteBackup with GlobalFileQueue.
+        /// Production code uses <see cref="ExecuteBackup"/> with <see cref="GlobalFileQueue"/>.
         /// </summary>
         internal void ExecuteSingleJob(BackupJob job, int capturedIndex, ConcurrentBag<string> errors)
         {
@@ -323,6 +369,10 @@ namespace EasySave.Core.Services
         //  FILE COPY AND PROCESSING
         // ================================================================
 
+        /// <summary>
+        /// Handles pause/cancellation checks and heavy-file mutual exclusion
+        /// before delegating the actual copy to <see cref="PerformCopyAndLog"/>.
+        /// </summary>
         private void CopyAndProcessFile(FileJob file)
         {
             if (_controlCoordinator.IsCancellationRequested(file.JobName)) return;
@@ -335,11 +385,11 @@ namespace EasySave.Core.Services
 
             if (ct.IsCancellationRequested) return;
 
-            // Pause if business process detected
+            // Pause if a business process is detected
             _processManager.WaitIfBusinessProcess(ct);
             if (ct.IsCancellationRequested) return;
 
-            // Heavy file → global mutex
+            // Heavy file → acquire global mutex
             bool isHeavy = file.FileSize > _sizeThreshold;
             if (isHeavy)
             {
@@ -355,6 +405,10 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Copies a file to its destination, optionally encrypts it,
+        /// and writes a log record. Updates the job state after each file.
+        /// </summary>
         protected virtual void PerformCopyAndLog(FileJob file)
         {
             try

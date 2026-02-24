@@ -4,9 +4,9 @@ using EasyLog;
 namespace EasySave.Core.Services.Strategies
 {
     /// <summary>
-    /// Stratégie de sauvegarde complète.
-    /// Analyze() : scan de tous les fichiers source (lecture seule).
-    /// Prepare() : nettoie et recrée le dossier 'full' avant les copies.
+    /// Full backup strategy.
+    /// Analyze(): scans all source files (read-only).
+    /// Prepare(): cleans and recreates the 'full' folder before copying.
     /// </summary>
     public class FullBackupStrategy : BackupStrategy
     {
@@ -17,8 +17,8 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Scanne tous les fichiers source et retourne les FileJob avec destination dans 'full/'.
-        /// Ne touche pas au disque : aucune création ni suppression de fichiers/dossiers.
+        /// Scans all source files and returns FileJobs with destination in 'full/'.
+        /// Does not touch the disk: no file or folder creation or deletion.
         /// </summary>
         public override List<FileJob> Analyze()
         {
@@ -37,8 +37,8 @@ namespace EasySave.Core.Services.Strategies
         }
 
         /// <summary>
-        /// Nettoie et recrée le dossier de sauvegarde complète.
-        /// Appelé par BackupService juste avant la Phase 3.
+        /// Cleans and recreates the full backup folder.
+        /// Called by BackupService just before Phase 3.
         /// </summary>
         public override void Prepare()
         {

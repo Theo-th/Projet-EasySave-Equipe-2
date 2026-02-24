@@ -4,8 +4,15 @@ using System.Linq;
 
 namespace EasySave.Core.Services
 {
+    /// <summary>
+    /// Parses command-line arguments to extract backup job indices.
+    /// </summary>
     public static class CommandLineParser
     {
+        /// <summary>
+        /// Parses command-line arguments and returns a list of valid job indices.
+        /// Supports range syntax (e.g., "1-3") and semicolon-separated values.
+        /// </summary>
         public static List<int>? ParseJobIndices(string[]? args, int maxJobs)
         {
             if (args == null || args.Length == 0)

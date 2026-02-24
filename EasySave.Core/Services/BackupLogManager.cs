@@ -14,6 +14,9 @@ namespace EasySave.Core.Services
         private LogTarget _currentLogTarget;
         private readonly object _logLock = new();
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BackupLogManager"/> with the specified log type and directory.
+        /// </summary>
         public BackupLogManager(LogType logType, string? logDirectory = null)
         {
             _logDirectory = logDirectory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
@@ -21,8 +24,14 @@ namespace EasySave.Core.Services
             ChangeLogFormat(logType);
         }
 
+        /// <summary>
+        /// Sets the log output target (Local, Server, or Both).
+        /// </summary>
         public void SetLogTarget(LogTarget target) => _currentLogTarget = target;
 
+        /// <summary>
+        /// Changes the log serialization format (JSON or XML).
+        /// </summary>
         public void ChangeLogFormat(LogType logType)
         {
             _logger = logType == LogType.JSON
@@ -30,12 +39,18 @@ namespace EasySave.Core.Services
                 : new XmlLog(_logDirectory);
         }
 
+        /// <summary>
+        /// Updates the directory where log files are written.
+        /// </summary>
         public void UpdateLogsDirectory(string newLogsDirectory)
         {
             _logDirectory = newLogsDirectory;
             ChangeLogFormat(_logger is JsonLog ? LogType.JSON : LogType.XML);
         }
 
+        /// <summary>
+        /// Writes a log record to the configured target(s) (local, remote, or both).
+        /// </summary>
         public void WriteLog(Record record)
         {
             if (_currentLogTarget == LogTarget.Local || _currentLogTarget == LogTarget.Both)
@@ -47,6 +62,9 @@ namespace EasySave.Core.Services
                 _ = RemoteLogService.SendLogAsync(record);
         }
 
+        /// <summary>
+        /// Converts a local file path to UNC format (network path).
+        /// </summary>
         public static string GetUncPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path) || path.StartsWith(@"\\")) return path;

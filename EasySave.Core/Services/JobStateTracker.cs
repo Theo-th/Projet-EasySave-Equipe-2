@@ -16,22 +16,34 @@ namespace EasySave.Core.Services
 
         public event Action<BackupJobState>? OnStateChanged;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="JobStateTracker"/> with the specified state repository.
+        /// </summary>
         public JobStateTracker(IBackupStateRepository stateRepository)
         {
             _stateRepository = stateRepository;
         }
 
+        /// <summary>
+        /// Registers a new job with its initial state.
+        /// </summary>
         public void RegisterJob(string jobName, BackupJobState initialState)
         {
             _jobStates[jobName] = initialState;
             NotifyStateChange(initialState);
         }
 
+        /// <summary>
+        /// Attempts to retrieve the state of a specific job.
+        /// </summary>
         public bool TryGetState(string jobName, out BackupJobState? state)
         {
             return _jobStates.TryGetValue(jobName, out state);
         }
 
+        /// <summary>
+        /// Updates the state of a specific job using the provided action.
+        /// </summary>
         public void UpdateJobState(string jobName, Action<BackupJobState> updateAction)
         {
             if (_jobStates.TryGetValue(jobName, out var state))
@@ -46,6 +58,9 @@ namespace EasySave.Core.Services
             }
         }
 
+        /// <summary>
+        /// Updates all jobs with a specific state to a new state.
+        /// </summary>
         public void UpdateAllJobStates(BackupState fromState, BackupState toState)
         {
             foreach (var state in _jobStates.Values)
@@ -63,6 +78,9 @@ namespace EasySave.Core.Services
             SaveStates();
         }
 
+        /// <summary>
+        /// Finalizes the state of a job based on completion status.
+        /// </summary>
         public void FinalizeJobState(string jobName)
         {
             if (!_jobStates.TryGetValue(jobName, out var state)) return;
@@ -79,16 +97,25 @@ namespace EasySave.Core.Services
             SaveStates();
         }
 
+        /// <summary>
+        /// Clears all tracked job states.
+        /// </summary>
         public void ClearStates()
         {
             _jobStates.Clear();
         }
 
+        /// <summary>
+        /// Notifies all subscribers of a state change event.
+        /// </summary>
         private void NotifyStateChange(BackupJobState state)
         {
             OnStateChanged?.Invoke(state);
         }
 
+        /// <summary>
+        /// Saves the current states to the configured repository.
+        /// </summary>
         private void SaveStates()
         {
             lock (_stateLock)
