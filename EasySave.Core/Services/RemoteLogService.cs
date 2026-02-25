@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text.Json.Nodes;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -12,8 +14,6 @@ namespace EasySave.Core.Services
     public static class RemoteLogService
     {
         private static readonly HttpClient _client = new HttpClient();
-        private const string ServerUrl = "http://localhost:5000/Logs";
-
         /// <summary>
         /// Sends a backup log record to the remote server asynchronously.
         /// Silently ignores any errors that occur during transmission.
@@ -22,7 +22,32 @@ namespace EasySave.Core.Services
         {
             try
             {
-                await _client.PostAsJsonAsync(ServerUrl, log);
+                string serverIp = "localhost";
+                /// We check whether a file named ip_server.txt exists in the same directory as the .exe file.
+                string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ip_server.json");
+
+                if (File.Exists(configPath))
+                {
+                    try {
+                        string jsonContent = File.ReadAllText(configPath);
+
+                        // Read the file and remove any spaces or line breaks.
+
+                        var jsonNode = JsonNode.Parse(jsonContent);
+                        string? parsedIp = jsonNode?["ServerIp"]?.ToString();
+
+                        if (!string.IsNullOrWhiteSpace(parsedIp))
+                        {
+                            serverIp = parsedIp.Trim();
+                        }
+                    }
+                    catch { 
+                    
+                    }
+                    
+                }
+                string url = $"http://{serverIp}:5000/Logs";
+                await _client.PostAsJsonAsync(url, log);
             }
             catch (Exception)
             {
