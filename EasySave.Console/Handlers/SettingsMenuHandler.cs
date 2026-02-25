@@ -127,30 +127,6 @@ namespace EasySave.ConsoleUI.Handlers
             }
         }
 
-        public void ShowServerIpMenu()
-        {
-            Console.Clear();
-            Console.WriteLine(Lang.ServerIpMenuTitle);
-            Console.WriteLine($"{Lang.ServerIpCurrent} {_viewModel.GetServerIp()}");
-            Console.WriteLine("-------------------------------------");
-            Console.Write($"{Lang.ServerIpNewPrompt} ");
-
-            string? input = Console.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(input))
-            {
-                _viewModel.SetServerIp(input);
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine(Lang.ServerIpSaved);
-                Console.ResetColor();
-            }
-            else
-            {
-                Console.WriteLine(Lang.ServerIpCancelled);
-            }
-            Thread.Sleep(1000);
-        }
-
         private static void SetLanguage(string culture)
         {
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);

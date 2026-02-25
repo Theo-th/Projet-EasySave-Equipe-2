@@ -92,8 +92,7 @@ namespace EasySave.ConsoleUI
                         case 0: _settingsHandler.ShowLanguageSettings(); break;
                         case 1: _settingsHandler.ShowLogFormatMenu(); break;
                         case 2: _settingsHandler.ShowLogTargetMenu(); break;
-                        case 3: _settingsHandler.ShowServerIpMenu(); break;
-                        case 4: quit = true; break;
+                        case 3: quit = true; break;
                     }
                 }
             }

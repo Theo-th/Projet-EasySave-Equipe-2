@@ -245,17 +245,6 @@ namespace EasySave.Core.ViewModels
         public void RemoveWatchedProcess(string processName) => _processDetector.RemoveWatchedProcess(processName);
 
         /// <summary>
-        /// Sets the server URL for network operations.
-        /// </summary>
-        public void SetServerIp(string ip) => NetworkService.Instance.SetServerIp(ip);
-
-        /// <summary>
-        /// Gets the current server IP address.
-        /// </summary>
-        /// <returns>The server IP address.</returns>
-        public string GetServerIp() => NetworkService.Instance.GetServerIp();
-
-        /// <summary>
         /// Updates the logs directory path.
         /// </summary>
         /// <param name="logsPath">The new logs directory path.</param>
