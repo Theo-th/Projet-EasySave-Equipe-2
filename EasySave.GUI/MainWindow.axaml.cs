@@ -118,14 +118,14 @@ public partial class MainWindow : Window
 
     private void LoadMiscSettings(Dictionary<string, string> settings)
     {
-        // Langue : appliquer avant de changer l'index pour éviter le double-déclenchement
+        // Language: apply before changing index to avoid double-triggering
         if (settings.TryGetValue("Language", out string? lang) && _controls.LanguageComboBox != null)
         {
             LocalizationManager.SetLanguage(lang);
             _controls.LanguageComboBox.SelectedIndex = lang == "en-US" ? 1 : 0;
         }
 
-        // Cible des logs
+        // Log target
         if (settings.TryGetValue("LogTarget", out string? logTarget) && _controls.LogTargetComboBox != null)
         {
             _viewModel.SetLogTarget(logTarget);
@@ -293,14 +293,14 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Validation et récupération des valeurs
+            // Validation and retrieval of values
             if (!TryParseMaxJobs(out int maxJobs) || !TryParseFileSizeThreshold(out int fileSizeThresholdMB))
                 return;
 
-            // 1. Appliquer immédiatement (sans attendre la sauvegarde)
+            // 1. Apply immediately (without waiting for save)
             _viewModel.UpdateThreadingSettings(maxJobs, fileSizeThresholdMB);
 
-            // 2. Sauvegarder chaque paramètre indépendamment via UpdateSetting
+            // 2. Save each setting independently via UpdateSetting
             _settingsService.UpdateSetting("MaxSimultaneousJobs", maxJobs.ToString());
             _settingsService.UpdateSetting("FileSizeThresholdMB", fileSizeThresholdMB.ToString());
 
@@ -317,7 +317,7 @@ public partial class MainWindow : Window
     {
         maxJobs = 3;
         if (_controls.MaxJobsTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
-            return true; // valeur par défaut acceptée
+            return true; // default value accepted
 
         if (int.TryParse(text, out int parsed) && parsed >= 1 && parsed <= 10)
         {
@@ -332,7 +332,7 @@ public partial class MainWindow : Window
     {
         fileSizeThresholdMB = 10;
         if (_controls.FileSizeThresholdTextBox?.Text is not string text || string.IsNullOrWhiteSpace(text))
-            return true; // valeur par défaut acceptée
+            return true; // default value accepted
 
         if (int.TryParse(text, out int parsed) && parsed >= 1)
         {

@@ -3,7 +3,7 @@ using EasySave.Core.Models;
 namespace EasySave.Core.Interfaces
 {
     /// <summary>
-    /// Interface du service de sauvegarde.
+    /// Interface for the backup service.
     /// </summary>
     public interface IBackupService
     {

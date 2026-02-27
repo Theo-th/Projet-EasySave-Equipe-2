@@ -4,7 +4,7 @@ using System.Windows.Input;
 namespace EasySave.GUI.Models;
 
 /// <summary>
-/// Implémentation simple de ICommand pour les bindings dans les DataTemplates Avalonia.
+/// Simple implementation of ICommand for bindings in Avalonia DataTemplates.
 /// </summary>
 public class RelayCommand : ICommand
 {
