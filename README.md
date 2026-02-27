@@ -16,23 +16,26 @@ D'après les contributeurs du dépôt :
 
 ---
 
-## Fonctionnalités (Livrable 1 - version 1.0)
+## 🚀 Évolution des Fonctionnalités
 
-Le logiciel permet de créer jusqu'à **5 travaux de sauvegarde**.
+### Livrable 1 & 2 (v1.0 à v2.0)
+* **Gestion des Travaux** : Passage de 5 travaux maximum à un nombre illimité.
+* **Types de Sauvegarde** : Support complet et différentiel.
+* **Internationalisation** : Interface disponible en Anglais et Français.
+* **Sécurité** : Chiffrement des fichiers via **CryptoSoft** pour des extensions spécifiques.
+* **Logiciel Métier** : Détection d'applications interdites pour bloquer le lancement.
+* **Logs** : Choix du format entre **JSON** et **XML**.
 
-### Caractéristiques d'un travail :
-* **Nom** de la sauvegarde.
-* **Répertoire source** et **répertoire cible**.
-* Support des **disques locaux**, **externes** et **lecteurs réseaux**.
-* **Type de sauvegarde** : Complète ou Différentielle.
-* **Intégrité** : Sauvegarde de tous les éléments (fichiers et sous-répertoires).
-
-### Points clés :
-* **Internationalisation** : Logiciel utilisable en **Anglais** et **Français**.
-* **Exécution flexible** : Lancement d'un travail unique ou exécution séquentielle de l'ensemble.
-
-## Fonctionnalités (Livrable 2 - version 1.1)
-* **Ajout** de la possibilité d'écrire les journaux dans un fichier .xml au lieu de .json en fonction du choix de l'utilisateur.
+### Livrable 3 (v3.0 - Version Actuelle)
+La version 3.0 introduit des capacités de traitement avancées et une gestion réseau optimisée :
+* **Sauvegardes en Parallèle** : Abandon du mode séquentiel pour permettre l'exécution simultanée des travaux.
+* **Fichiers Prioritaires** : Gestion d'une liste d'extensions prioritaires traitées avant tout autre fichier.
+* **Contrôle de la Bande Passante** : Interdiction de transférer simultanément deux fichiers dont la taille dépasse un seuil **n Ko** paramétrable.
+* **Interaction Temps Réel** : Possibilité de mettre en **Pause**, **Play** ou **Stop** (arrêt immédiat) chaque travail individuellement.
+* **Progression** : Suivi en temps réel de l'état d'avancement via un pourcentage de progression.
+* **Pause Automatique** : Arrêt de tous les transferts en cours si un logiciel métier est détecté, avec reprise automatique dès sa fermeture.
+* **CryptoSoft Mono-instance** : Modification de CryptoSoft pour interdire les exécutions simultanées sur un même poste.
+* **Centralisation Docker** : Service de centralisation des logs en temps réel via Docker (modes : Local, Centralisé, ou les deux).
 
 ---
 
