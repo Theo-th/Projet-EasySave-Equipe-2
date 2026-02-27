@@ -27,24 +27,19 @@ namespace EasySave.Core.Services
     /// </summary>
     public class EncryptionService
     {
-        private static EncryptionService _instance = new EncryptionService();
+        private static readonly EncryptionService _instance = new EncryptionService();
 
         /// <summary>
         /// Gets the singleton instance of the EncryptionService.
         /// </summary>
-        public static EncryptionService Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new EncryptionService();
-                return _instance;
-            }
-        }
+        public static EncryptionService Instance => _instance;
 
         private EncryptionConfig _config = new EncryptionConfig();
         private readonly string _configFilePath;
         private readonly string _cryptoSoftPath;
+
+        // LOCK ADDED HERE: Static object acting as a queue for the external process
+        private static readonly object _cryptoLock = new object();
 
         /// <summary>
         /// Initializes a new instance of the EncryptionService class.
@@ -59,8 +54,6 @@ namespace EasySave.Core.Services
             _cryptoSoftPath = Path.Combine(baseDir, "Tools", "CryptoSoft.exe");
 
             LoadConfig();
-
-            AddExtension(".txt"); // a supprimer après les tests
         }
 
 
@@ -202,26 +195,30 @@ namespace EasySave.Core.Services
 
             try
             {
-                var processStartInfo = new ProcessStartInfo
+                // QUEUEING HERE: only one thread allowed to pass at a time
+                lock (_cryptoLock)
                 {
-                    FileName = _cryptoSoftPath,
+                    var processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = _cryptoSoftPath,
 
-                    Arguments = $"\"{filePath}\" \"{_config.Key}\"",
-                    RedirectStandardOutput = true,  
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true            
-                };
+                        Arguments = $"\"{filePath}\" \"{_config.Key}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
 
-                using (var process = Process.Start(processStartInfo))
-                {
-                    if (process == null) return -1;
+                    using (var process = Process.Start(processStartInfo))
+                    {
+                        if (process == null) return -1;
 
-                   
-                    process.WaitForExit();
 
-                    // CryptoSoft returns the time (in ms) via the exit code
-                    return process.ExitCode;
+                        process.WaitForExit();
+
+                        // CryptoSoft returns the time (in ms) via the exit code
+                        return process.ExitCode;
+                    }
                 }
             }
             catch

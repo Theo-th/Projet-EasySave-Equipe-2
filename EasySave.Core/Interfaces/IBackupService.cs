@@ -2,18 +2,14 @@ using EasySave.Core.Models;
 
 namespace EasySave.Core.Interfaces
 {
-    
     /// <summary>
-    /// Interface for the backup job execution service.
+    /// Interface for the backup service.
     /// </summary>
-
     public interface IBackupService
     {
-        
         /// <summary>
         /// Event triggered when a backup job's progress changes.
         /// </summary>
-
         event Action<BackupJobState>? OnProgressChanged;
 
         /// <summary>
@@ -21,7 +17,6 @@ namespace EasySave.Core.Interfaces
         /// </summary>
         event Action<string>? OnBusinessProcessDetected;
 
-        
         /// <summary>
         /// Executes a backup job by its index.
         /// </summary>
@@ -49,13 +44,29 @@ namespace EasySave.Core.Interfaces
         /// </summary>
         /// <param name="logType">The new log format.</param>
         void ChangeLogFormat(LogType logType);
-        
-        
+
         /// <summary>
         /// Updates the logs directory path.
         /// </summary>
         /// <param name="newLogsDirectory">The new logs directory path.</param>
         void UpdateLogsDirectory(string newLogsDirectory);
-    }
 
+        /// <summary>
+        /// Pauses a specific job.
+        /// </summary>
+        /// <param name="jobName">The name of the job to pause.</param>
+        void PauseJob(string jobName);
+
+        /// <summary>
+        /// Resumes a specific job.
+        /// </summary>
+        /// <param name="jobName">The name of the job to resume.</param>
+        void ResumeJob(string jobName);
+
+        /// <summary>
+        /// Stops a specific job.
+        /// </summary>
+        /// <param name="jobName">The name of the job to stop.</param>
+        void StopJob(string jobName);
+    }
 }

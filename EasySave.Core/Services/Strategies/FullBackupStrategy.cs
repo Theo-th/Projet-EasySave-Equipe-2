@@ -3,73 +3,48 @@ using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    
-    // Full backup strategy.
+    /// <summary>
+    /// Full backup strategy.
+    /// Analyze(): scans all source files (read-only).
+    /// Prepare(): cleans and recreates the 'full' folder before copying.
+    /// </summary>
     public class FullBackupStrategy : BackupStrategy
     {
-        public FullBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
-            : base(sourceDirectory, targetDirectory, backupType, jobName, logger)
+        public FullBackupStrategy(string sourceDirectory, string targetDirectory,
+            string jobName, HashSet<string> priorityExtensions)
+            : base(sourceDirectory, targetDirectory, jobName, priorityExtensions)
         {
         }
 
         /// <summary>
-        /// Executes a full backup:
-        /// 1. Validates source/destination directories
-        /// 2. Traverses all source files and copies each one immediately
+        /// Scans all source files and returns FileJobs with destination in 'full/'.
+        /// Does not touch the disk: no file or folder creation or deletion.
         /// </summary>
-        public override (bool Success, string? ErrorMessage) Execute()
+        public override List<FileJob> Analyze()
         {
-            // Step 1: Directory validation
-            var validation = ValidateAndPrepareDirectories();
-            if (!validation.Success)
-            {
-                return validation;
-            }
+            ValidateSource();
 
-            try
-            {
-                string fullBackupFolder = Path.Combine(TargetDirectory, FULL_MARKER);
-                
-                // Clean previous content if it exists
-                ClearBackupFolder(fullBackupFolder);
+            string fullBackupFolder = Path.Combine(TargetDirectory, FULL_FOLDER);
 
-                var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
-                if (!folderCreation.Success)
-                {
-                    return folderCreation;
-                }
+            var dirInfo = new DirectoryInfo(SourceDirectory);
+            var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
 
-                // Step 2: Traverse source and copy each file immediately
-                var dirInfo = new DirectoryInfo(SourceDirectory);
-                if (!dirInfo.Exists)
-                {
-                    return (false, $"Source directory '{SourceDirectory}' does not exist.");
-                }
+            var fileJobs = new List<FileJob>(allFiles.Length);
+            foreach (var file in allFiles)
+                fileJobs.Add(CreateFileJob(file, fullBackupFolder));
 
-                var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
+            return fileJobs;
+        }
 
-                // Compute total size and notify initialization
-                long totalSize = allFiles.Sum(f => f.Length);
-                RaiseBackupInitialized(allFiles.Length, totalSize);
-
-                // Copy each file as it is encountered
-                foreach (var file in allFiles)
-                {
-                    string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
-
-                    var copyResult = CopyFile(relativePath, SourceDirectory, fullBackupFolder);
-                    if (!copyResult.Success)
-                    {
-                        return copyResult;
-                    }
-                }
-
-                return (true, null);
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Error during full backup: {ex.Message}");
-            }
+        /// <summary>
+        /// Cleans and recreates the full backup folder.
+        /// Called by BackupService just before Phase 3.
+        /// </summary>
+        public override void Prepare()
+        {
+            string fullBackupFolder = Path.Combine(TargetDirectory, FULL_FOLDER);
+            ClearFolder(fullBackupFolder);
+            Directory.CreateDirectory(fullBackupFolder);
         }
     }
 }

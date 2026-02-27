@@ -1,0 +1,19 @@
+[
+  {
+    "startTimestamp": "2026-02-24T15:39:24.3443287+01:00",
+    "id": 2,
+    "name": "TestFull2",
+    "sourcePath": "C:\\Users\\theot\\Documents\\TestProjet\\1",
+    "targetPath": "C:\\Users\\theot\\Documents\\TestProjet\\10",
+    "type": "Complete",
+    "state": "Completed",
+    "lastActionTimestamp": "2026-02-24T15:39:24.3808171+01:00",
+    "totalFiles": 0,
+    "totalSize": 0,
+    "remainingFiles": 0,
+    "remainingSize": 0,
+    "currentSourceFile": "",
+    "currentTargetFile": "",
+    "progressPercentage": 0
+  }
+]

@@ -14,5 +14,8 @@ namespace EasySave.Core.Models
         public long EncryptionTime { get; set; }
 
         public DateTime Timestamp { get; set; }
+
+        public string MachineName { get; set; } = Environment.MachineName;
+        public string UserName { get; set; } = Environment.UserName;       
     }
 }

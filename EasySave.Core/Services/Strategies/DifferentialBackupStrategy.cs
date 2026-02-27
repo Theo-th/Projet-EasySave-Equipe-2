@@ -1,184 +1,138 @@
 using EasySave.Core.Models;
-using EasyLog;
 
 namespace EasySave.Core.Services.Strategies
 {
-    
-    // Differential backup strategy (modified files only).
-
+    /// <summary>
+    /// Differential backup strategy.
+    /// Analyze(): identifies added/modified files since the last full backup (read-only).
+    /// If no full backup exists, analyzes all files (Full behavior).
+    /// Prepare(): cleans the target folder and generates the deleted files report.
+    /// </summary>
     public class DifferentialBackupStrategy : BackupStrategy
     {
-        public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory, BackupType backupType, string jobName, BaseLog logger)
-            : base(sourceDirectory, targetDirectory, backupType, jobName, logger)
-        {
-        }
-
-        
-        /// Executes a differential backup:
-        /// 1. Validates source/destination directories
-        /// 2. If no full backup exists, performs one
-        /// 3. Otherwise, clears the previous differential folder, traverses source files,
-        ///    copies modified ones immediately, and reports deleted files
+        /// <summary>
+        /// Remembers if the analysis behaved like a Full (no 'full' folder found).
         /// </summary>
-        public override (bool Success, string? ErrorMessage) Execute()
+        private bool _analyzedAsFull;
+
+        public DifferentialBackupStrategy(string sourceDirectory, string targetDirectory,
+            string jobName, HashSet<string> priorityExtensions)
+            : base(sourceDirectory, targetDirectory, jobName, priorityExtensions)
         {
-            // Step 1: Directory validation
-            var validation = ValidateAndPrepareDirectories();
-            if (!validation.Success)
+        }
+
+        /// <summary>
+        /// Analyzes files to be backed up (read-only, no disk modification).
+        /// If the 'full/' folder does not exist: returns all files (to 'full/').
+        /// Otherwise: returns only new or modified files (to 'differential/').
+        /// </summary>
+        public override List<FileJob> Analyze()
+        {
+            ValidateSource();
+
+            string fullBackupFolder = Path.Combine(TargetDirectory, FULL_FOLDER);
+
+            if (!Directory.Exists(fullBackupFolder))
             {
-                return validation;
+                _analyzedAsFull = true;
+                return AnalyzeAllFiles(fullBackupFolder);
             }
 
-            try
+            _analyzedAsFull = false;
+            string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_FOLDER);
+            return AnalyzeChangedFiles(fullBackupFolder, diffBackupFolder);
+        }
+
+        /// <summary>
+        /// Prepares the target folder according to the type of analysis performed.
+        /// Also generates the deleted files report for a differential analysis.
+        /// Called by BackupService just before Phase 3.
+        /// </summary>
+        public override void Prepare()
+        {
+            if (_analyzedAsFull)
             {
-                string fullBackupFolder = Path.Combine(TargetDirectory, FULL_MARKER);
-
-                // Step 2: Check if a full backup exists
-                if (!Directory.Exists(fullBackupFolder))
-                {
-                    return ExecuteFullBackup(fullBackupFolder);
-                }
-
-                // Step 3: Clear the contents of the previous differential folder
-                string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_MARKER);
-                ClearBackupFolder(diffBackupFolder);
-
-                var diffFolderCreation = CreateBackupFolder(diffBackupFolder, DIFFERENTIAL_MARKER);
-                if (!diffFolderCreation.Success)
-                {
-                    return diffFolderCreation;
-                }
-
-                // 3a: Generate the deleted files report
-                var reportResult = CreateDeletedFilesReport(SourceDirectory, fullBackupFolder, diffBackupFolder);
-                if (!reportResult.Success)
-                {
-                    return reportResult;
-                }
-
-                // 3b: Traverse source files, compare with full backup, and copy modified ones immediately
-                var dirInfo = new DirectoryInfo(SourceDirectory);
-                if (!dirInfo.Exists)
-                {
-                    return (false, $"Source directory '{SourceDirectory}' does not exist.");
-                }
-
-                var sourceFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
-
-                // Pre-compute modified files count and size for initialization event
-                int modifiedCount = 0;
-                long totalSize = 0;
-                foreach (var sourceFile in sourceFiles)
-                {
-                    string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
-                    string fullBackupFilePath = Path.Combine(fullBackupFolder, relativePath);
-
-                    if (!File.Exists(fullBackupFilePath) ||
-                        sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
-                    {
-                        modifiedCount++;
-                        totalSize += sourceFile.Length;
-                    }
-                }
-
-                RaiseBackupInitialized(modifiedCount, totalSize);
-
-                // Now traverse again and copy each modified file immediately
-                foreach (var sourceFile in sourceFiles)
-                {
-                    string relativePath = Path.GetRelativePath(SourceDirectory, sourceFile.FullName);
-                    string fullBackupFilePath = Path.Combine(fullBackupFolder, relativePath);
-
-                    if (!File.Exists(fullBackupFilePath) ||
-                        sourceFile.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath))
-                    {
-                        var copyResult = CopyFile(relativePath, SourceDirectory, diffBackupFolder);
-                        if (!copyResult.Success)
-                        {
-                            return copyResult;
-                        }
-                    }
-                }
-
-                return (true, null);
+                string fullBackupFolder = Path.Combine(TargetDirectory, FULL_FOLDER);
+                ClearFolder(fullBackupFolder);
+                Directory.CreateDirectory(fullBackupFolder);
             }
-            catch (Exception ex)
+            else
             {
-                return (false, $"Error during differential backup: {ex.Message}");
+                string fullBackupFolder = Path.Combine(TargetDirectory, FULL_FOLDER);
+                string diffBackupFolder = Path.Combine(TargetDirectory, DIFFERENTIAL_FOLDER);
+                ClearFolder(diffBackupFolder);
+                Directory.CreateDirectory(diffBackupFolder);
+                // Deleted files report only available here (after analysis, before copy)
+                GenerateDeletedFilesReport(fullBackupFolder, diffBackupFolder);
             }
         }
-    // Performs an initial full backup when none exists.
-        private (bool Success, string? ErrorMessage) ExecuteFullBackup(string fullBackupFolder)
+
+        // ================================================================
+        //  PRIVATE METHODS
+        // ================================================================
+
+        /// <summary>
+        /// Full analysis: returns all source files to the 'full/' folder.
+        /// </summary>
+        private List<FileJob> AnalyzeAllFiles(string fullBackupFolder)
         {
-            var folderCreation = CreateBackupFolder(fullBackupFolder, FULL_MARKER);
-            if (!folderCreation.Success)
-            {
-                return folderCreation;
-            }
-
             var dirInfo = new DirectoryInfo(SourceDirectory);
-            if (!dirInfo.Exists)
-            {
-                return (false, $"Source directory '{SourceDirectory}' does not exist.");
-            }
-
             var allFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
 
-            // Compute total size and notify initialization
-            long totalSize = allFiles.Sum(f => f.Length);
-            RaiseBackupInitialized(allFiles.Length, totalSize);
-
+            var fileJobs = new List<FileJob>(allFiles.Length);
             foreach (var file in allFiles)
+                fileJobs.Add(CreateFileJob(file, fullBackupFolder));
+
+            return fileJobs;
+        }
+
+        /// <summary>
+        /// Differential analysis: returns only added or modified files
+        /// compared to the last full backup.
+        /// </summary>
+        private List<FileJob> AnalyzeChangedFiles(string fullBackupFolder, string diffBackupFolder)
+        {
+            var dirInfo = new DirectoryInfo(SourceDirectory);
+            var sourceFiles = dirInfo.GetFiles("*", SearchOption.AllDirectories);
+
+            var fileJobs = new List<FileJob>();
+            foreach (var file in sourceFiles)
             {
                 string relativePath = Path.GetRelativePath(SourceDirectory, file.FullName);
+                string fullBackupFilePath = Path.Combine(fullBackupFolder, relativePath);
 
-                var copyResult = CopyFile(relativePath, SourceDirectory, fullBackupFolder);
-                if (!copyResult.Success)
-                {
-                    return copyResult;
-                }
+                bool isNew = !File.Exists(fullBackupFilePath);
+                bool isModified = !isNew &&
+                    file.LastWriteTime > File.GetLastWriteTime(fullBackupFilePath);
+
+                if (isNew || isModified)
+                    fileJobs.Add(CreateFileJob(file, diffBackupFolder));
             }
 
-            return (true, null);
+            return fileJobs;
         }
-    // Detects deleted files (present in the full backup but missing from the source)
-    // and generates a report in the destination folder.
-        private (bool Success, string? ErrorMessage) CreateDeletedFilesReport(
-            string sourceDir, string fullBackupDir, string targetDir)
+
+        /// <summary>
+        /// Generates a report of files present in the full backup
+        /// but absent from the source (files deleted since the last Full).
+        /// </summary>
+        private void GenerateDeletedFilesReport(string fullBackupDir, string targetDir)
         {
-            try
+            if (!Directory.Exists(fullBackupDir)) return;
+
+            var backupFiles = new DirectoryInfo(fullBackupDir)
+                .GetFiles("*", SearchOption.AllDirectories);
+
+            var deletedFiles = new List<string>();
+            foreach (var backupFile in backupFiles)
             {
-                var backupFiles = new DirectoryInfo(fullBackupDir)
-                    .GetFiles("*", SearchOption.AllDirectories);
-
-                var deletedFiles = new List<string>();
-
-                foreach (var backupFile in backupFiles)
-                {
-                    if (IsBackupMarker(backupFile.Name))
-                        continue;
-
-                    string relativePath = Path.GetRelativePath(fullBackupDir, backupFile.FullName);
-                    string sourceFilePath = Path.Combine(sourceDir, relativePath);
-
-                    if (!File.Exists(sourceFilePath))
-                    {
-                        deletedFiles.Add(relativePath);
-                    }
-                }
-
-                if (deletedFiles.Count > 0)
-                {
-                    string reportPath = Path.Combine(targetDir, DELETED_FILES_REPORT);
-                    File.WriteAllLines(reportPath, deletedFiles);
-                }
-
-                return (true, null);
+                string relativePath = Path.GetRelativePath(fullBackupDir, backupFile.FullName);
+                if (!File.Exists(Path.Combine(SourceDirectory, relativePath)))
+                    deletedFiles.Add(relativePath);
             }
-            catch (Exception ex)
-            {
-                return (false, $"Error detecting deleted files: {ex.Message}");
-            }
+
+            if (deletedFiles.Count > 0)
+                File.WriteAllLines(Path.Combine(targetDir, DELETED_FILES_REPORT), deletedFiles);
         }
     }
 }

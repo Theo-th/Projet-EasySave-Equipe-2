@@ -368,3 +368,5 @@ test_source/
 
 # macOS
 .DS_Store
+/EasySave.GUI/ViewModelConsole.cs
+/state.json
